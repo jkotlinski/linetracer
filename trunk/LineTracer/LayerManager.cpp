@@ -1,6 +1,8 @@
 #include "StdAfx.h"
-#include ".\layermanager.h"
+#include "layermanager.h"
+#include <process.h>
 
+#include "Logger.h"
 #include "RawImage.h"
 #include "Layer.h"
 #include "LineImagePainter.h"
@@ -18,10 +20,15 @@
 #include "BezierMaker.h"
 #include "ForkHandler.h"
 
+#include "LineTracerView.h"
+
 CLayerManager::CLayerManager(void)
+: m_processThread(NULL)
+, m_cachedBitmap(NULL)
+, m_restartProcess(false)
 {
-	TRACE("init layermanager\n");
-	
+	LOG("init layermanager\n");
+
 	CLayer *layer=new CLayer();
 	layer->SetImageProcessor(CDeSaturator::Instance());
 	//layer->SetVisible(true);
@@ -48,7 +55,7 @@ CLayerManager::CLayerManager(void)
 
 	layer=new CLayer();
 	layer->SetImageProcessor(CSkeletonizer::Instance());
-	//layer->SetVisible(true);
+	layer->SetVisible(true);
 	m_Layers.push_back(layer);
 	
 	layer=new CLayer();
@@ -63,7 +70,7 @@ CLayerManager::CLayerManager(void)
 
 	layer = new CLayer();
 	layer->SetImageProcessor(CForkHandler::Instance());
-	layer->SetVisible(true);
+	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
 	layer=new CLayer();
@@ -79,8 +86,19 @@ CLayerManager::CLayerManager(void)
 
 CLayerManager::~CLayerManager(void)
 {
-	for(unsigned int i=0; i<m_Layers.size(); i++) {
-		delete m_Layers.at(i);
+	try {
+		for(unsigned int i=0; i<m_Layers.size(); i++) {
+			delete m_Layers.at(i);
+		}
+		if( m_cachedBitmap != NULL )
+		{
+			delete m_cachedBitmap;
+		}
+	} catch (...) {
+		try {
+			ASSERT ( false );
+		} catch (...) {
+		}
 	}
 }
 
@@ -91,6 +109,8 @@ CLayerManager* CLayerManager::Instance() {
 
 void CLayerManager::InvalidateLayers(unsigned int startLayer)
 {
+	LOG( "InvalidateLayers %i start\n", startLayer );
+
 	for(unsigned int i=startLayer; i<m_Layers.size(); i++) {
 		m_Layers.at(i)->SetValid(false);
 
@@ -98,26 +118,23 @@ void CLayerManager::InvalidateLayers(unsigned int startLayer)
 			CBinarizer::Instance()->Init();
 		}
 	}
+
+	LOG( "InvalidateLayers bye\n" );
 }
 
 void CLayerManager::ProcessLayers()
 {
-	TRACE("ProcessLayers() start\n");
-	if(m_Layers.size()) {
-		CLayer *layer = m_Layers.at(0);
-		CSketchImage *img = layer->GetSketchImage();
-
-		for(UINT i=1; i<m_Layers.size(); i++) {
-			TRACE("process layer: %i\n",i);
-			layer = m_Layers.at(i);
-
-			layer->Process(img);
-			TRACE("process done: %i\n",i);
-			img = layer->GetSketchImage();
-		}
+	if ( m_processThread != NULL )
+	{
+		m_restartProcess = true;
+		LOG ( "restartProcess = true\n" );
 	}
-	TRACE("LayerManager::ProcessLayers() done\n");
-	CToolBox::Instance()->UpdateParams();
+	else 
+	{
+		LOG( "ProcessLayers() this=%x\n", this );
+		m_processThread = AfxBeginThread ( DoProcessLayers, (LPVOID)this );
+		LOG ( "m_processThread == %x\n", m_processThread );
+	}
 }
 
 CLayer* CLayerManager::GetLayer(int layer)
@@ -125,146 +142,51 @@ CLayer* CLayerManager::GetLayer(int layer)
 	return m_Layers.at(layer);
 }
 
-Bitmap* CLayerManager::MakeBitmap(void)
+Bitmap* CLayerManager::GetBitmap(void)
 {
-	CLayer* l = GetLayer(0);
+	LOG ( "layermanager->getCachedBitmap(): %x\n", GetCachedBitmap() );
+	/*
+	if ( GetCachedBitmap() != NULL ) 
+	{
+		return GetCachedBitmap();
+	}
+*/
+	CLayer* l_firstLayer = GetLayer(0);
+	ASSERT ( l_firstLayer != NULL );
 
-	TRACE("MakeBitmap() start\n");
-	int width=l->GetSketchImage()->GetWidth();
-	int height=l->GetSketchImage()->GetHeight();
+	CSketchImage *l_image = l_firstLayer->GetSketchImage();
+	ASSERT ( l_image != NULL );
 
-	int SCALE = int(CSkeletonizer::Instance()->GetParam("scale"));
+	int width = l_image->GetWidth();
+	int height = l_image->GetHeight();
 
-	TRACE("out size %i %i\n",width,height);
+	//int SCALE = int(CSkeletonizer::Instance()->GetParam("scale"));
+	static const int SCALE = 1;
 
 	CRawImage<ARGB> dst(width*SCALE,height*SCALE);
 	dst.Clear();
-	TRACE("dst size %i %i\n",dst.GetWidth(),dst.GetHeight());
 
-	if(GetLayer(BINARIZER)->IsVisible()) {
-		TRACE("paint binarizer\n");
-		CRawImage<bool> *src = static_cast<CRawImage<bool>*>(GetLayer(HOLEFILLER)->GetSketchImage());
-		for(int x=0; x<width*SCALE; x+=SCALE) {
-			for(int y=0; y<height*SCALE; y+=SCALE) {
-				ARGB p=src->GetPixel(x/SCALE,y/SCALE)?0xffffff:0;
-				//ARGB p=CBinarizer::Instance()->m_distanceMap->GetPixel(x/SCALE,y/SCALE);
-				if(!p) {
-				//if(p)
-					for(int i=0; i<SCALE; i++) {
-						for(int j=0; j<SCALE; j++) {
-							dst.SetPixel(x+i, y+j, 0xff000000 | p);
-						}
-					}
-				}
-			}
-		}
-	} else if(GetLayer(GAUSSIAN)->IsVisible()) {
-		CRawImage<unsigned char> *src = static_cast<CRawImage<unsigned char>*>(GetLayer(GAUSSIAN)->GetSketchImage());
-		for(int i=0; i<width*height; i++) {
-			ARGB p=src->GetPixel(i);
-			dst.SetPixel(i, 0xff000000 | p | p<<8 | p<<16);
-		}
-	} else if(GetLayer(DESATURATOR)->IsVisible()) {
-		CRawImage<unsigned char> *src = static_cast<CRawImage<unsigned char>*>(GetLayer(GAUSSIAN)->GetSketchImage());
-		for(int i=0; i<width*height; i++) {
-			ARGB p=src->GetPixel(i);
-			dst.SetPixel(i, 0xff000000 | p | p<<8 | p<<16);
+	// paint all visible layers
+	for ( unsigned int l_layerIndex = 1; 
+		l_layerIndex < LayerCount(); 
+		l_layerIndex++ )
+	{
+		CLayer *l_layer = GetLayer( l_layerIndex );
+
+		if ( l_layer->IsVisible() && l_layer->IsValid() )
+		{
+			l_layer->PaintImage ( &dst );
 		}
 	}
 
-	if(GetLayer(THINNER)->IsVisible()) {
-		TRACE("paint thinner\n");
-		CRawImage<bool> *src = static_cast<CRawImage<bool>*>(GetLayer(THINNER)->GetSketchImage());
-		for(int x=0; x<width*SCALE; x+=SCALE) {
-			for(int y=0; y<height*SCALE; y+=SCALE) {
-				ARGB p=src->GetPixel(x/SCALE,y/SCALE);
-				if(p) {
-					for(int i=0; i<SCALE; i++) {
-						for(int j=0; j<SCALE; j++) {
-							ARGB tmp = dst.GetPixel(x+i,y+j);
-							dst.SetPixel(x+i, y+j, tmp|0xff00);
-						}
-					}
-				}
-			}
-		}
-	}
+	// DoCacheBitmap( dst.GetBitmap() );
 
-	if(GetLayer(SKELETONIZER)->IsVisible()) {
-		TRACE("skeletonizer is visible\n");
-		CRawImage<ARGB> *tmp = new CRawImage<ARGB>(width*SCALE,height*SCALE);
-		tmp->Clear();
-		CLineImage *src = static_cast<CLineImage*>(GetLayer(FORKHANDLER)->GetSketchImage());
-		CLineImagePainter::Paint(tmp,src);
-		for(int i=0; i<width*height; i++) {
-			ARGB p=tmp->GetPixel(i);
-			if(p) dst.SetPixel(i, p);
-		}
-		delete tmp;
-	}
-	if(GetLayer(BEZIERMAKER)->IsVisible()) {
-		CRawImage<ARGB> *tmp = new CRawImage<ARGB>(width*SCALE,height*SCALE);
-		tmp->Clear();
-		CLineImage *src = static_cast<CLineImage*>(GetLayer(BEZIERMAKER)->GetSketchImage());
-		CLineImagePainter::Paint(tmp,src);
-		for(int i=0; i<width*height; i++) {
-			ARGB p=tmp->GetPixel(i);
-			if(p) dst.SetPixel(i, p);
-		}
-		delete tmp;
-	}
-
-	if(GetLayer(FORKHANDLER)->IsVisible()) {
-		vector<CFPoint> *forks = CForkHandler::Instance()->TForks;
-		vector<CFPoint>::iterator iter;
-
-		for(iter = forks->begin(); iter != forks->end(); iter++) {
-			CFPoint p = *iter;
-
-			static const ARGB TFORK_COL = 0xff00ff00;
-
-			dst.SetPixel((int)p.x-2, (int)p.y-1, TFORK_COL);
-			dst.SetPixel((int)p.x-2, (int)p.y, TFORK_COL);
-			dst.SetPixel((int)p.x-2, (int)p.y+1, TFORK_COL);
-			dst.SetPixel((int)p.x+2, (int)p.y-1, TFORK_COL);
-			dst.SetPixel((int)p.x+2, (int)p.y, TFORK_COL);
-			dst.SetPixel((int)p.x+2, (int)p.y+1, TFORK_COL);
-			dst.SetPixel((int)p.x-1, (int)p.y-2, TFORK_COL);
-			dst.SetPixel((int)p.x, (int)p.y-2, TFORK_COL);
-			dst.SetPixel((int)p.x+1, (int)p.y-2, TFORK_COL);
-			dst.SetPixel((int)p.x-1, (int)p.y+2, TFORK_COL);
-			dst.SetPixel((int)p.x, (int)p.y+2, TFORK_COL);
-			dst.SetPixel((int)p.x+1, (int)p.y+2, TFORK_COL);
-		}
-
-		forks = CForkHandler::Instance()->YForks;
-		for(iter = forks->begin(); iter != forks->end(); iter++) {
-			CFPoint p = *iter;
-			static const ARGB YFORK_COL = 0xff0000ff;
-			dst.SetPixel((int)p.x-2, (int)p.y-1, YFORK_COL);
-			dst.SetPixel((int)p.x-2, (int)p.y, YFORK_COL);
-			dst.SetPixel((int)p.x-2, (int)p.y+1, YFORK_COL);
-			dst.SetPixel((int)p.x+2, (int)p.y-1, YFORK_COL);
-			dst.SetPixel((int)p.x+2, (int)p.y, YFORK_COL);
-			dst.SetPixel((int)p.x+2, (int)p.y+1, YFORK_COL);
-			dst.SetPixel((int)p.x-1, (int)p.y-2, YFORK_COL);
-			dst.SetPixel((int)p.x, (int)p.y-2, YFORK_COL);
-			dst.SetPixel((int)p.x+1, (int)p.y-2, YFORK_COL);
-			dst.SetPixel((int)p.x-1, (int)p.y+2, YFORK_COL);
-			dst.SetPixel((int)p.x, (int)p.y+2, YFORK_COL);
-			dst.SetPixel((int)p.x+1, (int)p.y+2, YFORK_COL);
-			TRACE("yfork distance (%i,%i): %i\n",int(p.x),int(p.y),CBinarizer::Instance()->m_distanceMap->GetPixel(int(p.x),int(p.y)));
-		}
-	}
-
-	TRACE("MakeBitmap() done\n");
-
-	return dst.MakeBitmap();
+	return dst.GetBitmap() ; // GetCachedBitmap();
 }
 
-int CLayerManager::Layers(void)
+unsigned int CLayerManager::LayerCount(void)
 {
-	return (int)m_Layers.size();
+	return static_cast<unsigned int> ( m_Layers.size() );
 }
 
 void CLayerManager::Serialize(CArchive &ar)
@@ -291,4 +213,163 @@ void CLayerManager::Serialize(CArchive &ar)
 CLayer* CLayerManager::GetLastLayer(void)
 {
 	return m_Layers.at(m_Layers.size()-1);
+}
+
+UINT CLayerManager::DoProcessLayers(LPVOID pParam)
+{
+	static int K_ACTIVE_PROCESSES = 0;
+
+	ASSERT ( K_ACTIVE_PROCESSES == 0 );
+	K_ACTIVE_PROCESSES++;
+
+	CLogger::Instance()->Activate();
+	LOG( "DoProcessLayers() %i enter\n", K_ACTIVE_PROCESSES );
+
+	CLayerManager *l_lm = static_cast<CLayerManager*>(pParam);
+
+	ASSERT ( l_lm->LayerCount() > 0 );
+
+	do {
+		l_lm->m_restartProcess = false;
+
+		CLayer *layer = l_lm->GetLayer(0);
+		CSketchImage *img = layer->GetSketchImage();
+
+		for(UINT l_activeLayerIndex = 1; 
+			(l_activeLayerIndex < l_lm->LayerCount()); 
+			l_activeLayerIndex++) 
+		{
+			CLogger::Instance()->Activate();
+			LOG("process layer: %i\n",l_activeLayerIndex);
+			layer = l_lm->GetLayer (l_activeLayerIndex);
+
+			layer->Process(img);
+		
+			CLogger::Instance()->Activate();
+			LOG( "process done: %i\n", l_activeLayerIndex );
+			LOG ( "m_restartProcess: %x\n", l_lm->m_restartProcess );
+
+			if ( l_lm->m_restartProcess ) {
+				break;
+			}
+
+			BOOL l_result = PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 0, 0 );
+			ASSERT ( l_result != 0 );
+
+			//redraw!
+			l_lm->GetLineTracerView()->Invalidate();
+
+			img = layer->GetSketchImage();
+		}
+
+	} while ( l_lm->m_restartProcess );
+
+	l_lm->m_restartProcess = false;
+
+	l_lm->m_processThread = NULL;
+
+	l_lm->InvalidateCachedBitmap();
+
+	LOG("LayerManager::ProcessLayers() done\n");
+	
+	K_ACTIVE_PROCESSES--;
+	return 0;
+}
+
+#include <windows.h>
+void ErrorExit(LPTSTR lpszFunction) 
+{ 
+    TCHAR szBuf[80]; 
+    LPVOID lpMsgBuf;
+    DWORD dw = GetLastError(); 
+
+    (void) FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+
+    wsprintf(szBuf, 
+        "%s failed with error %d: %s", 
+        lpszFunction, dw, lpMsgBuf); 
+ 
+	LOG ( "%s\n", szBuf );
+    //MessageBox(NULL, szBuf, "Error", MB_OK); 
+
+    (void) LocalFree(lpMsgBuf);
+    ExitProcess(dw); 
+}
+
+/*void CLayerManager::AbortOldThread(void)
+{
+	ASSERT ( 0 );
+	LOG ( "AbortOldThread() start\n" );
+
+	if ( m_processThread == NULL )
+	{
+		LOG ( "thread was null - no problem\n") ;
+		LOG ( "AbortOldThread() exit\n") ;
+		return;
+	}
+
+	// tell thread to terminate!
+	LOG ( "AbortProcessing()\n" );
+	//AbortProcessing();
+	HANDLE l_threadHandle = m_processThread->m_hThread;
+	LOG ( "WaitForSingleObject() start... %x\n", m_processThread );
+
+	DWORD l_waitResult = ::WaitForSingleObject ( l_threadHandle, 5000L );
+	
+	LOG ( "waitResult: %x\n", l_waitResult);
+	if ( l_waitResult != WAIT_OBJECT_0 )
+	{
+		// the thread is still running
+		ErrorExit(NULL);
+	}
+
+	m_processThread = NULL;
+
+	LOG ( "WaitForSingleObject() ...ok! %x\n", m_processThread );
+
+	//ClearAbortProcessingFlag();
+	LOG ( "AbortOldThread() bye\n" );
+}*/
+
+void CLayerManager::InvalidateCachedBitmap(void)
+{
+	DoCacheBitmap( NULL );
+}
+
+Bitmap* CLayerManager::GetCachedBitmap(void)
+{
+	return m_cachedBitmap;
+}
+
+void CLayerManager::DoCacheBitmap(Bitmap* a_bitmap)
+{
+	if ( m_cachedBitmap != NULL )
+	{
+		delete m_cachedBitmap;
+	}
+	m_cachedBitmap = a_bitmap;
+}
+
+void CLayerManager::ChangedLayerVisibleState(void)
+{
+	InvalidateCachedBitmap();
+}
+
+void CLayerManager::SetLineTracerView(CView* a_lineTracerView)
+{
+	ASSERT ( a_lineTracerView != NULL );
+
+	m_lineTracerView = a_lineTracerView;
+}
+
+CView* CLayerManager::GetLineTracerView(void)
+{
+	return m_lineTracerView;
 }
