@@ -29,7 +29,6 @@ public:
 	void InvalidateLayers(unsigned int startLayer=0);
 	void ProcessLayers();
 	CLayer* GetLayer(int layer);
-	Bitmap* GetBitmap(void);
 	unsigned int LayerCount(void);
 	void Serialize(CArchive &ar);
 	CLayer* GetLastLayer(void);
@@ -44,10 +43,6 @@ private:
 	static UINT DoProcessLayers(LPVOID pParam);
 	//void AbortOldThread(void);
 	CWinThread* m_processThread;
-	Bitmap* m_cachedBitmap;
-	void InvalidateCachedBitmap(void);
-	Bitmap* GetCachedBitmap(void);
-	void DoCacheBitmap(Bitmap* a_bitmap);
 	static const bool K_USE_MULTITHREADING = true;
 	
 	CView* m_lineTracerView;
@@ -57,4 +52,6 @@ private:
 	CView* GetLineTracerView(void);
 
 	volatile bool m_restartProcess;
+public:
+	void DrawAllLayers(Graphics & a_graphics);
 };
