@@ -46,6 +46,9 @@ public:
 	void SetIsYFork(bool a_isTrue);
 	const bool IsYFork(void) const;
 	PointF GetPointF(void);
+	float Distance(const CSketchPoint & a_point) const;
+private:
+	CFPoint GetCFPoint(void) const;
 };
 
 inline const double CSketchPoint::GetX(void) const {
