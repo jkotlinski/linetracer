@@ -45,6 +45,7 @@ public:
 	void SetY(double a_val);
 	void SetIsYFork(bool a_isTrue);
 	const bool IsYFork(void) const;
+	PointF GetPointF(void);
 };
 
 inline const double CSketchPoint::GetX(void) const {

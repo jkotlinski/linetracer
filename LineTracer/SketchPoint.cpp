@@ -2,6 +2,7 @@
 #include "sketchpoint.h"
 
 #include "Logger.h"
+#include ".\sketchpoint.h"
 
 CSketchPoint::CSketchPoint(double a_x, double a_y, bool isEndPoint, bool isKnot)
 : m_point(a_x,a_y)
@@ -134,4 +135,9 @@ void CSketchPoint::SetIsYFork(bool a_isTrue)
 
 const bool CSketchPoint::IsYFork(void) const {
 	return m_isYFork;
+}
+
+PointF CSketchPoint::GetPointF(void)
+{
+	return m_point.GetPointF();
 }
