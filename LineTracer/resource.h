@@ -35,8 +35,6 @@
 #define ID_VIEW_ORIGINAL                32780
 #define ID_PARAMETERS_LINESIZETHRESHOLD 32781
 #define ID_VIEW_ZOOM                    32782
-#define ID_ZOOM_100                     32783
-#define ID_ZOOM_200                     32784
 #define ID_PARAMETERS_NOISESURPRESSION  32785
 #define ID_VIEW_BEZIERMAKER             32786
 #define ID_VIEW_THINNER                 32787
@@ -44,13 +42,14 @@
 #define ID_PARAMETERS_CURVEDETAIL       32789
 #define ID_BUTTON32796                  32796
 #define ID_BUTTON32797                  32797
+#define ID_VIEW_                        32798
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        137
-#define _APS_NEXT_COMMAND_VALUE         32798
+#define _APS_NEXT_COMMAND_VALUE         32799
 #define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

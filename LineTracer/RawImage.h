@@ -309,5 +309,10 @@ void CRawImage<T>::DrawUsingGraphics(Graphics& a_graphics)
 	}
 
 	Status l_drawImageResult = a_graphics.DrawImage( &l_bitmap, 0, 0, GetWidth(), GetHeight());
-	ASSERT ( l_drawImageResult == Ok );
+	if ( l_drawImageResult != Ok )
+	{
+		CLogger::Activate();
+		LOG ( "drawImageResult: %i\n", l_drawImageResult );
+		ASSERT ( false );
+	}
 }

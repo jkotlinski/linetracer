@@ -83,12 +83,6 @@ BEGIN
         , CHECKED
         MENUITEM "BezierMaker",                 ID_VIEW_BEZIERMAKER, CHECKED
         MENUITEM SEPARATOR
-        POPUP "Zoom"
-        BEGIN
-            MENUITEM "100%",                        ID_ZOOM_100
-            MENUITEM "200%",                        ID_ZOOM_200
-        END
-        MENUITEM SEPARATOR
         MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
     END
     POPUP "&Help"

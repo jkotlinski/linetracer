@@ -141,6 +141,9 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\AffineTransform.cpp">
+			</File>
+			<File
 				RelativePath=".\BezierMaker.cpp">
 			</File>
 			<File
@@ -184,9 +187,6 @@
 			</File>
 			<File
 				RelativePath=".\LineImage.cpp">
-			</File>
-			<File
-				RelativePath=".\LineImagePainter.cpp">
 			</File>
 			<File
 				RelativePath=".\LineSegmentor.cpp">
@@ -251,14 +251,14 @@
 			<File
 				RelativePath=".\ToolBox.cpp">
 			</File>
-			<File
-				RelativePath=".\TransformValidator.cpp">
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			<File
+				RelativePath=".\AffineTransform.h">
+			</File>
 			<File
 				RelativePath=".\BezierMaker.h">
 			</File>
@@ -306,9 +306,6 @@
 			</File>
 			<File
 				RelativePath=".\LineImage.h">
-			</File>
-			<File
-				RelativePath=".\LineImagePainter.h">
 			</File>
 			<File
 				RelativePath=".\LineSegmentor.h">
@@ -387,9 +384,6 @@
 			</File>
 			<File
 				RelativePath=".\ToolBox.h">
-			</File>
-			<File
-				RelativePath=".\TransformValidator.h">
 			</File>
 		</Filter>
 		<Filter

@@ -12,10 +12,6 @@
 
 #include "ToolBox.h"
 #include "Logger.h"
-#include "linetracerview.h"
-
-#include <boost/scoped_ptr.hpp>
-#include ".\linetracerview.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -34,8 +30,6 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_GAUSSIAN, OnUpdateViewGaussian)
 	ON_COMMAND(ID_FILE_EXPORTEPS, OnFileExporteps)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ORIGINAL, OnUpdateViewOriginal)
-	ON_UPDATE_COMMAND_UI(ID_ZOOM_200, OnUpdateZoom200)
-	ON_UPDATE_COMMAND_UI(ID_ZOOM_100, OnUpdateZoom100)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BEZIERMAKER, OnUpdateViewBeziermaker)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_THINNER, OnUpdateViewThinner)
 	ON_WM_RBUTTONDOWN()
@@ -49,7 +43,9 @@ END_MESSAGE_MAP()
 // CLineTracerView construction/destruction
 
 CLineTracerView::CLineTracerView()
-: m_activeToolType(ToolTypeNone)
+: m_activeToolType(ToolTypeZoom)
+, m_translationX(0)
+, m_translationY(0)
 {
 	CLayerManager::Instance()->SetLineTracerView( this );
 	CToolBox::Instance()->SetLineTracerView( this );
@@ -73,7 +69,8 @@ BOOL CLineTracerView::PreCreateWindow(CREATESTRUCT& cs)
 
 void CLineTracerView::OnDraw(CDC* dc)
 {
-	TransformValidator l_transformValidator;
+	/*SetScrollSizes(MM_TEXT, CSize( static_cast<int>(GetImageWidth()*GetScale()), 
+		static_cast<int>(GetImageHeight()*GetScale())) );*/
 
 	LOG ( "caught OnDraw\n" );
 
@@ -83,32 +80,27 @@ void CLineTracerView::OnDraw(CDC* dc)
 	if (!pDoc)
 		return;
 
-	// TODO: add draw code for native data here
-
-	CString inputFileName=pDoc->GetInputImageFileName();
-
-	inputFileName.ReleaseBuffer();
-
-	CLayerManager *lm = CLayerManager::Instance();
+	if ( GetImageWidth() == 0 )
+	{
+		return;
+	}
+	
+	AffineTransform l_transform = GetTransform();
+	l_transform.Validate (
+		CSize ( GetImageWidth(), GetImageHeight() ),
+		CSize ( GetViewWidth(), GetViewHeight() )
+		);
+	m_translationX = l_transform.m_translationX;
+	m_translationY = l_transform.m_translationY;
 
 	Graphics gr(pDC);
-	boost::scoped_ptr<Matrix> mx ( new Matrix(
-		GetScale(), 0,
-		0, GetScale(),
-		0,0) );
-	(void) gr.SetTransform ( &(*mx) );
+	Matrix *l_matrix = l_transform.GetMatrix();
+	(void) gr.SetTransform ( l_matrix );
 	(void) gr.SetSmoothingMode ( SmoothingModeAntiAlias );
 	(void) gr.SetInterpolationMode( InterpolationModeNearestNeighbor );
 
-	lm->DrawAllLayers ( gr );
-
-	SetScrollSizes(MM_TEXT, CSize( static_cast<int>(GetImageWidth()*GetScale()), 
-		static_cast<int>(GetImageHeight()*GetScale())) );
-
-	//Status l_drawImageResult = gr.DrawImage(l_bmp,0,0,
-	//	l_bmp->GetWidth(),
-	//	l_bmp->GetHeight());
-	//ASSERT ( l_drawImageResult == Ok );
+	CLayerManager::Instance()->DrawAllLayers ( gr );
+	delete l_matrix;
 }
 
 
@@ -197,18 +189,6 @@ void CLineTracerView::OnUpdateViewOriginal(CCmdUI *pCmdUI)
 	pCmdUI->SetCheck(l->IsVisible());
 }
 
-void CLineTracerView::OnUpdateZoom200(CCmdUI *pCmdUI)
-{
-	CLineTracerDoc *pDoc = GetDocument();
-	pCmdUI->SetCheck( (pDoc->GetZoom()==200)?1:0 );
-}
-
-void CLineTracerView::OnUpdateZoom100(CCmdUI *pCmdUI)
-{
-	CLineTracerDoc *pDoc = GetDocument();
-	pCmdUI->SetCheck( (pDoc->GetZoom()==100)?1:0 );
-}
-
 void CLineTracerView::OnUpdateViewBeziermaker(CCmdUI *pCmdUI)
 {
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::BEZIERMAKER);
@@ -259,12 +239,12 @@ void CLineTracerView::HandleChangedToolboxParam(CLayerManager::LayerTypes a_laye
 
 float CLineTracerView::GetXTranslation(void)
 {
-	return 0.0;
+	return m_translationX;
 }
 
 float CLineTracerView::GetYTranslation(void)
 {
-	return 0.0;
+	return m_translationY;
 }
 
 float CLineTracerView::GetScale(void)
@@ -333,8 +313,7 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 	switch ( m_activeToolType )
 	{
 	case ToolTypeZoom:
-		m_magnification.Increase();
-		Invalidate();
+		ZoomIn(point);
 		break;
 	}
 }
@@ -343,8 +322,7 @@ void CLineTracerView::OnRButtonDown(UINT nFlags, CPoint point)
 	switch ( m_activeToolType )
 	{
 	case ToolTypeZoom:
-		m_magnification.Decrease();
-		Invalidate();
+		ZoomOut(point);
 		break;
 	}
 }
@@ -365,4 +343,79 @@ void CLineTracerView::OnBnClickedZoombutton()
 {
 	CToolBox::Instance()->ZoomButtonClicked();
 	m_activeToolType = ToolTypeZoom;
+}
+
+int CLineTracerView::GetViewWidth(void)
+{
+	CRect l_clientRect;
+	GetClientRect ( & l_clientRect );
+	return l_clientRect.right;
+}
+
+
+int CLineTracerView::GetViewHeight(void)
+{
+	CRect l_clientRect;
+	GetClientRect ( & l_clientRect );
+	return l_clientRect.bottom;
+}
+
+void CLineTracerView::ZoomIn(CPoint a_point)
+{
+	AffineTransform l_inverse = GetTransform();
+	l_inverse.Invert();
+
+	PointF l_clickPoint ( (float)a_point.x, (float)a_point.y );
+	l_inverse.TransformPoint(l_clickPoint);
+
+	m_magnification.Increase();
+	SetImageCenter(l_clickPoint);
+	Invalidate();
+}
+
+void CLineTracerView::ZoomOut(CPoint a_point)
+{
+	AffineTransform l_inverse = GetTransform();
+	l_inverse.Invert();
+
+	PointF l_clickPoint ( (float)a_point.x, (float)a_point.y );
+	l_inverse.TransformPoint(l_clickPoint);
+
+	m_magnification.Decrease();
+	SetImageCenter(l_clickPoint);
+	Invalidate();
+}
+
+void CLineTracerView::SetImageCenter(PointF a_clickPoint)
+{
+	//reset translation
+	SetXTranslation ( 0 );
+	SetYTranslation ( 0 );
+
+	GetTransform().TransformPoint( a_clickPoint );
+
+	PointF l_viewCenter ( (float)GetViewWidth()/2,
+		(float)GetViewHeight()/2 );
+
+	//set new translation
+	SetXTranslation ( l_viewCenter.X - a_clickPoint.X );
+	SetYTranslation ( l_viewCenter.Y - a_clickPoint.Y );
+}
+
+void CLineTracerView::SetXTranslation(float a_translation)
+{
+	m_translationX = a_translation;
+}
+
+void CLineTracerView::SetYTranslation(float a_translation)
+{
+	m_translationY = a_translation;
+}
+
+AffineTransform CLineTracerView::GetTransform(void)
+{
+	AffineTransform l_transform;
+	l_transform.TranslateBy(GetXTranslation(), GetYTranslation());
+	l_transform.ScaleBy(GetScale());
+	return l_transform;
 }
