@@ -29,8 +29,11 @@ enum ToolTypes
 enum CursorTypes 
 { 
 	CursorTypeNone,
-	CursorTypeCross,
-	CursorTypeWait
+	CursorTypeZoomIn,
+	CursorTypeZoomOut,
+	CursorTypeWait,
+	CursorTypeHand,
+	CursorTypeClosedHand
 };
 
 // CLineTracerView
@@ -51,6 +54,7 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
+	ON_WM_KEYDOWN()
 	ON_WM_SETCURSOR()
 	ON_BN_CLICKED(IDC_MOVEBUTTON, OnBnClickedMovebutton)
 	ON_BN_CLICKED(IDC_ZOOMBUTTON, OnBnClickedZoombutton)
@@ -65,7 +69,7 @@ CLineTracerView::CLineTracerView()
 , m_translationY(0)
 , m_mouseIsBeingDragged(false)
 , m_previousDragPoint(0)
-, m_cursorType(CursorTypeCross)
+, m_cursorType(CursorTypeZoomIn)
 {
 	CLayerManager::Instance()->SetLineTracerView( this );
 	CToolBox::Instance()->SetLineTracerView( this );
@@ -348,14 +352,16 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 	case ToolTypeZoom:
 		if ( AltKeyIsPressed() == false )
 		{
-			ZoomIn(point);
+			SetCursorType(CursorTypeZoomIn);
 		}
 		else 
 		{
-			ZoomOut(point);
+			SetCursorType(CursorTypeZoomOut);
 		}
 		break;
 	case ToolTypeMove:
+		::SetCursor(AfxGetApp()->LoadCursor(IDC_CLOSED_HAND));
+		SetCursorType(CursorTypeClosedHand);
 		SetCapture();
 		m_mouseIsBeingDragged = true;
 		m_previousDragPoint = point;
@@ -369,6 +375,7 @@ void CLineTracerView::OnLButtonUp(UINT nFlags, CPoint point)
 	{
 		::ReleaseCapture();
 		m_mouseIsBeingDragged = false;
+		SetCursorType(CursorTypeHand);
 	}
 }
 
@@ -407,10 +414,12 @@ void CLineTracerView::OnBnClickedMovebutton()
 {
 	CToolBox::Instance()->MoveButtonClicked();
 	m_activeToolType = ToolTypeMove;
+	SetCursorType(CursorTypeHand);
 }
 
 void CLineTracerView::OnBnClickedZoombutton()
 {
+	SetCursorType(CursorTypeZoomIn);
 	CToolBox::Instance()->ZoomButtonClicked();
 	m_activeToolType = ToolTypeZoom;
 }
@@ -432,6 +441,8 @@ int CLineTracerView::GetViewHeight(void)
 
 void CLineTracerView::ZoomIn(const CPoint &a_point)
 {
+	SetCursorType(CursorTypeZoomIn);
+
 	AffineTransform l_inverse = GetTransform();
 	l_inverse.Invert();
 
@@ -445,6 +456,8 @@ void CLineTracerView::ZoomIn(const CPoint &a_point)
 
 void CLineTracerView::ZoomOut(const CPoint &a_point)
 {
+	SetCursorType(CursorTypeZoomOut);
+
 	AffineTransform l_inverse = GetTransform();
 	l_inverse.Invert();
 
@@ -542,15 +555,42 @@ void CLineTracerView::FillBackground(
 		l_BGCOLOR );
 }
 
+
+
 BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
+	TRACE ( "OnSetCursor\n" );
+
 	switch ( GetCursorType() )
 	{
-	case CursorTypeCross:
-		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_CROSS));
-		return TRUE;
 	case CursorTypeWait:
 		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+		return TRUE;
+	case CursorTypeClosedHand:
+		::SetCursor(AfxGetApp()->LoadCursor(IDC_CLOSED_HAND));
+		return TRUE;
+	case CursorTypeZoomIn:
+		if( AltKeyIsPressed() == false ) 
+		{
+			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_IN));
+		}
+		else
+		{
+			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_OUT));
+		}
+		return TRUE;
+	case CursorTypeZoomOut:
+		if( AltKeyIsPressed() == true ) 
+		{
+			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_IN));
+		}
+		else
+		{
+			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_OUT));
+		}
+		return TRUE;
+	case CursorTypeHand:
+		::SetCursor(AfxGetApp()->LoadCursor(IDC_HAND));
 		return TRUE;
 	}
 	return CView::OnSetCursor(pWnd, nHitTest, message);
@@ -569,4 +609,9 @@ enum CursorTypes CLineTracerView::GetCursorType(void)
 bool CLineTracerView::AltKeyIsPressed(void)
 {
 	return ( ::GetKeyState(VK_MENU) < 0 );
+}
+
+void CLineTracerView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	//do nothing
 }

@@ -109,6 +109,9 @@ private:
 	enum CursorTypes m_cursorType;
 	void SetCursorType(enum CursorTypes a_cursorType);
 	enum CursorTypes GetCursorType(void);
+	bool AltKeyIsPressed(void);
+public:
+	void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp
