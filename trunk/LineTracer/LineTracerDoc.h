@@ -43,18 +43,18 @@ public:
 private:
 	CString m_InputBitmapFileName;
 
-	Bitmap *m_InputBitmap;
 	bool LoadImage(Bitmap** bitmap, CString *fileName);
 
 public:
 	void ProcessLayers(void);
-	Bitmap* GetInputBitmap(void);
+	//Bitmap* GetInputBitmap(void);
 	afx_msg void OnParametersBinarizer();
 	afx_msg void OnParametersGaussian();
 
 	afx_msg void OnViewSkeletonizer();
 	afx_msg void OnViewBinarizer();
 	afx_msg void OnViewGaussian();
+	afx_msg void OnViewOriginal();
 };
 
 

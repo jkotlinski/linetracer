@@ -11,7 +11,7 @@ public:
 	~CLayerManager(void);
 	static CLayerManager* Instance(void);
 
-	enum layer { DECOLORIZER, GAUSSIAN, BINARIZER, SKELETONIZER };
+	enum layer { DESATURATOR, GAUSSIAN, BINARIZER, SKELETONIZER };
 
 protected:
 	CLayerManager(void);
@@ -20,7 +20,7 @@ protected:
 
 public:
 	void InvalidateLayers(unsigned int startLayer=0);
-	void ProcessLayers(Bitmap* inputBitmap);
+	void ProcessLayers();
 	CLayer* GetLayer(int layer);
 	Bitmap* MakeBitmap(void);
 	int Layers(void);

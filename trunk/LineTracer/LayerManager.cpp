@@ -6,14 +6,15 @@
 #include "LineImagePainter.h"
 
 #include "Binarizer.h"
-#include "DeColorizer.h"
+#include "DeSaturator.h"
 #include "Gaussian.h"
 #include "Skeletonizer.h"
 
 CLayerManager::CLayerManager(void)
 {
 	CLayer *layer=new CLayer();
-	layer->SetImageProcessor(CDeColorizer::Instance());
+	layer->SetImageProcessor(CDeSaturator::Instance());
+	layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
 	layer=new CLayer();
@@ -50,20 +51,20 @@ void CLayerManager::InvalidateLayers(unsigned int startLayer)
 	}
 }
 
-void CLayerManager::ProcessLayers(Bitmap* inputBitmap)
+void CLayerManager::ProcessLayers()
 {
-	CLayer *layer;
-	CSketchImage *inputBmp = new CRawImage(inputBitmap);
-	CSketchImage *newBmp = inputBmp;
+	if(m_Layers.size()) {
+		CLayer *layer = m_Layers.at(0);
+		CSketchImage *img = layer->GetSketchImage();
 
-	for(UINT i=0; i<m_Layers.size(); i++) {
-		TRACE("process layer: %i\n",i);
-		layer = m_Layers.at(i);
+		for(UINT i=1; i<m_Layers.size(); i++) {
+			TRACE("process layer: %i\n",i);
+			layer = m_Layers.at(i);
 
-		layer->Process(newBmp);
-		newBmp = layer->GetSketchImage();
+			layer->Process(img);
+			img = layer->GetSketchImage();
+		}
 	}
-	delete inputBmp;
 }
 
 CLayer* CLayerManager::GetLayer(int layer)
@@ -88,6 +89,12 @@ Bitmap* CLayerManager::MakeBitmap(void)
 			dst.SetPixel(i, 0xff000000 | p | p<<8 | p<<16);
 		}
 	} else if(GetLayer(GAUSSIAN)->IsVisible()) {
+		CRawImage *src = static_cast<CRawImage*>(GetLayer(GAUSSIAN)->GetSketchImage());
+		for(int i=0; i<width*height; i++) {
+			ARGB p=src->GetPixel(i);
+			dst.SetPixel(i, 0xff000000 | p | p<<8 | p<<16);
+		}
+	} else if(GetLayer(DESATURATOR)->IsVisible()) {
 		CRawImage *src = static_cast<CRawImage*>(GetLayer(GAUSSIAN)->GetSketchImage());
 		for(int i=0; i<width*height; i++) {
 			ARGB p=src->GetPixel(i);
