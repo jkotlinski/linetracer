@@ -2,6 +2,7 @@
 #include ".\kneesplitter.h"
 
 #include <math.h>
+#include <assert.h>
 
 #include "LineImage.h"
 #include "SketchPoint.h"
@@ -23,9 +24,12 @@ CKneeSplitter* CKneeSplitter::Instance() {
 CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 	CLineImage *src = static_cast<CLineImage*>(i_src);
 
+	TRACE ( "KneeSplitter()\n" );
+
 	double threshold = GetParam("threshold");
 
-	for(int i=0; i<src->Size(); i++) {
+	for(unsigned int i=0; i<src->Size(); i++) 
+	{
 		CPolyLine *line = src->At(i);
 
 		vector<CSketchPoint*>::iterator iter;
@@ -71,7 +75,8 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	CLineImage *dst = new CLineImage(src->GetWidth(), src->GetHeight());
 
-	for(int i=0; i<src->Size(); i++) {
+	for(unsigned int i=0; i<src->Size(); i++) 
+	{
 		CPolyLine* line = src->At(i);
 		CPolyLine* addLine = new CPolyLine();
 

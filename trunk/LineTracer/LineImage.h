@@ -18,7 +18,7 @@ private:
 	vector<CPolyLine*> m_polyLines;
 public:
 	void Add(CPolyLine* polyLine);
-	int Size(void);
+	unsigned int Size(void);
 	CPolyLine* At(int i);
 	void Clear(void);
 	void SolderKnots(void);

@@ -28,9 +28,9 @@ void CLineImage::Add(CPolyLine* polyLine)
 	m_polyLines.push_back(polyLine);
 }
 
-int CLineImage::Size(void)
+unsigned int CLineImage::Size(void)
 {
-	return (int)m_polyLines.size();
+	return (unsigned int)m_polyLines.size();
 }
 
 CPolyLine* CLineImage::At(int i)
@@ -55,7 +55,7 @@ void CLineImage::SolderKnots(void)
 	map<int,int>::iterator iter;
 	map<int,bool> lineProcessed;
 
-	for(int line=0; line<Size(); line++) {
+	for(unsigned int line=0; line<Size(); line++) {
 		CSketchPoint *p = At(line)->GetHeadPoint();
 		int pp = (int(p->x)&0xffff) | (int(p->y)<<16);
 		knotCount[pp]=knotCount[pp]+1;
@@ -64,7 +64,8 @@ void CLineImage::SolderKnots(void)
 		pp = (int(p->x)&0xffff) | (int(p->y)<<16);
 		knotCount[pp]=knotCount[pp]+1;
 
-		assert(*At(line)->GetHeadPoint() != *At(line)->GetTailPoint());
+		assert(At(line)->GetHeadPoint()->Distance(*At(line)->GetTailPoint()) 
+			> 0.1);
 	}
 
 	for(iter=knotCount.begin(); iter!=knotCount.end(); iter++) {
@@ -74,12 +75,16 @@ void CLineImage::SolderKnots(void)
 			CPolyLine *l1=0;
 			CPolyLine *l2=0;
 
-			for(int i=0; i<Size(); i++) {
+			for(unsigned int i=0; i<Size(); i++) 
+			{
 				const static double maxDist = 2;
+
 				if(lineProcessed[i]) continue;
 
 				CPolyLine *line = At(i);
-				if(line->GetHeadPoint()->Distance(p)<maxDist || line->GetTailPoint()->Distance(p)<maxDist) {
+				if(line->GetHeadPoint()->Distance(p)<maxDist || 
+					line->GetTailPoint()->Distance(p)<maxDist) 
+				{
 					if(l1==0) {
 						l1=line;
 					} else {
@@ -91,16 +96,19 @@ void CLineImage::SolderKnots(void)
 
 			if(l2==0) {
 				//circle!
+				TRACE("! circle!");
 				if(l1!=0) {
 					Add(l1->Clone());
 				}
 			} else {
-				Add(l1->MergeLine(l2));
+				//merge two lines!
+				CPolyLine *l_newLine = l1->MergeLine(l2);
+				Add(l_newLine);
 			}
 		}
 	}
 
-	for(int i=0; i<Size(); i++) {
+	for(unsigned int i=0; i<Size(); i++) {
 		if(!lineProcessed[i]) {
 			tmp->Add(At(i)->Clone());
 		}
@@ -108,7 +116,7 @@ void CLineImage::SolderKnots(void)
 
 	Clear();
 
-	for(int i=0; i<tmp->Size(); i++) {
+	for(unsigned int i=0; i<tmp->Size(); i++) {
 		Add(tmp->At(i)->Clone());
 	}
 
@@ -119,7 +127,7 @@ int CLineImage::IsKnotInLines(CFPoint p)
 {
 	int counter=0;
 
-	for(int i=0; i<Size(); i++) {
+	for(unsigned int i=0; i<Size(); i++) {
 		CPolyLine *line = At(i);
 
 		CSketchPoint *linePoint = line->GetHeadPoint();
@@ -143,7 +151,7 @@ CLineImage* CLineImage::Clone(void)
 {
 	CLineImage *clone = new CLineImage(GetWidth(),GetHeight());
 
-	for(int i=0; i<Size(); i++) {
+	for(unsigned int i=0; i<Size(); i++) {
 		clone->Add(At(i)->Clone());
 	}
 
@@ -169,7 +177,7 @@ CLineImage* CLineImage::SmoothPositions()
 {
 	CLineImage *tmp = new CLineImage(GetWidth(),GetHeight());
 
-	for(int line=0; line<Size(); line++) {
+	for(unsigned int line=0; line<Size(); line++) {
 		CPolyLine* pl = At(line);
 		CPolyLine* nuLine = pl->SmoothPositions();
 		tmp->Add(nuLine);
