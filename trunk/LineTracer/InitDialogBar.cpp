@@ -4,6 +4,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
+#include "InitDialogBar.h"
+
 class CInitDialogBar : public CDialogBar
 {
 	DECLARE_DYNAMIC(CInitDialogBar)
@@ -28,8 +30,7 @@ class CInitDialogBar : public CDialogBar
 
 	// Implementation
 	public:
-	BOOL Create(CWnd * pParentWnd, UINT nIDTemplate, UINT nStyle, UINT
-	nID);
+	BOOL Create(CWnd * pParentWnd, UINT nIDTemplate, UINT nStyle, UINT nID);
 	BOOL Create(CWnd * pParentWnd, LPCTSTR lpszTemplateName, UINT
 	nStyle, UINT nID);
 
