@@ -3,6 +3,7 @@
 
 #include "LineImage.h"
 
+#include <assert.h>
 #include <list>
 
 using namespace std;
@@ -28,11 +29,9 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 	CLineImage *src = static_cast<CLineImage*>(i_src);
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
-	TRACE("size %i\n",src->Size());
-
 	if(useMaxErrors) {
 		//SMART SELECTION: CHOOSE MAXIMUM ERRORS
-		for(int i=0; i<src->Size(); i++) {
+		for(unsigned int i=0; i<src->Size(); i++) {
 			CPolyLine *line = new CPolyLine();
 			line->Add(src->At(i)->GetHeadPoint()->Clone());
 			Add(line,src->At(i));
@@ -42,14 +41,13 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 		}
 	} else {
 		//USE EVERY FOURTH POINT
-		for(int i=0; i<src->Size(); i++) {
+		for(unsigned int i=0; i<src->Size(); i++) {
 			CPolyLine *newLine = new CPolyLine();
 
 			newLine->SetTail(src->At(i)->IsTail());
-			TRACE("segmentor. isTail: %x\n",src->At(i)->IsTail());
-
 			newLine->Add(src->At(i)->GetHeadPoint()->Clone());
 			bool added=false;
+
 			for(int point = 4; point < int(src->At(i)->Size())-(added?4:1); point+=4) {
 				newLine->Add(src->At(i)->At(point)->Clone());
 				added=true;

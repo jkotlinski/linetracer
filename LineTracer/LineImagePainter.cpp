@@ -11,7 +11,7 @@ void CLineImagePainter::Paint(CRawImage<ARGB>* canvas, CLineImage* li)
 {
 	int color=1;
 
-	for(int i=0; i<li->Size(); i++) {
+	for(unsigned int i=0; i<li->Size(); i++) {
 		CPolyLine *line=li->At(i);
 
 		int hasKnots=line->HasKnots();
