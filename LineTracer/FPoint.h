@@ -13,6 +13,7 @@ public:
 	const double GetY(void) const;
 	void SetX(const double a_val);
 	void SetY(const double a_val);
+	const unsigned int HashValue() const;
 private:
 	double m_x;
 	double m_y;
