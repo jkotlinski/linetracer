@@ -49,11 +49,11 @@ CSketchImage* CBezierMaker::SimpleMethod(const CLineImage* src) const
 
 	//make dst a copy of src
 	for(unsigned int l_lineIndex=0; l_lineIndex<src->Size(); l_lineIndex++) {
-		dst->Add(src->At(l_lineIndex)->Clone());
+		dst->Add(src->GetLine(l_lineIndex)->Clone());
 	}
 
 	for(unsigned int i=0; i<dst->Size(); i++) {
-		CPolyLine* pl = dst->At(i);
+		CPolyLine* pl = dst->GetLine(i);
 		vector<CSketchPoint*>::iterator point_iter=pl->Begin();
 
 		vector<double> diffx;
@@ -187,7 +187,7 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 	CLineImage *l_workImage = new CLineImage(src->GetWidth(),src->GetHeight());
 	//make dst a copy of src
 	for(unsigned int i=0; i<src->Size(); i++) {
-		l_workImage->Add(src->At(i)->Clone());
+		l_workImage->Add(src->GetLine(i)->Clone());
 	}
 
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
@@ -203,7 +203,7 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 #endif
 
 	for(unsigned int l_lineIndex=0; l_lineIndex<l_workImage->Size(); l_lineIndex++) {
-		CPolyLine* pl = l_workImage->At(l_lineIndex);
+		CPolyLine* pl = l_workImage->GetLine(l_lineIndex);
 
 		ASSERT ( 0 == pl->RemoveDuplicatePoints() );
 
