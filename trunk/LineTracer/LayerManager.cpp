@@ -25,7 +25,7 @@ CLayerManager::CLayerManager(void)
 : m_processThread(NULL)
 , m_restartProcess(false)
 , m_lineTracerView(NULL)
-, m_incrementalLayerDrawing(false)
+, m_isProcessing(false)
 {
 	LOG("init layermanager\n");
 
@@ -181,7 +181,7 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 
 	CLayerManager *l_lm = static_cast<CLayerManager*>(pParam);
 
-	l_lm->m_incrementalLayerDrawing = true; 
+	l_lm->m_isProcessing = true; 
 
 	ASSERT ( l_lm->LayerCount() > 0 );
 
@@ -226,7 +226,7 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 
 	LOG("LayerManager::ProcessLayers() done\n");
 
-	l_lm->m_incrementalLayerDrawing = false; 
+	l_lm->m_isProcessing = false; 
 	
 	K_ACTIVE_PROCESSES--;
 	return 0;
@@ -317,6 +317,16 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 
 	bool l_noLayersVisible = true;
 
+	if ( IsProcessing() == false )
+	{
+		//clear background
+		SolidBrush l_whiteBrush (Color(255, 255, 255, 255));
+		a_graphics.FillRectangle(&l_whiteBrush, 0, 0, 
+			GetLayer(0)->GetImageWidth(),
+			GetLayer(0)->GetImageHeight() 
+			);
+	}
+
 	// paint all visible layers
 	for ( unsigned int l_layerIndex = 1; 
 		l_layerIndex < LayerCount(); 
@@ -326,15 +336,16 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 
 		if ( l_layer->IsVisible() && l_layer->IsValid() )
 		{
-			if ( !m_incrementalLayerDrawing || !l_layer->HasBeenDrawn() )
+			if ( IsProcessing() && l_layer->HasBeenDrawn() )
 			{
-				CLogger::Activate();
-				LOG ( "painted: " );
-				LOG ( (LPCSTR)l_layer->GetName() );	
-				LOG ( "\n" );
-				l_layer->DrawUsingGraphics ( a_graphics );
-				l_noLayersVisible = false;
+				continue;
 			}
+			CLogger::Activate();
+			LOG ( "painted: " );
+			LOG ( (LPCSTR)l_layer->GetName() );	
+			LOG ( "\n" );
+			l_layer->DrawUsingGraphics ( a_graphics );
+			l_noLayersVisible = false;
 		}
 	}
 }
@@ -347,4 +358,9 @@ void CLayerManager::SetOriginalLayerVisibility(bool a_isVisible)
 void CLayerManager::SetVectorLayerVisibility(bool a_isVisible)
 {
 	GetLastLayer()->SetVisible(a_isVisible);
+}
+
+bool CLayerManager::IsProcessing(void)
+{
+	return m_isProcessing;
 }
