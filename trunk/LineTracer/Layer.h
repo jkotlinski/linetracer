@@ -1,8 +1,9 @@
 #pragma once
-#include "c:\program\microsoft visual studio .net 2003\vc7\platformsdk\include\gdiplusheaders.h"
+//#include "c:\program\microsoft visual studio .net 2003\vc7\platformsdk\include\gdiplusheaders.h"
 
 #include "ImageProcessor.h"
 #include "RawImage.h"
+#include "SketchImage.h"
 
 class CLayer
 {
@@ -11,20 +12,21 @@ public:
 	~CLayer(void);
 private:
 	CImageProcessor * m_ImageProcessor;
-public:
-	void SetImageProcessor(CImageProcessor* ImageProcessor);
-private:
 	CSketchImage *m_SketchImage;
 	bool m_IsVisible;
+	bool m_IsValid;
+	Bitmap* m_cachedBitmap;
+public:
+	void SetImageProcessor(CImageProcessor* ImageProcessor);
 public:
 	CSketchImage* GetSketchImage(void);
 	void SetVisible(bool state);
-	bool IsVisible(void);
+	bool IsVisible(void) const;
 	void Process(CSketchImage *src);
-private:
-	bool m_IsValid;
 public:
-	bool IsValid(void);
+	bool IsValid(void) const;
 	void SetValid(bool isValid);
-	double GetParam(char* name);
+	double GetParam(CImageProcessor::ParamName name);
+	CString* GetName(void);
+	void PaintImage(CRawImage<ARGB>* a_canvas) const;
 };
