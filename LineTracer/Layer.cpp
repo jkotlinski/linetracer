@@ -3,7 +3,7 @@
 
 #include "LayerManager.h"
 
-CLayer::CLayer(void)
+CLayer::CLayer()
 : m_ImageProcessor(NULL)
 , m_SketchImage(NULL)
 , m_IsVisible(false)
@@ -13,11 +13,15 @@ CLayer::CLayer(void)
 	LOG("init layer\n");
 }
 
-CLayer::~CLayer(void) {
+CLayer::~CLayer() {
 	try {
 		if(m_SketchImage!=NULL) {
 			delete m_SketchImage;
 			m_SketchImage=NULL;
+		}
+		if(m_cachedBitmap!=NULL) {
+			delete m_cachedBitmap;
+			m_cachedBitmap=NULL;
 		}
 	}
 	catch (...) {
@@ -82,18 +86,11 @@ void CLayer::SetValid(bool isValid)
 	m_IsValid=isValid;
 }
 
-double CLayer::GetParam(CImageProcessor::ParamName name)
-{
-	ASSERT ( m_ImageProcessor != NULL );
-	ASSERT ( name != NULL );
-	return m_ImageProcessor->GetParam(name);
-}
-
-CString* CLayer::GetName(void)
+const CString* CLayer::GetName(void)
 {
 	ASSERT ( m_ImageProcessor != NULL );
 
-	CString *l_name = m_ImageProcessor->GetName();
+	const CString *l_name = m_ImageProcessor->GetName();
 
 	return l_name;
 }

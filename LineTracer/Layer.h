@@ -8,10 +8,10 @@
 class CLayer
 {
 public:
-	CLayer(void);
-	~CLayer(void);
+	CLayer();
+	~CLayer();
 private:
-	CImageProcessor * m_ImageProcessor;
+	CImageProcessor *m_ImageProcessor;
 	CSketchImage *m_SketchImage;
 	bool m_IsVisible;
 	bool m_IsValid;
@@ -26,7 +26,6 @@ public:
 public:
 	bool IsValid(void) const;
 	void SetValid(bool isValid);
-	double GetParam(CImageProcessor::ParamName name);
-	CString* GetName(void);
+	const CString* GetName(void);
 	void PaintImage(CRawImage<ARGB>* a_canvas) const;
 };
