@@ -32,49 +32,51 @@ public:
 	void Erode(void);
 	void Fill(T val = 1);
 
+	void DrawUsingGraphics(Graphics& a_graphics);
+
 private:
 
 	bool IsPointThinnable(CPoint p) {
-	//0 = 0, 1 = 1, 2 = don't care
-	static const char matrix[8][3][3] = 
-	{
-		{{0,0,0},{2,1,2},{1,1,1}},
-		{{2,0,0},{1,1,0},{2,1,2}},
-		{{1,2,0},{1,1,0},{1,2,0}},
-		{{2,1,2},{1,1,0},{2,0,0}},
-		{{1,1,1},{2,1,2},{0,0,0}},
-		{{2,1,2},{0,1,1},{0,0,2}},
-		{{0,2,1},{0,1,1},{0,2,1}},
-		{{0,0,2},{0,1,1},{2,1,2}}
-	};
+		//0 = 0, 1 = 1, 2 = don't care
+		static const char matrix[8][3][3] = 
+		{
+			{{0,0,0},{2,1,2},{1,1,1}},
+			{{2,0,0},{1,1,0},{2,1,2}},
+			{{1,2,0},{1,1,0},{1,2,0}},
+			{{2,1,2},{1,1,0},{2,0,0}},
+			{{1,1,1},{2,1,2},{0,0,0}},
+			{{2,1,2},{0,1,1},{0,0,2}},
+			{{0,2,1},{0,1,1},{0,2,1}},
+			{{0,0,2},{0,1,1},{2,1,2}}
+		};
 
-	for(int m=0; m<8; m++) {
+		for(int m=0; m<8; m++) {
 
-		bool doDelete=true;
+			bool doDelete=true;
 
-		for(int i=0; doDelete && (i<3); i++) {
-			for(int j=0; doDelete && (j<3); j++) {
-				switch(matrix[m][i][j]) {
-									case 0:
-										if(GetPixel(p.x+i-1,p.y+j-1)) {
-											doDelete=false;
-										}
-										break;
-									case 1:
-										if(!GetPixel(p.x+i-1,p.y+j-1)) {
-											doDelete=false;
-										}
-										break;
+			for(int i=0; doDelete && (i<3); i++) {
+				for(int j=0; doDelete && (j<3); j++) {
+					switch(matrix[m][i][j]) {
+										case 0:
+											if(GetPixel(p.x+i-1,p.y+j-1)) {
+												doDelete=false;
+											}
+											break;
+										case 1:
+											if(!GetPixel(p.x+i-1,p.y+j-1)) {
+												doDelete=false;
+											}
+											break;
+					}
 				}
 			}
-		}
 
-		if(doDelete) {
-			return true;
+			if(doDelete) {
+				return true;
+			}
 		}
+		return false;
 	}
-	return false;
-}
 
 };
 
@@ -283,3 +285,29 @@ void CRawImage<T>::Fill(T val)
 	}
 }
 
+template <class T>
+void CRawImage<T>::DrawUsingGraphics(Graphics& a_graphics)
+{
+	CLogger::Activate();
+	LOG ( "RawImage->DrawUsingGraphics()\n" );
+
+	Bitmap l_bitmap ( GetWidth(), GetHeight(), PixelFormat32bppARGB );
+
+	for ( int x=0; x<GetWidth(); x++ )
+	{
+		for ( int y=0; y<GetHeight(); y++ )
+		{
+			if ( GetPixel( x, y ) == 0 )
+			{
+				(void) l_bitmap.SetPixel ( x, y, Color::Black );
+			}
+			else
+			{
+				(void) l_bitmap.SetPixel ( x, y, Color::White );
+			}
+		}
+	}
+
+	Status l_drawImageResult = a_graphics.DrawImage( &l_bitmap, 0, 0, GetWidth(), GetHeight());
+	ASSERT ( l_drawImageResult == Ok );
+}
