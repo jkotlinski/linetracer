@@ -17,6 +17,5 @@ public:
 	int Size(void);
 	CPolyLine* At(int i);
 	void Clear(void);
-	void SetWidth(int width);
-	void SetHeight(int height);
+	void SetSize(int width, int height);
 };

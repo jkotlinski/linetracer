@@ -41,12 +41,9 @@ void CLineImage::Clear(void)
 	m_polyLines.clear();
 }
 
-void CLineImage::SetWidth(int width)
+void CLineImage::SetSize(int width, int height)
 {
 	m_Width=width;
-}
-
-void CLineImage::SetHeight(int height)
-{
 	m_Height=height;
+	m_Pixels = width*height;
 }

@@ -2,13 +2,11 @@
 #include ".\rawimage.h"
 
 CRawImage::CRawImage(int width, int height)
-: m_buffer(NULL)
 {
-	CSketchImage::CSketchImage();
 	m_Width=width;
 	m_Height=height;
-
-	m_buffer=new ARGB[width*height];
+	m_Pixels = m_Width*m_Height;
+	m_buffer=new ARGB[m_Pixels];
 }
 
 CRawImage::~CRawImage(void)
@@ -16,20 +14,11 @@ CRawImage::~CRawImage(void)
 	if(m_buffer!=NULL) delete m_buffer;
 }
 
-void CRawImage::SetPixel(int x, int y, ARGB val)
-{
-	m_buffer[y*m_Width+x]=val;
-}
-
-ARGB CRawImage::GetPixel(int x, int y)
-{
-	return m_buffer[y*m_Width+x];
-}
-
 CRawImage::CRawImage(Bitmap * b)
 {
 	m_Width = b->GetWidth();
 	m_Height = b->GetHeight();
+	m_Pixels = m_Width*m_Height;
 
 	if (m_Width*m_Height<=0) return;
 
@@ -107,19 +96,9 @@ Bitmap * CRawImage::MakeBitmap(void)
 	return b;
 }
 
-ARGB CRawImage::GetPixel(int offset)
-{
-	return m_buffer[offset];
-}
-
-void CRawImage::SetPixel(int offset, ARGB val)
-{
-	m_buffer[offset]=val;
-}
-
 void CRawImage::Clear(void)
 {
-	for(int i=0; i<GetWidth()*GetHeight(); i++) {
+	for(int i=0; i<GetPixels(); i++) {
 		SetPixel(i,0);
 	}
 }

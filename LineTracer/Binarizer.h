@@ -9,10 +9,8 @@ protected:
 public:
 	static CBinarizer* Instance();
 	~CBinarizer(void);
-	CRawImage* Process(CRawImage* src);
+	CSketchImage* Process(CSketchImage* src);
 
-private:
-	static CBinarizer* _instance;
 protected:
 	int CalculateOtsuThreshold(CRawImage *src);
 };

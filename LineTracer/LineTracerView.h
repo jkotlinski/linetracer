@@ -43,6 +43,7 @@ public:
 	afx_msg void OnUpdateViewSkeletonizer(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBinarizer(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewGaussian(CCmdUI *pCmdUI);
+	afx_msg void OnFileExporteps();
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp

@@ -5,7 +5,9 @@
 class CEpsWriter
 {
 public:
-	CEpsWriter(void);
 	~CEpsWriter(void);
-	static void Write(CLineImage* lineImage);
+	static void Write(CString *FileName);
+	static CEpsWriter* Instance();
+protected:
+	CEpsWriter(void);
 };

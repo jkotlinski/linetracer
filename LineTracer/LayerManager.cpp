@@ -3,13 +3,12 @@
 
 #include "RawImage.h"
 #include "Layer.h"
+#include "LineImagePainter.h"
 
 #include "Binarizer.h"
 #include "DeColorizer.h"
 #include "Gaussian.h"
 #include "Skeletonizer.h"
-
-CLayerManager* CLayerManager::_instance = 0;
 
 CLayerManager::CLayerManager(void)
 {
@@ -40,9 +39,8 @@ CLayerManager::~CLayerManager(void)
 }
 
 CLayerManager* CLayerManager::Instance() {
-	if(!_instance) _instance = new CLayerManager;
-
-	return _instance;
+    static CLayerManager inst;
+    return &inst;
 }
 
 void CLayerManager::InvalidateLayers(unsigned int startLayer)
@@ -54,14 +52,16 @@ void CLayerManager::InvalidateLayers(unsigned int startLayer)
 
 void CLayerManager::ProcessLayers(Bitmap* inputBitmap)
 {
-	CRawImage *inputBmp = new CRawImage(inputBitmap);
-	CRawImage *newBmp = inputBmp;
+	CLayer *layer;
+	CSketchImage *inputBmp = new CRawImage(inputBitmap);
+	CSketchImage *newBmp = inputBmp;
 
 	for(UINT i=0; i<m_Layers.size(); i++) {
-		CLayer *layer = m_Layers.at(i);
+		TRACE("process layer: %i\n",i);
+		layer = m_Layers.at(i);
 
 		layer->Process(newBmp);
-		newBmp = layer->GetRawImage();
+		newBmp = layer->GetSketchImage();
 	}
 	delete inputBmp;
 }
@@ -75,20 +75,20 @@ Bitmap* CLayerManager::MakeBitmap(void)
 {
 	CLayer* l = GetLayer(0);
 
-	int width=l->GetRawImage()->GetWidth();
-	int height=l->GetRawImage()->GetHeight();
+	int width=l->GetSketchImage()->GetWidth();
+	int height=l->GetSketchImage()->GetHeight();
 
 	CRawImage dst(width,height);
 	dst.Clear();
 
 	if(GetLayer(BINARIZER)->IsVisible()) {
-		CRawImage *src = GetLayer(BINARIZER)->GetRawImage();
+		CRawImage *src = static_cast<CRawImage*>(GetLayer(BINARIZER)->GetSketchImage());
 		for(int i=0; i<width*height; i++) {
 			ARGB p=src->GetPixel(i);
 			dst.SetPixel(i, 0xff000000 | p | p<<8 | p<<16);
 		}
 	} else if(GetLayer(GAUSSIAN)->IsVisible()) {
-		CRawImage *src = GetLayer(GAUSSIAN)->GetRawImage();
+		CRawImage *src = static_cast<CRawImage*>(GetLayer(GAUSSIAN)->GetSketchImage());
 		for(int i=0; i<width*height; i++) {
 			ARGB p=src->GetPixel(i);
 			dst.SetPixel(i, 0xff000000 | p | p<<8 | p<<16);
@@ -96,15 +96,7 @@ Bitmap* CLayerManager::MakeBitmap(void)
 	}
 
 	if(GetLayer(SKELETONIZER)->IsVisible()) {
-		CRawImage *src = GetLayer(SKELETONIZER)->GetRawImage();
-		
-		for(int i=0; i<width*height; i++) {
-			ARGB p=src->GetPixel(i);
-
-			if(p) {
-				dst.SetPixel(i, 0xff000000 | p);
-			}
-		}
+		CLineImagePainter::Paint(&dst,static_cast<CLineImage*>(GetLayer(SKELETONIZER)->GetSketchImage()));
 	}
 
 	return dst.MakeBitmap();
@@ -113,4 +105,25 @@ Bitmap* CLayerManager::MakeBitmap(void)
 int CLayerManager::Layers(void)
 {
 	return (int)m_Layers.size();
+}
+
+void CLayerManager::Serialize(CArchive &ar)
+{
+	if (ar.IsStoring())
+	{
+		// TODO: add storing code here
+		for(unsigned int i=0; i<m_Layers.size(); i++) {
+			ar << GetLayer(i)->IsVisible();
+		}
+	}
+	else
+	{
+		// TODO: add loading code here
+		for(unsigned int i=0; i<m_Layers.size(); i++) {
+			bool b;
+			ar >> b;
+			GetLayer(i)->SetVisible(b);
+		}
+	}
+
 }

@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include ".\epswriter.h"
 
+#include "LayerManager.h"
+
 CEpsWriter::CEpsWriter(void)
 {
 }
@@ -9,10 +11,19 @@ CEpsWriter::~CEpsWriter(void)
 {
 }
 
-void CEpsWriter::Write(CLineImage* lineImage)
+CEpsWriter* CEpsWriter::Instance() {
+    static CEpsWriter inst;
+    return &inst;
+}
+
+void CEpsWriter::Write(CString *FileName)
 {
-	CStdioFile out("c:\\tmp\\out.eps",CFile::modeCreate|CFile::typeText|CFile::modeWrite);
+	CStdioFile out(*FileName,CFile::modeCreate|CFile::typeText|CFile::modeWrite);
 	CString str;
+
+	CLayerManager *lm = CLayerManager::Instance();
+
+	CLineImage *lineImage = static_cast<CLineImage*>(lm->GetLayer(lm->Layers()-1)->GetSketchImage());
 
 	int width=lineImage->GetWidth();
 	int height=lineImage->GetHeight();

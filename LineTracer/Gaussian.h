@@ -9,10 +9,9 @@ public:
 	static CGaussian* Instance(void);
 protected:
 	CGaussian(void);
-	static CGaussian* _instance;
 public:
-	CRawImage* Process(CRawImage* src);
+	CSketchImage* Process(CSketchImage* src);
 private:
-	void MakeGaussianKernel(double sigma, double **kernel, int *windowsize);
-	void GaussianSmooth(CRawImage *src, CRawImage *dst, double sigma);
+	void MakeGaussianKernel(float sigma, float **kernel, int *windowsize);
+	void GaussianSmooth(CRawImage *src, CRawImage *dst, float sigma);
 };
