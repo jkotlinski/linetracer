@@ -12,6 +12,6 @@ protected:
 public:
 	CSketchImage* Process(CSketchImage* src);
 private:
-	void MakeGaussianKernel(double sigma, double **kernel, int *windowsize);
+	void MakeGaussianKernel(double sigma, double **kernel, int *windowsize) const;
 	void GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned char> *dst, double sigma);
 };
