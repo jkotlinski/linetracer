@@ -14,6 +14,8 @@
 #include "Logger.h"
 #include ".\linetracerview.h"
 
+//#define USE_MEMDC
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -54,7 +56,6 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_BN_CLICKED(IDC_ZOOMBUTTON, OnBnClickedZoombutton)
 END_MESSAGE_MAP()
 
-//#define USE_MEMDC
 
 // CLineTracerView construction/destruction
 
@@ -92,7 +93,7 @@ void CLineTracerView::OnDraw(CDC* dc)
 		static_cast<int>(GetImageHeight()*GetScale())) );*/
 	LOG ( "caught OnDraw\n" );
 
-#ifdef	USE_MDC
+#ifdef	USE_MEMDC
     CMemDC pDC(dc);
 #endif
 	CLineTracerDoc* pDoc = GetDocument();
@@ -244,9 +245,7 @@ void CLineTracerView::ProcessLayers(void)
 {
 	CLayerManager *lm = CLayerManager::Instance();
 	if(lm->GetLayer(0)->GetSketchImage() == NULL) return;
-	SetCursorType(CursorTypeWait);
 	CLayerManager::Instance()->ProcessLayers();
-	SetCursorType(CursorTypeCross);
 }
 
 void CLineTracerView::HandleChangedToolboxParam(CLayerManager::LayerTypes a_layerId,
