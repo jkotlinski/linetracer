@@ -214,11 +214,7 @@ void CLineImage::UpdateTailData(void)
 	for(unsigned int i=0; i < m_polyLines.size(); i++) {
 		LOG ( "i: %i\n", i );
 		CPolyLine *pl = m_polyLines.at(i);
-
-		CFPoint l_tailPoint = pl->GetTailPoint()->GetCoords();
-
 		pl->SetTail( IsTail( l_tailPointCounterMap, pl ) );
-		CFPoint l_headPoint = pl->GetHeadPoint()->GetCoords();
 	}
 	LOG ( "done\n" );
 
