@@ -38,4 +38,12 @@ public:
 	void Trace(void);
 	int RemoveDuplicatePoints(void);
 	void SmoothPoint(int a_pointIndex);
+	
+	
+	// draw stuff
+public:
+	void DrawUsingGraphics(Graphics & a_graphics, Pen &a_pen);
+private:
+	void DrawCurve(Graphics& a_graphics, Pen &a_pen, CSketchPoint* a_startPoint, CSketchPoint* a_endPoint);
+
 };
