@@ -1,27 +1,35 @@
 #pragma once
 
 #include "LayerManager.h"
+#include "InitDialogBar.h"
 
 // CToolBox
 
-class CToolBox : public CDialogBar
+class CToolBox : public CInitDialogBar
 {
 	DECLARE_DYNAMIC(CToolBox)
 
+public:
+	static CToolBox* Instance(void);
+
 private:
+	//lint -e{1704} singleton
 	CToolBox();
 	virtual ~CToolBox();
 
 protected:
-	DECLARE_MESSAGE_MAP()
+	CSpinButtonCtrl c_spinButtonControl;
+
 public:
-	static CToolBox* Instance(void);
 	void Init(void);
-	void UpdateParams(void);
-	double GetParam(int type);
 
-	//this one is to support GetParams()
 	enum ParamType { BINARIZER };
+	double GetParam(int type) const;
+
+protected:
+	virtual void DoDataExchange(CDataExchange *pDX);
+	virtual BOOL OnInitDialogBar();
+	afx_msg LRESULT OnUpdateToolboxDataFromLayers ( WPARAM wParam, LPARAM lParam );
+	
+	DECLARE_MESSAGE_MAP()
 };
-
-
