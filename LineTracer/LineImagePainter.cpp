@@ -18,7 +18,7 @@ void CLineImagePainter::Paint(CRawImage<ARGB>* canvas, const CLineImage* li)
 
 		CSketchPoint *p_prev = 0;
 
-		for(p_iter=line->Begin(); p_iter!=line->End(); p_iter++) 
+		for(p_iter=line->Begin(); p_iter!=line->End(); ++p_iter) 
 		{
 			CSketchPoint *p=*p_iter;
 
@@ -48,12 +48,12 @@ void CLineImagePainter::Paint(CRawImage<ARGB>* canvas, const CLineImage* li)
 
 // Extremely Fast Line Algorithm Var E (Addition Fixed Point PreCalc)
 // Copyright 2001-2, By Po-Han Lin
-void CLineImagePainter::DrawLine(CRawImage<ARGB>* canvas, const CFPoint* start, const CFPoint* end, ARGB c)
+void CLineImagePainter::DrawLine(CRawImage<ARGB>* canvas, const CPoint &start, const CPoint &end, ARGB c)
 {
-	int x = (int)start->GetX();
-	int y = (int)start->GetY();
-	int x2 = (int)end->GetX();
-	int y2 = (int)end->GetY();
+	int x = start.x;
+	int y = start.y;
+	const int x2 = end.x;
+	const int y2 = end.y;
 
 	if(x<0) return;
 	if(y<0) return;
@@ -123,8 +123,8 @@ void CLineImagePainter::DrawPoint(CRawImage<ARGB>* canvas, const CFPoint* p, ARG
 
 	canvas->SetPixel(x,y,color);
 
-	//lint -e{774} const ok!
-	if (drawFatPoint)
+	//lint -e{506} const ok!
+	if ( ( drawFatPoint ) )
 	{
 		canvas->SetPixel(x-1,y,color);
 		canvas->SetPixel(x,y-1,color);
@@ -135,19 +135,25 @@ void CLineImagePainter::DrawPoint(CRawImage<ARGB>* canvas, const CFPoint* p, ARG
 
 void CLineImagePainter::DrawCurve(CRawImage<ARGB>* canvas, const CSketchPoint* start, const CSketchPoint* end, ARGB color)
 {
-	CFPoint curr(end->GetX(),end->GetY());
+	CPoint curr( int ( end->GetX() ), int ( end->GetY() ) );
 
 	//LOG("point 0: %i %i\n",curr.x,curr.y);
 
-	for(double a=0.02; a<1.01; a+=0.02) {
-		double b=1-a;
-		
-		CFPoint next(
-			int(start->GetX()*a*a*a + start->GetControlPointForward().GetX()*3*a*a*b + end->GetControlPointBack().GetX()*3.0*a*b*b + end->GetX()*b*b*b),
-			int(start->GetY()*a*a*a + start->GetControlPointForward().GetY()*3*a*a*b + end->GetControlPointBack().GetY()*3.0*a*b*b + end->GetY()*b*b*b)
+	for(double a=0.0; a<=1.0; a+=0.05) {
+		const double b=1.0-a;
+		const double l_ab = a*b;
+		const double l_aaa = a*a*a;
+		const double l_bbb = b*b*b;
+
+		const CFPoint l_secondPoint = start->GetControlPointForward();
+		const CFPoint l_thirdPoint = end->GetControlPointBack();
+
+		CPoint next(
+			int(start->GetX()*l_aaa + l_secondPoint.GetX()*3.0*l_ab*a + l_thirdPoint.GetX()*3.0*b*l_ab + end->GetX()*l_bbb),
+			int(start->GetY()*l_aaa + l_secondPoint.GetY()*3.0*l_ab*a + l_thirdPoint.GetY()*3.0*b*l_ab + end->GetY()*l_bbb)
 			);
 
-		DrawLine(canvas,&curr,&next,color);
+		DrawLine(canvas,curr,next,color);
 		curr = next;
 		//LOG("point %f: %f %f\n",a,curr.x,curr.y);
 	}
