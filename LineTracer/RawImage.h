@@ -2,9 +2,6 @@
 
 #include "SketchImage.h"
 
-//#define __WIN32__
-//#include <boost/pool/pool_alloc.hpp>
-
 #include <deque>
 
 template <class T>
@@ -13,16 +10,23 @@ class CRawImage
 {
 public:
 	CRawImage(int width,int height);
+	CRawImage();
 	~CRawImage(void);
 private:
+	//copy and assignment forbidden
+	//lint -e{1704}
+	CRawImage (const CRawImage&);
+	//lint -e{1704}
+    CRawImage& operator= (const CRawImage&);
+
 	T *m_buffer;
 public:
-	CRawImage(Bitmap * b);
-	Bitmap * MakeBitmap(void);
-	void SetPixel(int x, int y, T val);
-	T GetPixel(int x, int y);
-	T GetPixel(int offset);
-	void SetPixel(int offset, T val);
+	explicit CRawImage(Bitmap * b);
+	Bitmap * GetBitmap(void) const;
+	inline void SetPixel(int x, int y, T val);
+	inline T GetPixel(int x, int y) const;
+	inline T GetPixel(int offset) const;
+	inline void SetPixel(int offset, T val);
 	void Clear();
 	void Dilate(void);
 	void Erode(void);
@@ -77,34 +81,52 @@ private:
 template <class T>
 inline void CRawImage<T>::SetPixel(int x, int y, T val)
 {
+	ASSERT ( m_buffer != NULL );
 	m_buffer[y*GetWidth()+x]=val;
 }
 
 template <class T>
-inline T CRawImage<T>::GetPixel(int x, int y)
+inline T CRawImage<T>::GetPixel(int x, int y) const
 {
-	return m_buffer[y*GetWidth()+x];
+	ASSERT ( m_buffer != NULL );
+ 	return m_buffer[y*GetWidth()+x];
 }
 
 template <class T>
-inline T CRawImage<T>::GetPixel(int offset)
+inline T CRawImage<T>::GetPixel(int offset) const
 {
+	ASSERT ( m_buffer != NULL );
 	return m_buffer[offset];
 }
 
 template <class T>
 inline void CRawImage<T>::SetPixel(int offset, T val)
 {
+	ASSERT ( m_buffer != NULL );
 	m_buffer[offset]=val;
 }
 
 #include <vector>
 
 template <class T>
+CRawImage<T>::CRawImage()
+: CSketchImage()
+, m_buffer(NULL)
+{
+	SetSize(0,0);
+	m_buffer=new T[0];
+}
+
+template <class T>
 CRawImage<T>::CRawImage(int width, int height)
+: CSketchImage()
+, m_buffer(NULL)
 {
 	SetSize(width,height);
-	m_buffer=new T[width*height];
+	ASSERT ( width>=0 );
+	ASSERT ( height>=0 );
+	//lint -e{737} loss of sign ok
+	m_buffer = new T[width*height];
 }
 
 template <class T>
@@ -115,12 +137,15 @@ CRawImage<T>::~CRawImage(void)
 
 template <class T>
 CRawImage<T>::CRawImage(Bitmap * b)
+: CSketchImage()
+, m_buffer(NULL)
 {
-	SetSize(b->GetWidth(),b->GetHeight());
+	SetSize( int(b->GetWidth()), int(b->GetHeight()) );
 
 	if (GetPixels()<=0) return;
 
 	// allocate memory for pixel data
+	//lint -e{737} sign loss ok
 	m_buffer = new T[GetPixels()];
 
 	if ( m_buffer == NULL )
@@ -132,13 +157,14 @@ CRawImage<T>::CRawImage(Bitmap * b)
 	BitmapData bmData;
 	Rect rect(0, 0, GetWidth(), GetHeight());
 
-	b->LockBits(&rect,
+	Status l_result = b->LockBits(&rect,
 		ImageLockModeRead,
 		PixelFormat32bppARGB,
 		&bmData);
+	ASSERT ( l_result == Ok );
 
 	int stride = bmData.Stride;
-	BYTE *p = (BYTE *)((void *)bmData.Scan0);
+	BYTE *p = static_cast<BYTE*> ( static_cast<void*>(bmData.Scan0));
 
 	int nOffset = stride - GetWidth()*4;    // bytes to skip at end of
 	// each row
@@ -146,51 +172,55 @@ CRawImage<T>::CRawImage(Bitmap * b)
 	for(int y=0; y < GetHeight();y++) {
 		for(int x=0; x < GetWidth(); ++x ) {
 			// GDI lies about RGB - internally it's BGR
-			m_buffer[y*GetWidth()+x] =  p[2]<<16 | p[1]<<8 | p[0];
+			m_buffer[y*GetWidth()+x] =  static_cast<T> ( p[2]<<16 | p[1]<<8 | p[0] );
 			p += 4;
 		}
 		p += nOffset;
 	}
-	b->UnlockBits(&bmData);
+	Status l_unlockResult = b->UnlockBits(&bmData);
+	ASSERT ( l_unlockResult == Ok );
 }
 
 template <class T>
-Bitmap * CRawImage<T>::MakeBitmap(void)
+Bitmap * CRawImage<T>::GetBitmap(void) const
 {
 	// create a temporary Bitmap
 	Bitmap bit(GetWidth(), GetHeight(), PixelFormat32bppARGB);
 
 	// create its clone for returning
-	Bitmap *b = bit.Clone(0, 0, bit.GetWidth(), bit.GetHeight(),
+	Bitmap *b = bit.Clone(0, 0, int(bit.GetWidth()), int(bit.GetHeight()),
 		PixelFormat32bppARGB);
 
 	BitmapData bmData;
-	Rect rect(0, 0, b->GetWidth(), b->GetHeight());
-	b->LockBits(&rect,
+	Rect rect(0, 0, int(b->GetWidth()), int(b->GetHeight()) );
+	Status l_result = b->LockBits(&rect,
 		ImageLockModeRead | ImageLockModeWrite,
 		PixelFormat32bppARGB,
 		&bmData);
+	ASSERT ( l_result == Ok);
 
 	int stride = bmData.Stride;
-	BYTE *p = (BYTE *)((void *)bmData.Scan0);
+	BYTE *p = static_cast<BYTE*> (static_cast<void*> (bmData.Scan0));
 	int nOffset = stride - GetWidth()*4;   // bytes to skip at end of
 	// each row
 
-	int pixel;
+	ARGB pixel;
 
 	for(int y=0; y < GetHeight();y++) {
 		for(int x=0; x < GetWidth(); ++x ) {
 			// GDI lies about RGB - internally it's BGR
+			//lint -e{732} sign loss OK
 			pixel = m_buffer[y*GetWidth()+x];
-			p[3] = (BYTE) ((pixel >> 24) & 0xff);    // pixel alpha
-			p[2] = (BYTE) ((pixel >> 16) & 0xff);    // pixel red
-			p[1] = (BYTE) ((pixel >> 8 ) & 0xff);    // pixel green
-			p[0] = (BYTE) ((pixel      ) & 0xff);    // pixel blue
+			p[3] = static_cast<BYTE> ((pixel >> 24) & 0xff);    // pixel alpha
+			p[2] = static_cast<BYTE> ((pixel >> 16) & 0xff);    // pixel red
+			p[1] = static_cast<BYTE> ((pixel >> 8 ) & 0xff);    // pixel green
+			p[0] = static_cast<BYTE> ((pixel      ) & 0xff);    // pixel blue
 			p += 4;
 		}
 		p += nOffset;
 	}
-	b->UnlockBits(&bmData);
+	Status l_unlockResult = b->UnlockBits(&bmData);
+	ASSERT ( l_unlockResult == Ok );
 
 	return b;
 }
@@ -199,7 +229,7 @@ template <class T>
 void CRawImage<T>::Clear(void)
 {
 	for(int i=0; i<GetPixels(); i++) {
-		SetPixel(i,0);
+		SetPixel(i,static_cast<T> ( 0 ));
 	}
 }
 
@@ -217,9 +247,9 @@ void CRawImage<T>::Dilate(void)
 		}
 	}
 	std::vector<CPoint>::iterator iter;
-	for(iter=tmp2.begin(); iter!=tmp2.end(); iter++) {
+	for(iter=tmp2.begin(); iter!=tmp2.end(); ++iter) {
 		CPoint p = (*iter);
-		SetPixel(p.x,p.y,0);
+		SetPixel(p.x,p.y, static_cast<T> ( 0 ));
 	}
 	tmp2.clear();
 }
@@ -238,9 +268,9 @@ void CRawImage<T>::Erode(void)
 		}
 	}
 	std::vector<CPoint>::iterator iter;
-	for(iter=tmp2.begin(); iter!=tmp2.end(); iter++) {
+	for(iter=tmp2.begin(); iter!=tmp2.end(); ++iter) {
 		CPoint p = (*iter);
-		SetPixel(p.x,p.y,0xffffff);
+		SetPixel(p.x,p.y, static_cast<T>(0xffffff));
 	}
 	tmp2.clear();
 }
