@@ -85,25 +85,3 @@ void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_poo
 		pointsToCheck.push_back(CPoint(p.x,p.y-1));
 	}
 }
-
-void CHoleFiller::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
-	static const int SCALE = 1;
-	int width = a_image->GetWidth();
-	int height = a_image->GetHeight();
-	CRawImage<bool> *src = dynamic_cast<CRawImage<bool>*> (a_image);
-	ASSERT ( src != NULL );
-
-	for(int x=0; x<width*SCALE; x+=SCALE) {
-		for(int y=0; y<height*SCALE; y+=SCALE) {
-			ARGB p=src->GetPixel(x/SCALE,y/SCALE)?0xffffff:0;
-			if(!p) {
-				for(int i=0; i<SCALE; i++) {
-					for(int j=0; j<SCALE; j++) {
-						a_canvas->SetPixel(x+i, y+j, 0xff000000 | p);
-					}
-				}
-			}
-		}
-	}
-}

@@ -45,7 +45,3 @@ CSketchImage* CTailPruner::Process(CSketchImage *i_src) {
 
 	return dst;
 }
-
-void CTailPruner::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
-}

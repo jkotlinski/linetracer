@@ -23,6 +23,4 @@ private:
 	CPolyLine* FitLine(CPolyLine* pl, const vector<CFPoint>* tangentList) const;
 	void ReparametrizeT(CPolyLine* pl, CPolyLine* curve, vector<double>* tlist, bool &a_foundBetterTListStatus) const;
 	bool ImprovementSmallEnough(double error, double previousError) const;
-public:
-	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };

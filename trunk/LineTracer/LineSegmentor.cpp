@@ -37,9 +37,9 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 		//SMART SELECTION: CHOOSE MAXIMUM ERRORS
 		for(unsigned int i=0; i<src->Size(); i++) {
 			CPolyLine *line = new CPolyLine();
-			line->Add(src->At(i)->GetHeadPoint()->Clone());
-			Add(line,src->At(i));
-			line->Add(src->At(i)->GetTailPoint()->Clone());
+			line->Add(src->GetLine(i)->GetHeadPoint()->Clone());
+			Add(line,src->GetLine(i));
+			line->Add(src->GetLine(i)->GetTailPoint()->Clone());
 
 			dst->Add(line);
 		}
@@ -48,15 +48,15 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 		for(unsigned int i=0; i<src->Size(); i++) {
 			CPolyLine *newLine = new CPolyLine();
 
-			newLine->SetTail(src->At(i)->IsTail());
-			newLine->Add(src->At(i)->GetHeadPoint()->Clone());
+			newLine->SetTail(src->GetLine(i)->IsTail());
+			newLine->Add(src->GetLine(i)->GetHeadPoint()->Clone());
 			bool added=false;
 
-			for(int point = 4; point < int(src->At(i)->Size())-(added?4:1); point+=4) {
-				newLine->Add(src->At(i)->At(point)->Clone());
+			for(int point = 4; point < int(src->GetLine(i)->Size())-(added?4:1); point+=4) {
+				newLine->Add(src->GetLine(i)->At(point)->Clone());
 				added=true;
 			}
-			newLine->Add(src->At(i)->GetTailPoint()->Clone());
+			newLine->Add(src->GetLine(i)->GetTailPoint()->Clone());
 
 			dst->Add(newLine);
 		}	
@@ -97,8 +97,4 @@ void CLineSegmentor::Add(CPolyLine*dst, CPolyLine* src)
 		l1.Clear();
 		l2.Clear();
 	}
-}
-
-void CLineSegmentor::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
 }

@@ -18,6 +18,4 @@ public:
 	CSketchImage* Process(CSketchImage* src);
 private:
 	void ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_pool_allocator<CPoint> >* pixelsInArea, const CPoint &start);
-public:
-	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };

@@ -30,6 +30,4 @@ private:
 	CLineImage* HandleYForks(const CLineImage* li);
 	void MarkYFork(CPolyLine* line, const CFPoint &p, int median) const;
 	void HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* line1, CPolyLine* line2, const CFPoint &p);
-public:
-	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };
