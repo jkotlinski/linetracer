@@ -30,4 +30,8 @@ public:
 	int GetImageWidth(void);
 	int GetImageHeight(void);
 	void DrawUsingGraphics(Graphics & a_graphics);
+private:
+	bool m_hasBeenDrawn;
+public:
+	bool HasBeenDrawn(void);
 };

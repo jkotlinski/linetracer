@@ -10,6 +10,7 @@ CLayer::CLayer()
 , m_IsVisible(false)
 , m_IsValid(false)
 , m_cachedBitmap(NULL)
+, m_hasBeenDrawn(false)
 {
 	LOG("init layer\n");
 }
@@ -85,6 +86,10 @@ bool CLayer::IsValid(void) const
 void CLayer::SetValid(bool isValid)
 {
 	m_IsValid=isValid;
+	if ( m_IsValid == false )
+	{
+		m_hasBeenDrawn = false;
+	}
 }
 
 const CString* CLayer::GetName(void)
@@ -124,4 +129,10 @@ void CLayer::DrawUsingGraphics(Graphics & a_graphics)
 		return;
 	}
 	l_sketchImage->DrawUsingGraphics( a_graphics );
+	m_hasBeenDrawn = true;
+}
+
+bool CLayer::HasBeenDrawn(void)
+{
+	return m_hasBeenDrawn;
 }
