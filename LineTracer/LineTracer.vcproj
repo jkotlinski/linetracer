@@ -433,6 +433,18 @@
 				RelativePath=".\res\toolbar1.bmp">
 			</File>
 			<File
+				RelativePath=".\res\vector_l.ico">
+			</File>
+			<File
+				RelativePath=".\jonna\whand2.ico">
+			</File>
+			<File
+				RelativePath=".\jonna\whandclosed.ico">
+			</File>
+			<File
+				RelativePath=".\jonna\wzoomin.ico">
+			</File>
+			<File
 				RelativePath=".\jonna\wzoomout.ico">
 			</File>
 			<File
