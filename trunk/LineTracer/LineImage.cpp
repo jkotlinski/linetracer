@@ -4,6 +4,7 @@
 #include "PolyLine.h"
 
 #include <vector>
+#include ".\lineimage.h"
 
 CLineImage::CLineImage(int width, int height)
 : CSketchImage()
@@ -45,7 +46,7 @@ const unsigned int CLineImage::Size(void) const
 	return static_cast<unsigned int> ( m_polyLines.size() );
 }
 
-CPolyLine* CLineImage::At(unsigned int i) const
+CPolyLine* CLineImage::GetLine(unsigned int i) const
 {
 	return m_polyLines.at( i );
 }
@@ -70,15 +71,15 @@ void CLineImage::SolderKnots(void)
 	map<unsigned int,bool> lineProcessed;
 
 	for(unsigned int line=0; line<Size(); line++) {
-		CSketchPoint *p = At(line)->GetHeadPoint();
+		CSketchPoint *p = GetLine(line)->GetHeadPoint();
 		unsigned int pp = (int(p->GetX())&0xffff) | (int(p->GetY())<<16);
 		knotCount[pp]=knotCount[pp]+1;
 
-		p = At(line)->GetTailPoint();
+		p = GetLine(line)->GetTailPoint();
 		pp = (int(p->GetX())&0xffff) | (int(p->GetY())<<16);
 		knotCount[pp]=knotCount[pp]+1;
 
-		ASSERT(At(line)->GetHeadPoint()->Distance(At(line)->GetTailPoint()->GetCoords()) 
+		ASSERT(GetLine(line)->GetHeadPoint()->Distance(GetLine(line)->GetTailPoint()->GetCoords()) 
 			> 0.1);
 	}
 
@@ -96,7 +97,7 @@ void CLineImage::SolderKnots(void)
 
 				if( lineProcessed[i] ) continue;
 
-				CPolyLine *line = At(i);
+				CPolyLine *line = GetLine(i);
 				if(line->GetHeadPoint()->Distance(p)<maxDist || 
 					line->GetTailPoint()->Distance(p)<maxDist) 
 				{
@@ -132,14 +133,14 @@ void CLineImage::SolderKnots(void)
 
 	for(unsigned int i=0; i<Size(); i++) {
 		if(!lineProcessed[i]) {
-			tmp->Add(At(i)->Clone());
+			tmp->Add(GetLine(i)->Clone());
 		}
 	}
 
 	Clear();
 
 	for(unsigned int l_lineIndex=0; l_lineIndex<tmp->Size(); l_lineIndex++) {
-		Add(tmp->At(l_lineIndex)->Clone());
+		Add(tmp->GetLine(l_lineIndex)->Clone());
 	}
 
 	delete tmp;
@@ -148,7 +149,7 @@ void CLineImage::SolderKnots(void)
 map<unsigned int,int> *CLineImage::GetTailPointCounterMap(void) const {
 	map<unsigned int,int> * l_map = new map<unsigned int,int>;
 	for(unsigned int i=0; i<Size(); i++) {
-		CPolyLine *line = At(i);
+		CPolyLine *line = GetLine(i);
 
 		unsigned int l_headKey = line->GetHeadPoint()->GetCoords().HashValue();
 		unsigned int l_tailKey = line->GetTailPoint()->GetCoords().HashValue();
@@ -164,7 +165,7 @@ CLineImage* CLineImage::Clone(void) const
 	CLineImage *clone = new CLineImage(GetWidth(),GetHeight());
 
 	for(unsigned int i=0; i<Size(); i++) {
-		clone->Add(At(i)->Clone());
+		clone->Add(GetLine(i)->Clone());
 	}
 
 	return clone;
@@ -197,7 +198,7 @@ CLineImage* CLineImage::SmoothPositions() const
 	CLineImage *tmp = new CLineImage(GetWidth(),GetHeight());
 
 	for(unsigned int line=0; line<Size(); line++) {
-		CPolyLine* pl = At(line);
+		CPolyLine* pl = GetLine(line);
 		CPolyLine* nuLine = pl->SmoothPositions();
 		tmp->Add(nuLine);
 	}
@@ -219,4 +220,24 @@ void CLineImage::UpdateTailData(void)
 	LOG ( "done\n" );
 
 	delete l_tailPointCounterMap;
+}
+
+// -------------------------------------------------------
+
+void CLineImage::DrawUsingGraphics(Graphics & a_graphics)
+{
+	//int color=1;
+	Pen l_redPen(Color::Red);
+	l_redPen.SetWidth(3.0);
+	l_redPen.SetLineCap(LineCapRound,
+		LineCapRound,
+		DashCapRound);
+
+	for(unsigned int i=0; i<Size(); i++) 
+	{
+		GetLine(i)->DrawUsingGraphics ( a_graphics, l_redPen );		
+
+		//color++;
+		//if(color==7) color=1;
+	}
 }

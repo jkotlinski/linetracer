@@ -20,7 +20,7 @@ private:
 public:
 	void Add(CPolyLine* polyLine);
 	const unsigned int Size(void) const;
-	CPolyLine* At ( unsigned int i ) const;
+	CPolyLine* GetLine ( unsigned int i ) const;
 	void Clear(void);
 	void SolderKnots(void);
 	CLineImage* Clone(void) const;
@@ -31,4 +31,9 @@ public:
 private:
 	map<unsigned int,int>* GetTailPointCounterMap (void) const;
 	unsigned int CalcPointKey(const CFPoint &a_point) const;
+public:
+	void DrawUsingGraphics(Graphics & a_graphics);
+private:
+	void DrawCurve(Graphics& a_graphics, CSketchPoint* a_startPoint, CSketchPoint* a_endPoint);
+	void DrawLine(Graphics & a_graphics, CFPoint& a_startPoint, CFPoint& a_endPoint);
 };
