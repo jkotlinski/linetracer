@@ -3,50 +3,31 @@
 
 CImageProcessor::CImageProcessor()
 : m_IsValid(false)
-, m_name(NULL)
+, m_name("???")
+, m_type ( INVALID_TYPE )
 {
 	LOG("init imageprocessor\n");
 }
 
 CImageProcessor::~CImageProcessor(void)
 {
-	try {
-		LOG("~CImageProcessor()\n");
-	} catch (...) {
-	}
-	if ( m_name != NULL )
-	{
-		delete m_name;
-	}
 }
 
-void CImageProcessor::SetParam(ParamName name, double value)
+const CString *CImageProcessor::GetName(void)
 {
-	m_Params[name]=value;
+	return &m_name;
 }
 
-double CImageProcessor::GetParam(ParamName name)
+void CImageProcessor::SetName(const CString &a_name)
 {
-	ASSERT ( m_Params.count(name) == 1 );
-	return m_Params[name];
-}
-
-map<CImageProcessor::ParamName,double> CImageProcessor::GetParams(void)
-{
-	return m_Params;
-}
-
-CString* CImageProcessor::GetName(void)
-{
-	return NULL;
-}
-
-void CImageProcessor::SetName(CString* a_name)
-{
-	if ( m_name != NULL )
-	{
-		delete m_name;
-	}
 	m_name = a_name;
 }
 
+void CImageProcessor::SetType(enum Type a_type) {
+	m_type = a_type;
+}
+
+CImageProcessor::Type CImageProcessor::GetType ( void ) {
+	ASSERT ( m_type != INVALID_TYPE );
+	return m_type;
+}
