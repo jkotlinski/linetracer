@@ -12,6 +12,11 @@ class CForkHandler :
 protected:
 	CForkHandler(void);
 	~CForkHandler(void);
+
+private: //NO COPY OR ASSIGNMENT!
+	CForkHandler&  operator = (const CForkHandler& other);
+	//lint -e{1704} private
+	CForkHandler(const CForkHandler& other);
 public:
 	static CForkHandler* Instance();
 	CSketchImage* Process(CSketchImage *src);
