@@ -391,6 +391,24 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 			<File
+				RelativePath=".\res\cur00001.cur">
+			</File>
+			<File
+				RelativePath=".\res\cur00002.cur">
+			</File>
+			<File
+				RelativePath=".\res\cur00003.cur">
+			</File>
+			<File
+				RelativePath=".\res\cur00004.cur">
+			</File>
+			<File
+				RelativePath=".\res\cursor1.cur">
+			</File>
+			<File
+				RelativePath=".\res\icon2.ico">
+			</File>
+			<File
 				RelativePath=".\res\LineTracer.ico">
 			</File>
 			<File
@@ -403,7 +421,22 @@
 				RelativePath=".\res\LineTracerDoc.ico">
 			</File>
 			<File
+				RelativePath=".\res\move.ico">
+			</File>
+			<File
+				RelativePath=".\res\show_pixel.ico">
+			</File>
+			<File
+				RelativePath=".\res\show_vector_red.ico">
+			</File>
+			<File
 				RelativePath=".\res\toolbar1.bmp">
+			</File>
+			<File
+				RelativePath=".\jonna\wzoomout.ico">
+			</File>
+			<File
+				RelativePath=".\res\zoom.ico">
 			</File>
 		</Filter>
 		<File
