@@ -1,25 +1,38 @@
 #include "StdAfx.h"
-#include ".\lineimage.h"
+#include "lineimage.h"
 
 #include "PolyLine.h"
 
 #include <vector>
 #include <map>
-#include <math.h>
-
-#include <assert.h>
 
 CLineImage::CLineImage(int width, int height)
+: CSketchImage()
+, m_polyLines()
 {
-	//TRACE("init lineimage\n");
+	//LOG("init lineimage\n");
 	SetSize(width,height);
+}
+
+CLineImage::CLineImage(void) 
+: CSketchImage()
+, m_polyLines()
+{
+	SetSize(0,0);
 }
 
 CLineImage::~CLineImage(void)
 {
-	//TRACE("delete lineimage with size %i\n",m_polyLines.size());
-	for(unsigned int i=0; i<m_polyLines.size(); i++) {
-		delete m_polyLines.at(i);
+	try {
+		//LOG("delete lineimage with size %i\n",m_polyLines.size());
+		for(unsigned int i=0; i<m_polyLines.size(); i++) {
+			delete m_polyLines.at(i);
+		}
+	} catch (...) {
+		try {
+			ASSERT ( false );
+		} catch (...) {
+		}
 	}
 }
 
@@ -28,14 +41,14 @@ void CLineImage::Add(CPolyLine* polyLine)
 	m_polyLines.push_back(polyLine);
 }
 
-unsigned int CLineImage::Size(void)
+const unsigned int CLineImage::Size(void) const
 {
-	return (unsigned int)m_polyLines.size();
+	return static_cast<unsigned int> ( m_polyLines.size() );
 }
 
-CPolyLine* CLineImage::At(int i)
+CPolyLine* CLineImage::At(unsigned int i) const
 {
-	return m_polyLines.at(i);
+	return m_polyLines.at( i );
 }
 
 
@@ -49,37 +62,40 @@ void CLineImage::Clear(void)
 
 void CLineImage::SolderKnots(void)
 {
+	CLogger::Inactivate();
+
 	CLineImage *tmp = new CLineImage(-1,-1);
 
-	map<int,int> knotCount;
-	map<int,int>::iterator iter;
-	map<int,bool> lineProcessed;
+	map<unsigned int,int> knotCount;
+	map<unsigned int,int>::iterator iter;
+	map<unsigned int,bool> lineProcessed;
 
 	for(unsigned int line=0; line<Size(); line++) {
 		CSketchPoint *p = At(line)->GetHeadPoint();
-		int pp = (int(p->x)&0xffff) | (int(p->y)<<16);
+		unsigned int pp = (int(p->GetX())&0xffff) | (int(p->GetY())<<16);
 		knotCount[pp]=knotCount[pp]+1;
 
 		p = At(line)->GetTailPoint();
-		pp = (int(p->x)&0xffff) | (int(p->y)<<16);
+		pp = (int(p->GetX())&0xffff) | (int(p->GetY())<<16);
 		knotCount[pp]=knotCount[pp]+1;
 
-		assert(At(line)->GetHeadPoint()->Distance(*At(line)->GetTailPoint()) 
+		ASSERT(At(line)->GetHeadPoint()->Distance(At(line)->GetTailPoint()->GetCoords()) 
 			> 0.1);
 	}
 
-	for(iter=knotCount.begin(); iter!=knotCount.end(); iter++) {
+	for( iter=knotCount.begin(); iter!=knotCount.end(); ++iter ) {
 		if((*iter).second==2) {
-			CFPoint p((*iter).first &0xffff,(*iter).first>>16);
+			CFPoint p( double ( iter->first & 0xffff ), 
+				double ( iter->first >> 16 ) );
 
 			CPolyLine *l1=0;
 			CPolyLine *l2=0;
 
 			for(unsigned int i=0; i<Size(); i++) 
 			{
-				const static double maxDist = 2;
+				static const double maxDist = 2;
 
-				if(lineProcessed[i]) continue;
+				if( lineProcessed[i] ) continue;
 
 				CPolyLine *line = At(i);
 				if(line->GetHeadPoint()->Distance(p)<maxDist || 
@@ -95,13 +111,20 @@ void CLineImage::SolderKnots(void)
 			}
 
 			if(l2==0) {
+				LOG( "! circle\n" );
+				
 				//circle!
-				TRACE("! circle!");
-				if(l1!=0) {
+				if(l1!=0) 
+				{
 					Add(l1->Clone());
+				}
+				else
+				{
+					LOG ( "don't add ???\n" );
 				}
 			} else {
 				//merge two lines!
+				ASSERT ( l1 != NULL );
 				CPolyLine *l_newLine = l1->MergeLine(l2);
 				Add(l_newLine);
 			}
@@ -116,14 +139,14 @@ void CLineImage::SolderKnots(void)
 
 	Clear();
 
-	for(unsigned int i=0; i<tmp->Size(); i++) {
-		Add(tmp->At(i)->Clone());
+	for(unsigned int l_lineIndex=0; l_lineIndex<tmp->Size(); l_lineIndex++) {
+		Add(tmp->At(l_lineIndex)->Clone());
 	}
 
 	delete tmp;
 }
 
-int CLineImage::IsKnotInLines(CFPoint p)
+const int CLineImage::IsKnotInLines(const CFPoint &p) const
 {
 	int counter=0;
 
@@ -147,7 +170,7 @@ int CLineImage::IsKnotInLines(CFPoint p)
 
 
 
-CLineImage* CLineImage::Clone(void)
+CLineImage* CLineImage::Clone(void) const
 {
 	CLineImage *clone = new CLineImage(GetWidth(),GetHeight());
 
@@ -158,22 +181,24 @@ CLineImage* CLineImage::Clone(void)
 	return clone;
 }
 
-bool CLineImage::IsTail(CPolyLine* pl)
+bool CLineImage::IsTail(CPolyLine* pl) const
 {
-	//TRACE("IsTail: ");
-	if(IsKnotInLines(*(pl->GetHeadPoint()))==1) {
-		//TRACE("true\n");
+	CLogger::Inactivate();
+
+	LOG("IsTail: ");
+	if(IsKnotInLines( pl->GetHeadPoint()->GetCoords() )==1) {
+		LOG("true\n");
 		return true;
 	}
-	if(IsKnotInLines(*(pl->GetTailPoint()))==1) {
-		//TRACE("true\n");
+	if(IsKnotInLines( pl->GetTailPoint()->GetCoords() )==1) {
+		LOG("true\n");
 		return true;
 	}
-	//TRACE("false\n");
+	LOG("false\n");
 	return false;
 }
 
-CLineImage* CLineImage::SmoothPositions()
+CLineImage* CLineImage::SmoothPositions() const
 {
 	CLineImage *tmp = new CLineImage(GetWidth(),GetHeight());
 
@@ -190,6 +215,6 @@ void CLineImage::UpdateTailData(void)
 {
 	for(unsigned int i=0; i<m_polyLines.size(); i++) {
 		CPolyLine *pl = m_polyLines.at(i);
-		pl->SetTail(IsTail(pl));
+		pl->SetTail( IsTail( pl ) );
 	}
 }
