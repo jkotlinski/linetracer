@@ -147,10 +147,10 @@ BEGIN
                     UDS_NOTHOUSANDS,73,26,11,13,WS_EX_TRANSPARENT
     CONTROL         "",IDC_DETAILENCHANCESLIDER,"msctls_trackbar32",TBS_BOTH | 
                     TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,45,77,10
-    LTEXT           "Line Length Threshold",IDC_STATIC,7,84,77,8
+    LTEXT           "Short Line Removal",IDC_STATIC,7,84,77,8
     CONTROL         "",IDC_TAILPRUNERSLIDER,"msctls_trackbar32",TBS_BOTH | 
                     TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,94,77,10
-    LTEXT           "Curve Simplicity",IDC_STATIC,7,106,77,10
+    LTEXT           "Curve Smoothing",IDC_STATIC,7,106,77,10
     CONTROL         "",IDC_CURVEDETAILSLIDER,"msctls_trackbar32",TBS_BOTH | 
                     TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,116,77,10
     LTEXT           "Line Width",IDC_STATIC,7,127,77,9
