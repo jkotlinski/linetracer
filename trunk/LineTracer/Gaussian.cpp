@@ -2,11 +2,16 @@
 #include "gaussian.h"
 
 #include <math.h>
+#include "ProjectSettings.h"
 
 CGaussian::CGaussian(void)
+: CImageProcessor()
 {
-	SetParam(GAUSSIAN_RADIUS,0.5);
 	LOG("init gaussian\n");
+	SetName( CString ( "Gaussian" ) );
+	CProjectSettings::Instance()->SetParam(
+		CProjectSettings::GAUSSIAN_RADIUS,
+		0.5);
 }
 
 CGaussian::~CGaussian(void)
@@ -23,7 +28,8 @@ CSketchImage* CGaussian::Process(CSketchImage* i_src)
 	CRawImage<unsigned char> *src=dynamic_cast<CRawImage<unsigned char>*>(i_src);
 	ASSERT ( src != NULL );
 
-	double radius=GetParam(GAUSSIAN_RADIUS);
+	double radius=CProjectSettings::Instance()->GetParam(
+		CProjectSettings::GAUSSIAN_RADIUS);
 
 	CRawImage<unsigned char> *dst=new CRawImage<unsigned char>(src->GetWidth(), src->GetHeight());
 

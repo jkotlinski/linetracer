@@ -1,11 +1,17 @@
 #include "StdAfx.h"
 #include "tailpruner.h"
 
+#include "ProjectSettings.h"
 #include "LineImage.h"
 
 CTailPruner::CTailPruner(void)
+: CImageProcessor()
 {
-	SetParam(CImageProcessor::TAILPRUNER_THRESHOLD,5);
+	SetName ( CString ( "TailPruner" ) );
+	SetType ( TAILPRUNER );
+	CProjectSettings::Instance()->SetParam(
+		CProjectSettings::TAILPRUNER_THRESHOLD, 
+		5.0);
 }
 
 CTailPruner::~CTailPruner(void)
@@ -24,7 +30,9 @@ CSketchImage* CTailPruner::Process(CSketchImage *i_src) {
 
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
-	unsigned int threshold = (unsigned int)(GetParam(TAILPRUNER_THRESHOLD));
+	unsigned int threshold = (unsigned int)(
+		CProjectSettings::Instance()->GetParam(
+		CProjectSettings::TAILPRUNER_THRESHOLD));
 
 	for(unsigned int i=0; i<src->Size(); i++) {
 		CPolyLine *line = src->At(i);

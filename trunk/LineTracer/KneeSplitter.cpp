@@ -3,12 +3,17 @@
 
 #include <math.h>
 
+#include "ProjectSettings.h"
 #include "LineImage.h"
 #include "SketchPoint.h"
 
 CKneeSplitter::CKneeSplitter(void)
+: CImageProcessor()
 {
-	SetParam(KNEESPLITTER_THRESHOLD,-0.3);
+	SetName ( CString ( "KneeSplitter" ) );
+	CProjectSettings::Instance()->SetParam(
+		CProjectSettings::KNEESPLITTER_THRESHOLD,
+		-0.3);
 }
 
 CKneeSplitter::~CKneeSplitter(void)
@@ -26,7 +31,8 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	// LOG ( "KneeSplitter()\n" );
 
-	double threshold = GetParam(KNEESPLITTER_THRESHOLD);
+	double threshold = CProjectSettings::Instance()->GetParam(
+		CProjectSettings::KNEESPLITTER_THRESHOLD);
 
 	for(unsigned int i=0; i<src->Size(); i++) 
 	{
@@ -36,14 +42,14 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 		vector<CSketchPoint*>::iterator end;
 		iter = line->Begin();
 		end = line->End();
-		end--;
+		--end;
 
 		CSketchPoint *prev_point = *iter;
-		iter++;
+		++iter;
 		CSketchPoint *point = *iter;
 
 		while(iter!=end) {
-			iter++;
+			++iter;
 			CSketchPoint *next_point = *iter;
 
 			double diffx1 = prev_point->GetX() - point->GetX();
@@ -75,7 +81,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	CLineImage *dst = new CLineImage(src->GetWidth(), src->GetHeight());
 
-	for(unsigned int l_lineIndex=0; l_lineIndex<src->Size(); l_lineIndex++) 
+	for(unsigned int l_lineIndex=0; l_lineIndex<src->Size(); ++l_lineIndex) 
 	{
 		CPolyLine* line = src->At(l_lineIndex);
 		CPolyLine* addLine = new CPolyLine();
@@ -91,7 +97,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 				addLine = new CPolyLine();
 				addLine->Add((*iter)->Clone());
 			}
-			iter++;
+			++iter;
 		}
 		dst->Add(addLine);
 	}
