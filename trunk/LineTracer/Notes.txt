@@ -31,7 +31,7 @@ När jag testar på den bilden blir resultatet riktigt konstigt.
 - gick det att fixa att göra musmarkörerna små? (förstoringsglaset och handen)
 - gick det att fixa att ha visa vektorbild/pixelbild som två knappar bara?
 
-* visa zoom-nivå, tack!
+* visa zoom-nivå!
 * flimmmer när man drar bild
 * laure2.gif blir väldigt fel
 * ta tillbaka scrollbars för för stor bild
@@ -45,16 +45,7 @@ När jag testar på den bilden blir resultatet riktigt konstigt.
 - beziermaker->DoSchneider leaks memory
 
 idé för korsningar:
- - kolla EFTER man gjort schneider. limma ihop de ändar som ligger ihop
-
-idé för yta->linje: 
- - kopiera original till arbetsbild
- - thinna arbetsbilden N gånger
- - för de ytor som är kvar - kapa bort små ytor
- - expandera arbetsbilden N gånger, AND:a varje gång med original
- - ta bort alla ytor på arbetsbilden i originalbilden
- - kantdetektera arbetsbilden
- - addera arbetsbilden till originalbilden
+ - kolla EFTER man gjort schneider. limma ihop de ändar som ligger ihop och är riktade från varandra
 
 - new line prune layer
 - stoppa tracing mot gradientens riktning
