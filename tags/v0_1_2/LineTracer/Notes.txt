@@ -1,0 +1,35 @@
+TO DO:
+
+- utritningen blir fel när man ändrar parametrar via toolboxen
+- fixa linjebredd (min-max)
+- linjebredd vid linjeutritning
+- beziermaker->DoSchneider leaks memory
+
+idé för yta->linje: 
+ - kopiera original till arbetsbild
+ - thinna arbetsbilden N gånger
+ - för de ytor som är kvar - kapa bort små ytor
+ - expandera arbetsbilden N gånger, AND:a varje gång med original
+ - ta bort alla ytor på arbetsbilden i originalbilden
+ - kantdetektera arbetsbilden
+ - addera arbetsbilden till originalbilden
+
+- zoom
+- new line prune layer
+- stoppa tracing mot gradientens riktning
+
+
+==================================
+
+The significance of a straight line fit to a list of points can be estimated by
+calculating the ratio of the length of the line segment divided by the maximum
+deviation of any point from the line (the maximum deviation is always assumed to
+be at least two pixels in size to account for limitations on measurement accuracy).
+This measure will remain constant as the scale of the image is changed, and it
+therefore provides a scale­independent measure of significance that places no prior
+expectations on the allowable deviations. This significance measure is then used
+in a modified version of the recursive endpoint subdivision method (see Figure
+7). A segment is recursively subdivided at the point with maximum deviation
+from a line connecting its endpoints (Figure 7 (b,c)). This process is repeated
+until each segment is no more than 4 pixels in length, producing a binary tree of
+possible subdivisions. This representation is similar to the strip trees described
