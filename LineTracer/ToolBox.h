@@ -20,7 +20,8 @@ public:
 	void UpdateParams(void);
 	double GetParam(int type);
 
-	static enum ParamType { BINARIZER };
+	//this one is to support GetParams()
+	enum ParamType { BINARIZER };
 };
 
 
