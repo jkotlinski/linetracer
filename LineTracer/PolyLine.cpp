@@ -42,9 +42,9 @@ bool CPolyLine::Contains(CPoint p)
 	return false;
 }
 
-int CPolyLine::Size(void)
+unsigned int CPolyLine::Size(void)
 {
-	return (int)m_points.size();
+	return (unsigned int) m_points.size();
 }
 
 /*CSketchPoint *CPolyLine::At(int i)
@@ -86,15 +86,64 @@ CSketchPoint *CPolyLine::GetTailPoint(void)
 	return m_points.back();
 }
 
-CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
-	static const double MAX_DIST = 2;
+/* return a new line that is a merge of this and the other line.
 
+the closest endpoints of the lines will be merged.
+one of the endpoints that are glued together will be throwed 
+away - but this shouldn't matter if those points are close.
+*/
+CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 	CPolyLine *tmp=new CPolyLine();
 
-	vector<CSketchPoint*>::iterator iter;
+	enum {
+		NO_INTERSECTION,
+		INTERSECTION_HEAD_TO_HEAD,
+		INTERSECTION_HEAD_TO_TAIL,
+		INTERSECTION_TAIL_TO_HEAD,
+		INTERSECTION_TAIL_TO_TAIL
+	};
+	
+	double l_shortestIntersectionDistance = 10000; 
+	int l_shortestIntersectionType = NO_INTERSECTION;
+	
+	//find best intersection type
 
-	if(GetHeadPoint()->Distance(*line->GetHeadPoint()) < MAX_DIST) {
+	double l_distance = GetHeadPoint()->Distance(*line->GetHeadPoint());
+	if( l_distance < l_shortestIntersectionDistance )
+	{
+		l_shortestIntersectionDistance = l_distance;
+		l_shortestIntersectionType = INTERSECTION_HEAD_TO_HEAD;
+	}
+	
+	l_distance = GetHeadPoint()->Distance(*line->GetTailPoint());
+	if( l_distance < l_shortestIntersectionDistance )
+	{
+		l_shortestIntersectionDistance = l_distance;
+		l_shortestIntersectionType = INTERSECTION_HEAD_TO_TAIL;
+	}
+	
+	l_distance = GetTailPoint()->Distance(*line->GetHeadPoint());
+	if( l_distance < l_shortestIntersectionDistance )
+	{
+		l_shortestIntersectionDistance = l_distance;
+		l_shortestIntersectionType = INTERSECTION_TAIL_TO_HEAD;
+	}
+
+	l_distance = GetTailPoint()->Distance(*line->GetTailPoint());
+	if( l_distance < l_shortestIntersectionDistance )
+	{
+		l_shortestIntersectionDistance = l_distance;
+		l_shortestIntersectionType = INTERSECTION_TAIL_TO_TAIL;
+	}
+
+	switch( l_shortestIntersectionType )
+	{
+	case INTERSECTION_HEAD_TO_HEAD:
+		{
+		TRACE( "me backwards, line forwards\n" );
+
 		//me backwards
+		vector<CSketchPoint*>::iterator iter;
 		iter=End();
 		iter--;
 		while(iter!=Begin()) {
@@ -113,8 +162,14 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 			tmp->Add(*iter);
 			*iter=0;
 		}
-	} else if(GetHeadPoint()->Distance(*line->GetTailPoint()) < MAX_DIST) {
+		break;
+		}
+	case INTERSECTION_HEAD_TO_TAIL:
+		{
+		TRACE( "me backwards, line backwards\n" );
+
 		//me backwards
+		vector<CSketchPoint*>::iterator iter;
 		iter=End();
 		iter--;
 		while(iter!=Begin()) {
@@ -141,16 +196,23 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		(*iter)->SwapControlPoints();
 		tmp->Add(*iter);
 		*iter=0;
-	} else if(GetTailPoint()->Distance(*line->GetHeadPoint()) < MAX_DIST) {
+		break;
+		}
+	case INTERSECTION_TAIL_TO_HEAD:
+		{
+		TRACE( "me forwards, line forwards\n" );
 		//me forwards
+		vector<CSketchPoint*>::iterator iter;
 		iter=Begin();
 		vector<CSketchPoint*>::iterator end=End();
 		end--;
-		do {
+		while (iter != end) 
+		{
+			//(*iter)->Trace();
 			tmp->Add(*iter);
 			*iter=0;
 			iter++;
-		} while(iter!=end);
+		}
 
 		CSketchPoint *linkPoint = new CSketchPoint(*(*iter),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointBack());
@@ -158,15 +220,24 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		iter=line->Begin();
 		linkPoint->SetControlPointForward((*iter)->GetControlPointForward());
 		tmp->Add(linkPoint);
-
+		//TRACE("linkPoint: ");
+		//linkPoint->Trace();
+		
 		iter++;
-		while(iter!=line->End()) {
+		while(iter!=line->End()) 
+		{
+			//(*iter)->Trace();
 			tmp->Add(*iter);
 			*iter=0;
 			iter++;
 		}
-	} else if(GetTailPoint()->Distance(*line->GetTailPoint()) < MAX_DIST) {
+		break;
+		}
+	case INTERSECTION_TAIL_TO_TAIL:
+		{
+		TRACE( "me forwards, line backwards\n" );
 		//me forwards
+		vector<CSketchPoint*>::iterator iter;
 		iter=Begin();
 		vector<CSketchPoint*>::iterator end=End();
 		end--;
@@ -194,8 +265,10 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		(*iter)->SwapControlPoints();
 		tmp->Add(*iter);
 		*iter=0;
-	} else {
-		assert(0);
+		break;
+		}
+	default:
+		assert(false);
 	}
 
 	return tmp;
@@ -292,6 +365,7 @@ CSketchPoint* CPolyLine::GetMaxDeviationPoint(void)
 
 CSketchPoint* CPolyLine::At(int i)
 {
+	assert ( i >= 0 );
 	return m_points.at(i);
 }
 
@@ -323,7 +397,7 @@ CPolyLine* CPolyLine::SmoothPositions(void)
 
 	nuLine->Add(GetHeadPoint()->Clone());
 
-	for(int point=1; point<Size()-1; point++) {
+	for(unsigned int point=1; point<Size()-1; point++) {
 		double x = 0.5 * At(point)->x;
 		double y = 0.5 * At(point)->y;
 		x += 0.25 * At(point-1)->x;
@@ -338,4 +412,85 @@ CPolyLine* CPolyLine::SmoothPositions(void)
 
 	nuLine->Add(GetTailPoint()->Clone());
 	return nuLine;
+}
+
+void CPolyLine::Trace(void)
+{
+	if ( Size() == 0 ) 
+	{
+		TRACE ( "CPolyLine is empty" );
+	}
+
+	for(unsigned int l_pointIndex=0; 
+		l_pointIndex < Size(); 
+		l_pointIndex++) 
+	{
+		CSketchPoint *p = At(l_pointIndex);
+		TRACE("CPolyLine[%i]: ", l_pointIndex);
+		p->Trace();
+	}
+}
+
+/* if two or more points in a row are the same, just keep one 
+
+returns number of removed points!
+*/
+int CPolyLine::RemoveDuplicatePoints (void)
+{
+	static const double MIN_POINT_DISTANCE = 0.1;
+	int l_removedPoints = 0;
+
+	TRACE( "RemoveDuplicatePoints\n" );
+
+	TRACE( "size was: %i\n", Size() );
+
+	// keep points we want to this line
+	CPolyLine *l_newLine = new CPolyLine();
+
+	for ( unsigned int l_pointIndex = 0;
+		l_pointIndex < Size()-1;
+		l_pointIndex++ ) 
+	{
+		CSketchPoint *l_point1 = At( l_pointIndex );
+		CSketchPoint *l_point2 = At( l_pointIndex + 1 );
+
+		double l_distance = l_point1->Distance( *l_point2 );
+
+		bool l_distanceIsZero = l_distance < MIN_POINT_DISTANCE;
+		
+		if ( l_distanceIsZero )
+		{
+			l_removedPoints++;
+			TRACE("delete point\n");
+			//don't keep this point!
+			delete l_point1;
+		}
+		else 
+		{
+			//store point in new line
+			l_newLine->Add ( l_point1 );
+		}
+	}
+
+	//always store last point
+	CSketchPoint* l_lastPoint = At ( Size()-1 );
+	l_newLine->Add ( l_lastPoint );
+
+	//drop all local point references
+	Clear();
+
+	vector<CSketchPoint*>::iterator iter;
+
+	for(iter = l_newLine->Begin(); 
+		iter != l_newLine->End(); 
+		iter++) 
+	{
+		Add( (*iter)->Clone() );
+	}
+
+	TRACE( "size became: %i\n", Size() );
+
+	delete l_newLine;
+
+	return l_removedPoints;
 }
