@@ -22,3 +22,12 @@ v0.0.5
 
  * now multithreaded
  * fixed get/set param bug that occured because of incorrect char* usage
+ 
+ v0.0.8
+ 
+ *added zoom OK
+ 
+ v0.0.9
+ 
+ * improved drawing
+ 
