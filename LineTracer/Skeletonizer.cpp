@@ -4,6 +4,7 @@
 #include "LineImagePainter.h"
 
 #include "EpsWriter.h"
+#include "ProjectSettings.h"
 
 #include <math.h>
 #include <map>
@@ -18,8 +19,10 @@ using namespace std;
 //#include "blockallocator.h"
 
 CSkeletonizer::CSkeletonizer(void)
+: CImageProcessor()
 {
-	SetParam(SKELETONIZER_SCALE,1);
+	SetName ( CString ( "Skeletonizer" ) );
+	CProjectSettings::Instance()->SetParam( CProjectSettings::SKELETONIZER_SCALE, 1.0 );
 	LOG("init skeletonizer\n");
 }
 
@@ -79,10 +82,8 @@ CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 
 	delete segmentMap;
 
-	LOG("process complete\n");
-	//TRACE("size: %i %i\n",maxMap->GetWidth(),maxMap->GetHeight());
+	LOG("skeletonizer->process complete\n");
 	li->UpdateTailData();
-
 	CLineImage* li2 = li->SmoothPositions();
 	delete li;
 	return li2;
@@ -959,7 +960,8 @@ void CSkeletonizer::TrackBoundary(int x, int y, char* f, double* U,double &val, 
 
 CRawImage<bool>* CSkeletonizer::MagnifyImage(CRawImage<bool>* img)
 {
-	int SCALE = int(GetParam(SKELETONIZER_SCALE));
+	int SCALE = int( CProjectSettings::Instance()->GetParam(
+		CProjectSettings::SKELETONIZER_SCALE));
 
 	CRawImage<bool> *tmp = new CRawImage<bool>(img->GetWidth()*SCALE, img->GetHeight()*SCALE);
 
