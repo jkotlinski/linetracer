@@ -79,8 +79,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	//LoadBarState(_T("ToolbarState"));
 
-	m_wndToolbox->Init();
-
     return 0;
 }
 

@@ -153,6 +153,9 @@
 				RelativePath=".\EpsWriter.cpp">
 			</File>
 			<File
+				RelativePath=".\FloatComparer.cpp">
+			</File>
+			<File
 				RelativePath=".\ForkHandler.cpp">
 			</File>
 			<File
@@ -210,6 +213,9 @@
 				RelativePath=".\PolyLine.cpp">
 			</File>
 			<File
+				RelativePath=".\ProjectSettings.cpp">
+			</File>
+			<File
 				RelativePath=".\Skeletonizer.cpp">
 			</File>
 			<File
@@ -258,6 +264,9 @@
 			</File>
 			<File
 				RelativePath=".\EpsWriter.h">
+			</File>
+			<File
+				RelativePath=".\FloatComparer.h">
 			</File>
 			<File
 				RelativePath=".\ForkHandler.h">
@@ -333,6 +342,9 @@
 			</File>
 			<File
 				RelativePath=".\pool\poolfwd.hpp">
+			</File>
+			<File
+				RelativePath=".\ProjectSettings.h">
 			</File>
 			<File
 				RelativePath=".\RawImage.h">
