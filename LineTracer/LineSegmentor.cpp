@@ -3,13 +3,18 @@
 
 #include "LineImage.h"
 #include <list>
+#include "ProjectSettings.h"
 
 using namespace std;
 
 CLineSegmentor::CLineSegmentor(void)
+: CImageProcessor()
 {
-	SetParam(LINESEGMENTOR_THRESHOLD,1.5);
-		LOG("init linesegmentor\n");
+	SetName ( CString ( "LineSegmentor" ) );
+	CProjectSettings::Instance()->SetParam(
+		CProjectSettings::LINESEGMENTOR_THRESHOLD,
+		1.5);
+	LOG("init linesegmentor\n");
 }
 
 CLineSegmentor::~CLineSegmentor(void)
@@ -28,8 +33,7 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 	ASSERT ( src != NULL );
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
-	//lint -e{774} const is ok
-	if( useMaxErrors ) {
+	if( ( useMaxErrors ) ) {
 		//SMART SELECTION: CHOOSE MAXIMUM ERRORS
 		for(unsigned int i=0; i<src->Size(); i++) {
 			CPolyLine *line = new CPolyLine();
@@ -64,7 +68,8 @@ void CLineSegmentor::Add(CPolyLine*dst, CPolyLine* src)
 {
 	CSketchPoint *p;
 
-	double THRESHOLD = GetParam(LINESEGMENTOR_THRESHOLD);
+	double THRESHOLD = CProjectSettings::Instance()->GetParam(
+		CProjectSettings::LINESEGMENTOR_THRESHOLD);
 
 	if(src->GetMaxDeviation()>=THRESHOLD) {
 		p = src->GetMaxDeviationPoint();
