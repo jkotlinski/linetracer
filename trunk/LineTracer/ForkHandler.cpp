@@ -5,7 +5,6 @@
 #include "FPoint.h"
 #include "PolyLine.h"
 
-#include <math.h>
 #include <vector>
 #include <map>
 
