@@ -1,9 +1,11 @@
 #include "StdAfx.h"
 #include "projectsettings.h"
+#include ".\projectsettings.h"
 
 CProjectSettings::CProjectSettings(void)
 : m_params()
 {
+	Init();
 }
 
 CProjectSettings::~CProjectSettings(void)
@@ -35,6 +37,18 @@ void CProjectSettings::SetParam ( CProjectSettings::ParamName a_paramName, doubl
 
 void CProjectSettings::Init(void)
 {
-	//m_params.clear();
-	SetParam(BINARIZER_THRESHOLD,-1.0);
+	SetParam(BEZIERMAKER_ERROR_THRESHOLD, 20.0);
+	SetParam(BINARIZER_THRESHOLD, -1.0);
+	SetParam(BINARIZER_MEAN_C, 5.0);
+	SetParam(LINESEGMENTOR_THRESHOLD, 1.5);
+	SetParam(TAILPRUNER_THRESHOLD, 5.0);
+	SetParam(SKELETONIZER_SCALE, 1.0);
+	SetParam(KNEESPLITTER_THRESHOLD, -0.3);
+	SetParam(HOLEFILLER_MIN_AREA, 20.0);
+	SetParam(GAUSSIAN_RADIUS, 0.5);
+}
+
+void CProjectSettings::Reset(void)
+{
+	Init();
 }
