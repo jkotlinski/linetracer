@@ -26,13 +26,13 @@
 #endif
 
 #include <map>
+#include ".\linetracerdoc.h"
 
 // CLineTracerDoc
 
 IMPLEMENT_DYNCREATE(CLineTracerDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CLineTracerDoc, CDocument)
-	ON_COMMAND(ID_PARAMETERS_BINARIZE, OnParametersBinarizer)
 	ON_COMMAND(ID_PARAMETERS_GAUSSIANBLUR, OnParametersGaussian)
 	ON_COMMAND(ID_VIEW_SKELETONIZER, OnViewSkeletonizer)
 	ON_COMMAND(ID_VIEW_BINARIZER, OnViewBinarizer)
@@ -41,10 +41,8 @@ BEGIN_MESSAGE_MAP(CLineTracerDoc, CDocument)
 	ON_COMMAND(ID_PARAMETERS_LINESIZETHRESHOLD, OnParametersLineLength)
 	ON_COMMAND(ID_ZOOM_100, OnZoom100)
 	ON_COMMAND(ID_ZOOM_200, OnZoom200)
-	ON_COMMAND(ID_PARAMETERS_NOISESURPRESSION, OnParametersNoisesurpression)
 	ON_COMMAND(ID_VIEW_BEZIERMAKER, OnViewBeziermaker)
 	ON_COMMAND(ID_VIEW_THINNER, OnViewThinner)
-	ON_COMMAND(ID_PARAMETERS_CURVEDETAIL, OnParametersCurvedetail)
 END_MESSAGE_MAP()
 
 
@@ -139,29 +137,6 @@ void CLineTracerDoc::Dump(CDumpContext& dc) const
 #endif //_DEBUG
 
 
-// CLineTracerDoc commands
-
-void CLineTracerDoc::SetInputImageFileName(CString FileName)
-{
-	m_InputBitmapFileName=FileName;
-	Bitmap *inputBitmap;
-
-	if(FileName!=_T("")) {
-		if(LoadImage(&inputBitmap, &FileName)) {
-			SetModifiedFlag();
-			CProjectSettings::Instance()->Init();
-
-			CRawImage<ARGB> img(inputBitmap);
-
-			CLayerManager *lm=CLayerManager::Instance();
-			lm->InvalidateLayers();
-
-			lm->GetLayer(CLayerManager::DESATURATOR)->Process(&img);
-			lm->GetLayer(CLayerManager::DESATURATOR)->SetValid(true);
-			delete inputBitmap;
-		}
-	}
-}
 
 CString CLineTracerDoc::GetInputImageFileName(void) const
 {
@@ -179,47 +154,11 @@ void CLineTracerDoc::ProcessLayers(void)
 	UpdateAllViews(NULL);
 }
 
-bool CLineTracerDoc::LoadImage(Bitmap** image, CString *fileName) const
-{	
-	LPWSTR lpszW = new WCHAR[1024];
-
-	LPTSTR lpStr = fileName->GetBuffer(fileName->GetLength() );
-	int nLen = MultiByteToWideChar(CP_ACP, 0,lpStr, -1, NULL, NULL);
-	int l_status = MultiByteToWideChar(CP_ACP, 0, 	lpStr, -1, lpszW, nLen);
-	ASSERT ( l_status != 0 );
-
-	*image = new Bitmap(lpszW);
-
-	delete[] lpszW;
-
-	return (*image!=NULL)?true:false;
-}
 
 /*Bitmap* CLineTracerDoc::GetInputBitmap(void)
 {
 	return m_InputBitmap;
 }*/
-
-
-void CLineTracerDoc::OnParametersBinarizer()
-{
-	CParamDialog dlg;
-	CProjectSettings *l_settings = CProjectSettings::Instance();
-
-	double oldVal = l_settings->GetParam(CProjectSettings::BINARIZER_THRESHOLD);
-	dlg.m_EditValue.Format("%.0f",oldVal);
-
-	if(dlg.DoModal() == IDOK) {
-		double newVal = atof((char*)(const char*)dlg.m_EditValue);
-
-		l_settings->SetParam(CProjectSettings::BINARIZER_THRESHOLD,newVal);
-		if( CFloatComparer::FloatsDiffer(newVal,oldVal) ) {
-			SetModifiedFlag();
-			CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
-			ProcessLayers();
-		}
-	}
-}
 
 void CLineTracerDoc::OnParametersGaussian()
 {
@@ -335,26 +274,6 @@ int CLineTracerDoc::GetZoom(void) const
 	return m_ZoomFactor;
 }
 
-void CLineTracerDoc::OnParametersNoisesurpression()
-{
-	CParamDialog dlg;
-	CProjectSettings *l_settings = CProjectSettings::Instance();
-
-	double oldVal = l_settings->GetParam(CProjectSettings::BINARIZER_MEAN_C);
-	dlg.m_EditValue.Format("%.0f",oldVal);
-
-	if(dlg.DoModal() == IDOK) {
-		double newVal = atof((char*)(const char*)dlg.m_EditValue);
-
-		l_settings->SetParam(CProjectSettings::BINARIZER_MEAN_C,newVal);
-		if( CFloatComparer::FloatsDiffer(newVal,oldVal) ) {
-			SetModifiedFlag();
-			CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
-			ProcessLayers();
-		}
-	}
-}
-
 void CLineTracerDoc::OnViewBeziermaker()
 {
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::BEZIERMAKER);
@@ -371,24 +290,9 @@ void CLineTracerDoc::OnViewThinner()
 	SetModifiedFlag();
 }
 
-void CLineTracerDoc::OnParametersCurvedetail()
+
+void CLineTracerDoc::SetInputImageFileName(CString & a_fileName)
 {
-	CParamDialog dlg;
-	CProjectSettings *l_settings = CProjectSettings::Instance();
-
-	double oldVal = l_settings->GetParam(CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD);
-	dlg.m_EditValue.Format("%.1f",oldVal);
-
-	if(dlg.DoModal() == IDOK) {
-		double newVal = atof((char*)(const char*)dlg.m_EditValue);
-
-		if(newVal<10) newVal=10;
-		l_settings->SetParam(CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD,newVal);
-		if( CFloatComparer::FloatsDiffer ( newVal, oldVal ) ) {
-			SetModifiedFlag();
-			CLayerManager::Instance()->InvalidateLayers(CLayerManager::BEZIERMAKER);
-			ProcessLayers();
-		}
-	}
+	m_InputBitmapFileName = a_fileName;
+	SetModifiedFlag();
 }
-
