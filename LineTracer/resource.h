@@ -25,14 +25,14 @@
 #define IDC_BWTHRESHOLD                 1002
 #define IDC_MOVEBUTTON                  1003
 #define IDC_ZOOMBUTTON                  1004
-#define IDC_DETAILENCHANCESLIDER        1005
+#define IDC_DETAILENHANCESLIDER        1005
 #define IDC_LINELENGTHSLIDER            1006
 #define IDC_TAILPRUNERSLIDER            1006
 #define IDC_SLIDER3                     1007
 #define IDC_CURVEDETAILSLIDER           1007
 #define IDC_HAND                        1007
 #define IDC_CUSTOM1                     1008
-#define IDC_DETAILENCHANCESLIDER2       1008
+#define IDC_DETAILENHANCESLIDER2       1008
 #define IDC_SLIDER1                     1009
 #define IDC_HOLEFILLERSLIDER            1013
 #define IDC_VIEW_ORIGINAL_BUTTON        1014
