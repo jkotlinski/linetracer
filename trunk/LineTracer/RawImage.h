@@ -208,11 +208,11 @@ Bitmap * CRawImage<T>::GetBitmap(void) const
 
 	ARGB pixel;
 
-	for(int y=0; y < GetHeight();y++) {
+	for(int y=0; y < GetHeight(); ++y) {
 		for(int x=0; x < GetWidth(); ++x ) {
 			// GDI lies about RGB - internally it's BGR
 			//lint -e{732} sign loss OK
-			pixel = m_buffer[y*GetWidth()+x];
+			pixel = m_buffer[y*GetWidth()+x]?0xffffffff:0xff000000;
 			p[3] = static_cast<BYTE> ((pixel >> 24) & 0xff);    // pixel alpha
 			p[2] = static_cast<BYTE> ((pixel >> 16) & 0xff);    // pixel red
 			p[1] = static_cast<BYTE> ((pixel >> 8 ) & 0xff);    // pixel green
@@ -291,24 +291,9 @@ void CRawImage<T>::DrawUsingGraphics(Graphics& a_graphics)
 	CLogger::Activate();
 	LOG ( "RawImage->DrawUsingGraphics()\n" );
 
-	Bitmap l_bitmap ( GetWidth(), GetHeight(), PixelFormat32bppARGB );
-
-	for ( int x=0; x<GetWidth(); x++ )
-	{
-		for ( int y=0; y<GetHeight(); y++ )
-		{
-			if ( GetPixel( x, y ) == 0 )
-			{
-				(void) l_bitmap.SetPixel ( x, y, Color::Black );
-			}
-			else
-			{
-				(void) l_bitmap.SetPixel ( x, y, Color::White );
-			}
-		}
-	}
-
-	Status l_drawImageResult = a_graphics.DrawImage( &l_bitmap, 0, 0, GetWidth(), GetHeight());
+	Bitmap *l_bitmap = GetBitmap();
+	Status l_drawImageResult = a_graphics.DrawImage( l_bitmap, 0, 0, GetWidth(), GetHeight());
+	delete l_bitmap;
 	if ( l_drawImageResult != Ok )
 	{
 		CLogger::Activate();
