@@ -31,7 +31,7 @@ CSketchImage* AreasToClosedCurvesProcessor::Process(CSketchImage *a_src_image)
 
 	//N = maximum line radius
 	//A = minimum area
-	static const int l_maximumLineRadius = 3;
+	static const int l_maximumLineRadius = 2;
 	static const int l_minimumAreaThreshold = 50;
 
 	//copy source_bitmap to work_bitmap
