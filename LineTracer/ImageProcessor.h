@@ -12,11 +12,29 @@ public:
 	virtual ~CImageProcessor(void);
 
 	virtual CSketchImage* Process(CSketchImage* src) = 0;
-private:
-	bool m_IsValid;
-	map<const char*,double> m_Params;
+	virtual void PaintImage(CSketchImage *a_image, CRawImage<ARGB> *a_canvas) const = 0;
+
 public:
-	void SetParam(char* name, double value);
-	double GetParam(char* name);
-	map<const char*,double> GetParams(void);
+	enum ParamName {
+		BEZIERMAKER_ERROR_THRESHOLD,
+		BINARIZER_THRESHOLD,
+		BINARIZER_MEAN_C,
+		GAUSSIAN_RADIUS,
+		HOLEFILLER_MIN_AREA,
+		KNEESPLITTER_THRESHOLD,
+		LINESEGMENTOR_THRESHOLD,
+		SKELETONIZER_SCALE,
+		TAILPRUNER_THRESHOLD
+	};
+
+private:
+	CString *m_name;
+	bool m_IsValid;
+	map<enum ParamName,double> m_Params;
+public:
+	void SetParam(ParamName name, double value);
+	double GetParam(ParamName name);
+	map<enum ParamName,double> GetParams(void);
+	CString* GetName(void);
+	void SetName(CString* a_name);
 };
