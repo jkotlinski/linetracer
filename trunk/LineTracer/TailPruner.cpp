@@ -41,7 +41,7 @@ CSketchImage* CTailPruner::Process(CSketchImage *i_src) {
 			dst->Add(line->Clone());
 		}
 	}
-	dst->SolderKnots();
+	//dst->SolderKnots();
 
 	src->AssertNoDuplicateLines();
 	return dst;
