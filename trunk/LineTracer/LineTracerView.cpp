@@ -269,7 +269,7 @@ void CLineTracerView::OnFileExporteps() {
 void CLineTracerView::OnUpdateViewOriginal(CCmdUI *pCmdUI)
 {
 	CLayerManager *lm = CLayerManager::Instance();
-	CLayer* l = lm->GetLayer(CLayerManager::DESATURATOR);
+	CLayer* l = lm->GetLayer(CLayerManager::HOLEFILLER);
 	pCmdUI->SetCheck(l->IsVisible());
 }
 
@@ -642,7 +642,7 @@ BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 		return TRUE;
 	}
 
-	bool l_messageFromAnotherWindow = ( pWnd == NULL );
+	bool l_messageFromAnotherWindow = ( pWnd != GetWindow(NULL));
 	bool l_noImageLoaded = ( GetImageWidth() == 0 );
 
 	if ( l_messageFromAnotherWindow || l_noImageLoaded )
