@@ -50,33 +50,11 @@ CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 	delete knotImage;
 
 	//trace endpoints
-	for(int x=1; x<segmentMap->GetWidth()-1; x++) {
-		for(int y=1; y<segmentMap->GetHeight()-1; y++) {
-			if(segmentMap->GetPixel(x,y) && IsEndPoint(segmentMap, CPoint(x,y))) {
-				CFPoint p,p_prev;
-				CPolyLine *line = new CPolyLine();
-				//add first point
-				line->Add(new CSketchPoint(x,y,true));
-				segmentMap->SetPixel(x,y,0);
-				p_prev=FindSegmentNeighbor(segmentMap,CFPoint(x,y));
-				while(1) {
-					p=FindSegmentNeighbor(segmentMap,p_prev);
-					if(p.GetX()==-1) {
-						//add last point
-						line->Add(new CSketchPoint(p_prev,true));
-						segmentMap->SetPixel(int(p_prev.GetX()),int(p_prev.GetY()),0);
-						break;
-					}
-					line->Add(new CSketchPoint(p_prev));
-					segmentMap->SetPixel(int(p_prev.GetX()),int(p_prev.GetY()),0);
-					p_prev=p;
-				}
-				li->Add(line);
-			}
-		}
-	}
+	TraceEndpoints ( *segmentMap, *li );
 
 	//TODO: circle detect
+	//we have a bunch of segments left, that have no end points.
+	TraceCircles ( *segmentMap, *li );
 
 	delete segmentMap;
 
@@ -87,6 +65,77 @@ CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 	return li2;
 }
 
+void CSkeletonizer::TraceEndpoints ( CRawImage<ARGB> &segmentMap, CLineImage &li )
+{
+	for(int x=1; x<segmentMap.GetWidth()-1; x++) {
+		for(int y=1; y<segmentMap.GetHeight()-1; y++) {
+			if(segmentMap.GetPixel(x,y) && IsEndPoint(&segmentMap, CPoint(x,y))) {
+				CPoint p,p_prev;
+				CPolyLine *line = new CPolyLine();
+				//add first point
+				line->Add(new CSketchPoint(x,y,true));
+				segmentMap.SetPixel(x,y,0);
+				p_prev=FindSegmentNeighbor(&segmentMap,CPoint(x,y));
+
+				while( true ) 
+				{
+					p=FindSegmentNeighbor(&segmentMap,p_prev);
+					if ( p.x == -1 ) 
+					{
+						//add last point
+						line->Add(new CSketchPoint(p_prev.x,p_prev.y,true));
+						segmentMap.SetPixel(int(p_prev.x),int(p_prev.y),0);
+						break;
+					}
+					line->Add(new CSketchPoint(p_prev.x, p_prev.y));
+					segmentMap.SetPixel(int(p_prev.x),int(p_prev.y),0);
+					p_prev=p;
+				}
+				li.Add(line);
+			}
+		}
+	}
+}
+
+void CSkeletonizer::TraceCircles( CRawImage<ARGB> &segmentMap, CLineImage &li )
+{
+	for(int y=1; y<segmentMap.GetHeight()-1; y++) 
+	{
+		for(int x=1; x<segmentMap.GetWidth()-1; x++) 
+		{
+			if(segmentMap.GetPixel(x,y)) 
+			{
+				CPolyLine *l_circleLine = new CPolyLine();
+				l_circleLine->SetIsCircle();
+
+				//found the top pixel of a circle!
+
+				//add first point
+				CPoint l_startPoint(x,y);
+				segmentMap.SetPixel(x, y, 0);
+				l_circleLine->Add(new CSketchPoint(x,y,true));
+
+				CPoint l_previousPoint(x,y);
+
+				while( true ) 
+				{
+					CPoint p=FindSegmentNeighbor(&segmentMap, l_previousPoint);
+					if ( p.x == -1 ) 
+					{
+						//found end of circle
+						l_circleLine->Add(new CSketchPoint(l_startPoint.x, l_startPoint.y, true));
+						break;
+					}
+					l_circleLine->Add(new CSketchPoint(p.x, p.y));
+					segmentMap.SetPixel(p.x, p.y, 0);
+					l_previousPoint = p;
+				}
+				ASSERT ( l_circleLine->Size() > 1 );
+				li.Add( l_circleLine );
+			}
+		}
+	}
+}
 
 void CSkeletonizer::DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst, int DirectDistance, int IndirectDistance)
 {
@@ -638,7 +687,8 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<ARGB>* segmentImg, CRawImage<ARGB
 				p=knotImg->GetPixel(x+1,y+1);
 				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
 
-				CSketchPoint startKnot ( FindSegmentNeighbor(segmentImg, CFPoint(x,y)) );
+				CPoint l_startPoint = FindSegmentNeighbor(segmentImg, CPoint(x,y));
+				CSketchPoint startKnot ( l_startPoint.x, l_startPoint.y );
 
 				while(startKnot.GetX() != -1) {
 					CPolyLine* line=new CPolyLine();
@@ -649,7 +699,8 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<ARGB>* segmentImg, CRawImage<ARGB
 
 					li->Add(line);
 
-					startKnot = CSketchPoint ( FindSegmentNeighbor(segmentImg, CFPoint(x,y)) );
+					CPoint l_newPoint = FindSegmentNeighbor(segmentImg, CPoint(x,y));
+					startKnot = CSketchPoint( l_newPoint.x, l_newPoint.y );
 				}
 			}
 		}
@@ -702,7 +753,10 @@ void CSkeletonizer::TraceLine(CRawImage<ARGB>* segmentImage, CRawImage<ARGB>* kn
 		assert(p.GetY() >= -1);
 
 		//get neigbor point
-		CSketchPoint p_new(FindSegmentNeighbor(segmentImage,p.GetCoords()));
+		CPoint l_newCoords = FindSegmentNeighbor(segmentImage,
+			CPoint ( static_cast<int>(p.GetCoords().GetX()), 
+				static_cast<int>(p.GetCoords().GetY())) );
+		CSketchPoint p_new(l_newCoords.x, l_newCoords.y);
 
 		if(p_new.GetX() == -1) {
 			//add point as endpoint
@@ -795,35 +849,35 @@ CSketchPoint CSkeletonizer::FindNeighborKnot(CRawImage<ARGB>* knotImg, CPoint p)
 	return CSketchPoint(CFPoint(-1,-1));
 }
 
-CFPoint CSkeletonizer::FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, CFPoint p)
+CPoint CSkeletonizer::FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, const CPoint & p)
 {
-	if(!p.GetX() || p.GetX()==segmentImage->GetWidth()-1) return CFPoint(-1,-1);
-	if(!p.GetY() || p.GetY()==segmentImage->GetHeight()-1) return CFPoint(-1,-1);
+	if(!p.x || p.x==segmentImage->GetWidth()-1) return CPoint(-1,-1);
+	if(!p.y || p.y==segmentImage->GetHeight()-1) return CPoint(-1,-1);
 
 	//check orthogonal neighbors
-	if(segmentImage->GetPixel(int(p.GetX()-1),(int)p.GetY())) return CFPoint(p.GetX()-1,p.GetY());
-	if(segmentImage->GetPixel((int)p.GetX(),int(p.GetY()-1))) return CFPoint(p.GetX(),p.GetY()-1);
-	if(segmentImage->GetPixel(int(p.GetX()+1),(int)p.GetY())) return CFPoint(p.GetX()+1,p.GetY());
-	if(segmentImage->GetPixel((int)p.GetX(),int(p.GetY()+1))) return CFPoint(p.GetX(),p.GetY()+1);
+	if(segmentImage->GetPixel(p.x-1,p.y)) return CPoint(p.x-1,p.y);
+	if(segmentImage->GetPixel(p.x,p.y-1)) return CPoint(p.x,p.y-1);
+	if(segmentImage->GetPixel(p.x+1,p.y)) return CPoint(p.x+1,p.y);
+	if(segmentImage->GetPixel(p.x,p.y+1)) return CPoint(p.x,p.y+1);
 
 	//check diagonal neighbors
-	int seg = segmentImage->GetPixel((int)p.GetX(),(int)p.GetY());
+	int seg = segmentImage->GetPixel((int)p.x,(int)p.y);
 
 	if(seg) {
 		//current point is a normal line point
-		if(segmentImage->GetPixel(int(p.GetX()-1),int(p.GetY()-1))==seg) return CFPoint(p.GetX()-1,p.GetY()-1);
-		if(segmentImage->GetPixel(int(p.GetX()+1),int(p.GetY()-1))==seg) return CFPoint(p.GetX()+1,p.GetY()-1);
-		if(segmentImage->GetPixel(int(p.GetX()+1),int(p.GetY()+1))==seg) return CFPoint(p.GetX()+1,p.GetY()+1);
-		if(segmentImage->GetPixel(int(p.GetX()-1),int(p.GetY()+1))==seg) return CFPoint(p.GetX()-1,p.GetY()+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y-1))==seg) return CPoint(p.x-1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y-1))==seg) return CPoint(p.x+1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y+1))==seg) return CPoint(p.x+1,p.y+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y+1))==seg) return CPoint(p.x-1,p.y+1);
 	} else {
 		//current point is a knot. return any segment
-		if(segmentImage->GetPixel(int(p.GetX()-1),int(p.GetY()-1))) return CFPoint(p.GetX()-1,p.GetY()-1);
-		if(segmentImage->GetPixel(int(p.GetX()+1),int(p.GetY()-1))) return CFPoint(p.GetX()+1,p.GetY()-1);
-		if(segmentImage->GetPixel(int(p.GetX()+1),int(p.GetY()+1))) return CFPoint(p.GetX()+1,p.GetY()+1);
-		if(segmentImage->GetPixel(int(p.GetX()-1),int(p.GetY()+1))) return CFPoint(p.GetX()-1,p.GetY()+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y-1))) return CPoint(p.x-1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y-1))) return CPoint(p.x+1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y+1))) return CPoint(p.x+1,p.y+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y+1))) return CPoint(p.x-1,p.y+1);
 	}
 
-	return CFPoint(-1,-1);
+	return CPoint(-1,-1);
 }
 
 bool CSkeletonizer::NoOrthogonalNeighbors(CRawImage<ARGB>* segmentImage, CFPoint p)
