@@ -17,5 +17,5 @@ public:
 	~CHoleFiller(void);
 	CSketchImage* Process(CSketchImage* src);
 private:
-	void ScanArea(CRawImage<bool>* canvas, deque<int>* pixelsInArea, const CPoint &start, const unsigned int a_max_area) const;
+	void ScanArea(CRawImage<bool>* canvas, deque<unsigned int>* pixelsInArea, const CPoint &start, const unsigned int a_max_area) const;
 };
