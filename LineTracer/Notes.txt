@@ -1,9 +1,11 @@
 TO DO:
 
+- fixa linjebredd (min-max)
+- linjebredd vid linjeutritning
+- cirkel-detektion
+
 - zoom
-- circle detect (in skeletonizer)
 - new line prune layer
-- rewrite polyline structure? global point collection?
 - stoppa tracing mot gradientens riktning
 
 
