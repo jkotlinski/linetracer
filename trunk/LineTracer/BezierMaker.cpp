@@ -120,7 +120,7 @@ CSketchImage* CBezierMaker::SimpleMethod(const CLineImage* src) const
 	return dst;
 }
 
-double CBezierMaker::FindError(CPolyLine* polyLine, CPolyLine* curve, vector<double> *tlist, unsigned int &worstPoint) const
+double CBezierMaker::FindError(const CPolyLine* polyLine, const CPolyLine* curve, vector<double> *tlist, unsigned int &worstPoint) const
 {
 	worstPoint = 0xffffffff;
 	double totalError = 0;

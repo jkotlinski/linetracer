@@ -15,7 +15,7 @@ public:
 	CSketchImage* Process(CSketchImage* src);
 private:
 	CSketchImage* SimpleMethod(const CLineImage* src) const;
-	double FindError(CPolyLine* polyline, CPolyLine* curve, vector<double> *tlist, unsigned int &worstPoint) const;
+	double FindError(const CPolyLine* polyline, const CPolyLine* curve, vector<double> *tlist, unsigned int &worstPoint) const;
 	CLineImage* DoSchneider(const CLineImage* src) const;
 	vector<double>* CalcT(CPolyLine* line) const;
 	vector<CFPoint>* CalcTangents(CPolyLine* line, const CSketchPoint* startTangent = NULL, const CSketchPoint* endTangent = NULL) const;
