@@ -9,7 +9,6 @@ CLayer::CLayer()
 , m_SketchImage(NULL)
 , m_IsVisible(false)
 , m_IsValid(false)
-, m_cachedBitmap(NULL)
 , m_hasBeenDrawn(false)
 {
 	LOG("init layer\n");
@@ -17,14 +16,8 @@ CLayer::CLayer()
 
 CLayer::~CLayer() {
 	try {
-		if(m_SketchImage!=NULL) {
-			delete m_SketchImage;
-			m_SketchImage=NULL;
-		}
-		if(m_cachedBitmap!=NULL) {
-			delete m_cachedBitmap;
-			m_cachedBitmap=NULL;
-		}
+		delete m_SketchImage;
+		m_SketchImage=NULL;
 	}
 	catch (...) {
 		try {
