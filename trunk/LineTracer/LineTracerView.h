@@ -5,6 +5,7 @@
 #pragma once
 
 #include "LineTracerDoc.h"
+#include "ProjectSettings.h"
 
 #define WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS (WM_USER+0x100)
 
@@ -51,10 +52,13 @@ protected:
 	afx_msg void OnUpdateZoom100(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBeziermaker(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewThinner(CCmdUI *pCmdUI);
-	afx_msg void OnToolboxChangeBwthreshold();
+	
 	DECLARE_MESSAGE_MAP()
 private:
 	void ProcessLayers(void) const;
+public:
+	void HandleChangedToolboxParam(CLayerManager::LayerTypes a_layerId, 
+		CProjectSettings::ParamName a_paramName);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp

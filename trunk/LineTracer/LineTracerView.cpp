@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "LineTracer.h"
-
+#include "FloatComparer.h"
 #include <afxdlgs.h>
 
 #include "LineTracerDoc.h"
@@ -13,6 +13,7 @@
 #include "ToolBox.h"
 #include "Binarizer.h"
 #include "Logger.h"
+#include "linetracerview.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -35,7 +36,6 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_ZOOM_100, OnUpdateZoom100)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BEZIERMAKER, OnUpdateViewBeziermaker)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_THINNER, OnUpdateViewThinner)
-	ON_EN_CHANGE(IDC_BWTHRESHOLD, OnToolboxChangeBwthreshold)
 END_MESSAGE_MAP()
 
 // CLineTracerView construction/destruction
@@ -43,6 +43,7 @@ END_MESSAGE_MAP()
 CLineTracerView::CLineTracerView()
 {
 	CLayerManager::Instance()->SetLineTracerView( this );
+	CToolBox::Instance()->SetLineTracerView( this );
 }
 
 CLineTracerView::~CLineTracerView()
@@ -77,23 +78,25 @@ void CLineTracerView::OnDraw(CDC* dc)
 
 	CLayerManager *lm = CLayerManager::Instance();
 
-	LOG("last layer valid: %x\n",lm->GetLastLayer()->IsValid());
-	if(lm->GetLastLayer()->IsValid()) {
+	//LOG("last layer valid: %x\n",lm->GetLastLayer()->IsValid());
+	//if(lm->GetLastLayer()->IsValid()) {
 		Bitmap *l_bmp = lm->GetBitmap();
 
-		Graphics gr(pDC);
-		Status l_result = gr.SetInterpolationMode(InterpolationModeNearestNeighbor);
-		ASSERT ( l_result == Ok );
+		if ( l_bmp != NULL ) {
+			Graphics gr(pDC);
+			Status l_result = gr.SetInterpolationMode(InterpolationModeNearestNeighbor);
+			ASSERT ( l_result == Ok );
 
-		LOG( "l_bmp: %x\n", l_bmp );
-		SetScrollSizes(MM_TEXT, CSize( l_bmp->GetWidth()*pDoc->GetZoom()/100, 
-			l_bmp->GetHeight()*pDoc->GetZoom()/100));
+			LOG( "l_bmp: %x\n", l_bmp );
+			SetScrollSizes(MM_TEXT, CSize( l_bmp->GetWidth()*pDoc->GetZoom()/100, 
+				l_bmp->GetHeight()*pDoc->GetZoom()/100));
 
-		Status l_drawImageResult = gr.DrawImage(l_bmp,0,0,
-			l_bmp->GetWidth()*pDoc->GetZoom()/100,
-			l_bmp->GetHeight()*pDoc->GetZoom()/100);
-		ASSERT ( l_drawImageResult == Ok );
-	}
+			Status l_drawImageResult = gr.DrawImage(l_bmp,0,0,
+				l_bmp->GetWidth()*pDoc->GetZoom()/100,
+				l_bmp->GetHeight()*pDoc->GetZoom()/100);
+			ASSERT ( l_drawImageResult == Ok );
+		}
+	//}
 }
 
 
@@ -215,34 +218,6 @@ afx_msg BOOL CLineTracerView::OnEraseBkgnd(CDC* pDC)
 }
 
 
-void CLineTracerView::OnToolboxChangeBwthreshold() {
-	LOG ( "ltcView:OnToolboxChangeBwthreshold()\n" );
-	CToolBox *tb = CToolBox::Instance();
-	
-	double l_sliderVal = tb->GetParam(tb->BINARIZER);
-
-	CBinarizer *binarizer = CBinarizer::Instance();
-
-	double l_layerVal = binarizer->GetParam(CImageProcessor::BINARIZER_THRESHOLD);
-
-	double l_diff = l_sliderVal - l_layerVal;
-	if ( l_diff < 0.0 ) l_diff = -l_diff;
-	bool l_floatsAreEqual = ( l_diff < 0.1 );
-	if( l_floatsAreEqual == false ) {
-		LOG ( "floatsAreEqual == false\n" );
-		binarizer->SetParam(CImageProcessor::BINARIZER_THRESHOLD, l_sliderVal);
-	
-		CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
-		ProcessLayers();
-		
-		GetDocument()->SetModifiedFlag();
-		GetDocument()->UpdateAllViews(NULL);
-	} 
-	else {
-		LOG ( "floatsAreEqual == true\n" );
-	}
-}
-
 void CLineTracerView::ProcessLayers(void) const
 {
 	CLayerManager *lm = CLayerManager::Instance();
@@ -250,3 +225,24 @@ void CLineTracerView::ProcessLayers(void) const
 
 	CLayerManager::Instance()->ProcessLayers();
 }
+
+void CLineTracerView::HandleChangedToolboxParam(CLayerManager::LayerTypes a_layerId,
+												CProjectSettings::ParamName a_paramName
+												)
+{
+	LOG ( "HandleChangedToolboxParam; paramname=%i\n", a_paramName );
+	CToolBox *l_toolBox = CToolBox::Instance();
+	double l_sliderVal = l_toolBox->GetParam(a_paramName);
+
+	CProjectSettings *l_settings = CProjectSettings::Instance();
+	double l_layerVal = l_settings->GetParam(a_paramName);
+
+	if( CFloatComparer::FloatsDiffer ( l_sliderVal, l_layerVal ) ) {
+		LOG ( "FloatsDiffer\n" );
+		l_settings->SetParam(a_paramName, l_sliderVal);
+		CLayerManager::Instance()->InvalidateLayers(a_layerId);
+		ProcessLayers();		
+		GetDocument()->SetModifiedFlag();
+	}
+}
+
