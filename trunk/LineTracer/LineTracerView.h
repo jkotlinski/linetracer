@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "LineTracerDoc.h"
+
+#define WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS (WM_USER+0x100)
 
 class CLineTracerView : public CScrollView
 {
@@ -19,10 +22,9 @@ public:
 public:
 
 // Overrides
-	public:
-	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
-virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 protected:
+	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 
 // Implementation
 public:
@@ -34,12 +36,12 @@ public:
 
 protected:
 
-// Generated message map functions
-protected:
-	DECLARE_MESSAGE_MAP()
+// Gnerated message map functions
 public:
-	afx_msg void OnFileOpenimage();
 	void OnInitialUpdate(void);
+protected:
+ 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnFileOpenimage();
 	afx_msg void OnUpdateViewSkeletonizer(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBinarizer(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewGaussian(CCmdUI *pCmdUI);
@@ -49,6 +51,10 @@ public:
 	afx_msg void OnUpdateZoom100(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBeziermaker(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewThinner(CCmdUI *pCmdUI);
+	afx_msg void OnToolboxChangeBwthreshold();
+	DECLARE_MESSAGE_MAP()
+private:
+	void ProcessLayers(void) const;
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp
