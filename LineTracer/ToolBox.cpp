@@ -70,7 +70,7 @@ BOOL CToolBox::OnInitDialogBar()
 	c_tailPrunerControl.SetPos( 
 		int( l_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) ) );
 
-	c_curveDetailControl.SetRange(5,40);
+	c_curveDetailControl.SetRange(1,40);
 	c_curveDetailControl.SetPos( 
 		int( l_settings->GetParam( CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD ) ) );
 
