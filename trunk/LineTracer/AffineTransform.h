@@ -5,7 +5,7 @@ class AffineTransform
 public:
 	AffineTransform(void);
 	~AffineTransform(void);
-public:
+private:
 	float m_translationX;
 	float m_translationY;
 	float m_scale;
@@ -14,7 +14,9 @@ public:
 	void ScaleBy(float a_scale);
 	void Invert(void);
 	Matrix *GetMatrix(void);
-	bool Validate(CSize a_imageHeight, CSize a_viewHeight);
-	void TransformSize(CSize & a_size);
-	void TransformPoint(PointF & a_point);
+	bool Validate(const CSize & a_imageHeight, const CSize & a_viewHeight);
+	void TransformSize(CSize & a_size) const;
+	void TransformPoint(PointF & a_point) const;
+	float GetTranslationX(void) const;
+	float GetTranslationY(void) const;
 };
