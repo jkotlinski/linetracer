@@ -28,7 +28,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	// LOG ( "KneeSplitter()\n" );
 
-	double threshold = CProjectSettings::Instance()->GetParam(
+	const double l_threshold = CProjectSettings::Instance()->GetParam(
 		CProjectSettings::KNEESPLITTER_THRESHOLD);
 
 	for(unsigned int i=0; i<src->Size(); i++) 
@@ -63,7 +63,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 			double diff = (diffx1*diffx2+diffy1*diffy2)/2;
 
-			if(diff>threshold) {
+			if(diff > l_threshold) {
 				point->SetKnee(true);
 				//LOG("SETKNEE\n");
 			} else {
