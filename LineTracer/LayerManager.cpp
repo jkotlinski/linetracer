@@ -17,6 +17,7 @@
 #include "Thinner.h"
 #include "BezierMaker.h"
 #include "ForkHandler.h"
+#include "AreasToClosedCurvesProcessor.h"
 
 #include "LineTracerView.h"
 
@@ -46,6 +47,11 @@ CLayerManager::CLayerManager(void)
 	layer=new CLayer( );
 	layer->SetImageProcessor(CHoleFiller::Instance());
 	layer->SetVisible(true);
+	m_Layers.push_back(layer);
+
+	layer=new CLayer( );
+	layer->SetImageProcessor(AreasToClosedCurvesProcessor::Instance());
+	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
 	layer=new CLayer( );

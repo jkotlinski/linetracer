@@ -145,6 +145,9 @@
 				RelativePath=".\AffineTransform.cpp">
 			</File>
 			<File
+				RelativePath=".\AreasToClosedCurvesProcessor.cpp">
+			</File>
+			<File
 				RelativePath=".\BezierMaker.cpp">
 			</File>
 			<File
@@ -259,6 +262,9 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
 				RelativePath=".\AffineTransform.h">
+			</File>
+			<File
+				RelativePath=".\AreasToClosedCurvesProcessor.h">
 			</File>
 			<File
 				RelativePath=".\BezierMaker.h">

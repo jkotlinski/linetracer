@@ -69,4 +69,8 @@ v0.0.5
  2005-02-23: v0.1.7
  
  * fixed status bar + menues
+
+ 2005-02-23: v0.1.8 
+ 
+ * added area-to-closed-curve processor
  
