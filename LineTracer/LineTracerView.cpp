@@ -8,8 +8,11 @@
 
 #include "LineTracerDoc.h"
 #include "LineTracerView.h"
-#include ".\linetracerview.h"
 #include "EpsWriter.h"
+
+#include "ToolBox.h"
+#include "Binarizer.h"
+#include "Logger.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -21,6 +24,7 @@
 IMPLEMENT_DYNCREATE(CLineTracerView, CScrollView)
 
 BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
+	ON_WM_ERASEBKGND()
 	ON_COMMAND(ID_FILE_OPENIMAGE, OnFileOpenimage)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_SKELETONIZER, OnUpdateViewSkeletonizer)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BINARIZER, OnUpdateViewBinarizer)
@@ -31,12 +35,14 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_ZOOM_100, OnUpdateZoom100)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BEZIERMAKER, OnUpdateViewBeziermaker)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_THINNER, OnUpdateViewThinner)
+	ON_EN_CHANGE(IDC_BWTHRESHOLD, OnToolboxChangeBwthreshold)
 END_MESSAGE_MAP()
 
 // CLineTracerView construction/destruction
 
 CLineTracerView::CLineTracerView()
 {
+	CLayerManager::Instance()->SetLineTracerView( this );
 }
 
 CLineTracerView::~CLineTracerView()
@@ -53,8 +59,11 @@ BOOL CLineTracerView::PreCreateWindow(CREATESTRUCT& cs)
 
 // CLineTracerView drawing
 
-void CLineTracerView::OnDraw(CDC* pDC)
+void CLineTracerView::OnDraw(CDC* dc)
 {
+	LOG ( "caught OnDraw\n" );
+
+    CMemDC pDC(dc);
 	CLineTracerDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
@@ -68,23 +77,23 @@ void CLineTracerView::OnDraw(CDC* pDC)
 
 	CLayerManager *lm = CLayerManager::Instance();
 
-	TRACE("last layer valid: %x\n",lm->GetLastLayer()->IsValid());
+	LOG("last layer valid: %x\n",lm->GetLastLayer()->IsValid());
 	if(lm->GetLastLayer()->IsValid()) {
-		Bitmap *b=lm->MakeBitmap();
+		Bitmap *l_bmp = lm->GetBitmap();
 
-		Graphics gr(*pDC);
-		gr.SetInterpolationMode(InterpolationModeNearestNeighbor);
+		Graphics gr(pDC);
+		Status l_result = gr.SetInterpolationMode(InterpolationModeNearestNeighbor);
+		ASSERT ( l_result == Ok );
 
-		SetScrollSizes(MM_TEXT, CSize(b->GetWidth()*pDoc->GetZoom()/100, b->GetHeight()*pDoc->GetZoom()/100));
+		LOG( "l_bmp: %x\n", l_bmp );
+		SetScrollSizes(MM_TEXT, CSize( l_bmp->GetWidth()*pDoc->GetZoom()/100, 
+			l_bmp->GetHeight()*pDoc->GetZoom()/100));
 
-		gr.DrawImage(b,0,0,b->GetWidth()*pDoc->GetZoom()/100,b->GetHeight()*pDoc->GetZoom()/100);
-		delete b;
+		Status l_drawImageResult = gr.DrawImage(l_bmp,0,0,
+			l_bmp->GetWidth()*pDoc->GetZoom()/100,
+			l_bmp->GetHeight()*pDoc->GetZoom()/100);
+		ASSERT ( l_drawImageResult == Ok );
 	}
-
-	/*
-	CBrush blackBrush;
-	blackBrush.CreateSolidBrush(RGB(0,0,0));
-	*/
 }
 
 
@@ -103,8 +112,7 @@ void CLineTracerView::Dump(CDumpContext& dc) const
 
 CLineTracerDoc* CLineTracerView::GetDocument() const // non-debug version is inline
 {
-	ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CLineTracerDoc)));
-	return (CLineTracerDoc*)m_pDocument;
+	return dynamic_cast<CLineTracerDoc*>(m_pDocument);
 }
 #endif //_DEBUG
 
@@ -136,7 +144,7 @@ void CLineTracerView::OnInitialUpdate(void)
 
 void CLineTracerView::OnUpdateViewSkeletonizer(CCmdUI *pCmdUI)
 {
-	if(CLayerManager::Instance()->Layers()>CLayerManager::SKELETONIZER) {
+	if(CLayerManager::Instance()->LayerCount() > CLayerManager::SKELETONIZER) {
 		CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::SKELETONIZER);
 		pCmdUI->SetCheck(l->IsVisible());
 	}
@@ -162,7 +170,8 @@ void CLineTracerView::OnFileExporteps() {
 		_T("*.eps"),OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,szFilters);
 
 	if(dlg.DoModal()==IDOK) {
-		CEpsWriter::Write(&dlg.GetPathName());
+		const CString l_pathName = dlg.GetPathName();
+		CEpsWriter::Write(l_pathName);
 	}
 }
 
@@ -177,13 +186,13 @@ void CLineTracerView::OnUpdateViewOriginal(CCmdUI *pCmdUI)
 void CLineTracerView::OnUpdateZoom200(CCmdUI *pCmdUI)
 {
 	CLineTracerDoc *pDoc = GetDocument();
-	pCmdUI->SetCheck(pDoc->GetZoom()==200);
+	pCmdUI->SetCheck( (pDoc->GetZoom()==200)?1:0 );
 }
 
 void CLineTracerView::OnUpdateZoom100(CCmdUI *pCmdUI)
 {
 	CLineTracerDoc *pDoc = GetDocument();
-	pCmdUI->SetCheck(pDoc->GetZoom()==100);
+	pCmdUI->SetCheck( (pDoc->GetZoom()==100)?1:0 );
 }
 
 void CLineTracerView::OnUpdateViewBeziermaker(CCmdUI *pCmdUI)
@@ -196,4 +205,48 @@ void CLineTracerView::OnUpdateViewThinner(CCmdUI *pCmdUI)
 {
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::THINNER);
 	pCmdUI->SetCheck(l->IsVisible());
+}
+
+//lint -e{715}
+afx_msg BOOL CLineTracerView::OnEraseBkgnd(CDC* pDC)
+{
+	LOG ( "OnEraseBkgnd()\n" );
+	return FALSE;
+}
+
+
+void CLineTracerView::OnToolboxChangeBwthreshold() {
+	LOG ( "ltcView:OnToolboxChangeBwthreshold()\n" );
+	CToolBox *tb = CToolBox::Instance();
+	
+	double l_sliderVal = tb->GetParam(tb->BINARIZER);
+
+	CBinarizer *binarizer = CBinarizer::Instance();
+
+	double l_layerVal = binarizer->GetParam(CImageProcessor::BINARIZER_THRESHOLD);
+
+	double l_diff = l_sliderVal - l_layerVal;
+	if ( l_diff < 0.0 ) l_diff = -l_diff;
+	bool l_floatsAreEqual = ( l_diff < 0.1 );
+	if( l_floatsAreEqual == false ) {
+		LOG ( "floatsAreEqual == false\n" );
+		binarizer->SetParam(CImageProcessor::BINARIZER_THRESHOLD, l_sliderVal);
+	
+		CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
+		ProcessLayers();
+		
+		GetDocument()->SetModifiedFlag();
+		GetDocument()->UpdateAllViews(NULL);
+	} 
+	else {
+		LOG ( "floatsAreEqual == true\n" );
+	}
+}
+
+void CLineTracerView::ProcessLayers(void) const
+{
+	CLayerManager *lm = CLayerManager::Instance();
+	if(lm->GetLayer(0)->GetSketchImage() == NULL) return;
+
+	CLayerManager::Instance()->ProcessLayers();
 }
