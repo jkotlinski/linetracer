@@ -35,3 +35,7 @@ v0.0.5
  
  * implemented simple area -> contour lines conversion
  
+ v1.1.1
+ 
+ * skeletonizer now handles circles
+ * fixed bug related to Y forks
