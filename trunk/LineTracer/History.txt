@@ -1,0 +1,5 @@
+** HISTORY
+
+2004-04-04: v0.0.1
+
+* implemented gaussian blur, binarization, skeletonization, simple EPS export

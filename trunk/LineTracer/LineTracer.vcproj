@@ -149,6 +149,9 @@
 				RelativePath=".\Layer.cpp">
 			</File>
 			<File
+				RelativePath=".\LayerManager.cpp">
+			</File>
+			<File
 				RelativePath=".\LineImage.cpp">
 			</File>
 			<File
@@ -226,6 +229,9 @@
 				RelativePath=".\Layer.h">
 			</File>
 			<File
+				RelativePath=".\LayerManager.h">
+			</File>
+			<File
 				RelativePath=".\LineImage.h">
 			</File>
 			<File
@@ -285,6 +291,9 @@
 				RelativePath=".\res\LineTracerDoc.ico">
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\History.txt">
+		</File>
 		<File
 			RelativePath=".\res\LineTracer.manifest">
 		</File>

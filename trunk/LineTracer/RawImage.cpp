@@ -94,7 +94,7 @@ Bitmap * CRawImage::MakeBitmap(void)
 		for(int x=0; x < m_Width; ++x ) {
 			// GDI lies about RGB - internally it's BGR
 			pixel = m_buffer[y*m_Width+x];
-			p[3] = 0xff;    // alpha
+			p[3] = (BYTE) ((pixel >> 24) & 0xff);    // pixel alpha
 			p[2] = (BYTE) ((pixel >> 16) & 0xff);    // pixel red
 			p[1] = (BYTE) ((pixel >> 8 ) & 0xff);    // pixel green
 			p[0] = (BYTE) ((pixel      ) & 0xff);    // pixel blue
@@ -122,9 +122,4 @@ void CRawImage::Clear(void)
 	for(int i=0; i<GetWidth()*GetHeight(); i++) {
 		SetPixel(i,0);
 	}
-}
-
-void CRawImage::OrPixel(int x, int y, ARGB val)
-{
-	m_buffer[y*m_Width+x]|=val;
 }

@@ -44,6 +44,9 @@ CRawImage* CSkeletonizer::Process(CRawImage *src) {
 	CLineImage* li= Vectorize(segmentMap, knotImage);
 
 	//segmentMap->Clear();
+	for(int i=0; i<segmentMap->GetHeight()*segmentMap->GetHeight(); i++) {
+		if(segmentMap->GetPixel(i)) segmentMap->SetPixel(i,0xff);
+	}
 	CLineImageDrawer::Draw(segmentMap,li);
 
 	li->SetWidth(knotImage->GetWidth());

@@ -13,4 +13,6 @@ public:
 
 private:
 	static CBinarizer* _instance;
+protected:
+	int CalculateOtsuThreshold(CRawImage *src);
 };

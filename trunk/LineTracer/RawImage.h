@@ -17,6 +17,5 @@ public:
 	ARGB GetPixel(int x, int y);
 	ARGB GetPixel(int offset);
 	void SetPixel(int offset, ARGB val);
-	void OrPixel(int x, int y, ARGB val);
 	void Clear();
 };

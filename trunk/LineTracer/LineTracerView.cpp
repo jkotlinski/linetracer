@@ -21,6 +21,9 @@ IMPLEMENT_DYNCREATE(CLineTracerView, CScrollView)
 
 BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_COMMAND(ID_FILE_OPENIMAGE, OnFileOpenimage)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_SKELETONIZER, OnUpdateViewSkeletonizer)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_BINARIZER, OnUpdateViewBinarizer)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_GAUSSIAN, OnUpdateViewGaussian)
 END_MESSAGE_MAP()
 
 // CLineTracerView construction/destruction
@@ -61,12 +64,11 @@ void CLineTracerView::OnDraw(CDC* pDC)
 	TRACE("m_InputBitmap: %x\n",pDoc->GetInputBitmap());
 
 	if(pDoc->GetInputBitmap()!=NULL) {
-		Graphics gr(*pDC);
-		//gr.DrawImage(pDoc->GetInputBitmap(),0,0);
-		
-		CLayer *layer=pDoc->GetLayer(3);
+		Bitmap *b=CLayerManager::Instance()->MakeBitmap();
 
-		Bitmap *b=layer->GetRawImage()->MakeBitmap();
+		Graphics gr(*pDC);
+		Bitmap *original=pDoc->GetInputBitmap();
+		gr.DrawImage(original,0,0,original->GetWidth(),original->GetHeight());
 
 		SetScrollSizes(MM_TEXT, CSize(b->GetWidth(), b->GetHeight()));
 
@@ -124,3 +126,21 @@ void CLineTracerView::OnInitialUpdate(void)
 
 	SetScrollSizes(MM_TEXT, CSize(0, 0));
 }
+
+
+void CLineTracerView::OnUpdateViewSkeletonizer(CCmdUI *pCmdUI)
+{
+	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::SKELETONIZER);
+	pCmdUI->SetCheck(l->IsVisible());
+}
+
+void CLineTracerView::OnUpdateViewBinarizer(CCmdUI *pCmdUI)
+{
+	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::BINARIZER);
+	pCmdUI->SetCheck(l->IsVisible());
+}
+
+void CLineTracerView::OnUpdateViewGaussian(CCmdUI *pCmdUI)
+{
+	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::GAUSSIAN);
+	pCmdUI->SetCheck(l->IsVisible());}
