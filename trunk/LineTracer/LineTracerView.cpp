@@ -346,7 +346,14 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 	switch ( m_activeToolType )
 	{
 	case ToolTypeZoom:
-		ZoomIn(point);
+		if ( AltKeyIsPressed() == false )
+		{
+			ZoomIn(point);
+		}
+		else 
+		{
+			ZoomOut(point);
+		}
 		break;
 	case ToolTypeMove:
 		SetCapture();
@@ -370,7 +377,14 @@ void CLineTracerView::OnRButtonDown(UINT nFlags, CPoint point)
 	switch ( m_activeToolType )
 	{
 	case ToolTypeZoom:
-		ZoomOut(point);
+		if ( AltKeyIsPressed() == false )
+		{
+			ZoomOut(point);
+		}
+		else 
+		{
+			ZoomIn(point);
+		}
 		break;
 	}
 }
@@ -550,4 +564,9 @@ void CLineTracerView::SetCursorType(enum CursorTypes a_cursorType)
 enum CursorTypes CLineTracerView::GetCursorType(void)
 {
 	return m_cursorType;
+}
+
+bool CLineTracerView::AltKeyIsPressed(void)
+{
+	return ( ::GetKeyState(VK_MENU) < 0 );
 }
