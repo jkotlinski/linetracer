@@ -22,4 +22,8 @@ public:
 private:
 	CRawImage<int>* m_distanceMap;
 	void CalcDistanceMap(const CRawImage<bool>* img);
+
+	bool m_isInitialized;
+public:
+	void Reset(void);
 };

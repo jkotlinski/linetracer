@@ -2,11 +2,13 @@
 #include "binarizer.h"
 
 #include "ProjectSettings.h"
+#include ".\binarizer.h"
 
 CBinarizer::CBinarizer(void)
 : CImageProcessor()
 , m_sketchBoard(NULL)
 , m_distanceMap()
+, m_isInitialized(false)
 {
 	LOG("init binarizer\n");
 	SetName(CString("binarizer"));
@@ -15,7 +17,8 @@ CBinarizer::CBinarizer(void)
 
 CBinarizer::~CBinarizer(void)
 {
-	if(m_sketchBoard!=NULL) delete[] m_sketchBoard;
+	delete[] m_sketchBoard;
+	m_sketchBoard = NULL;
 	delete m_distanceMap;
 }
 
@@ -34,11 +37,20 @@ CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 
 	CProjectSettings *l_settings = CProjectSettings::Instance();
 	int C = int(l_settings->GetParam(CProjectSettings::BINARIZER_MEAN_C));
-	double MIN_THRESHOLD = l_settings->GetParam(CProjectSettings::BINARIZER_THRESHOLD);
 
-	if(int(MIN_THRESHOLD) == -1) {
+	double MIN_THRESHOLD = 0.0;
+
+	if( m_isInitialized ) 
+	{
+		// load threshold from settings
+		MIN_THRESHOLD = l_settings->GetParam(CProjectSettings::BINARIZER_THRESHOLD);
+	}
+	else
+	{
+		// calculate good threshold
 		MIN_THRESHOLD = CalculateOtsuThreshold(src);
 		l_settings->SetParam(CProjectSettings::BINARIZER_THRESHOLD, MIN_THRESHOLD);
+		m_isInitialized = true;
 	}
 
 	ASSERT ( src!=NULL );
@@ -178,10 +190,8 @@ int CBinarizer::CalculateOtsuThreshold(const CRawImage<unsigned char> *img) cons
 
 void CBinarizer::Init(void)
 {
-	if(m_sketchBoard != NULL) {
-		delete[] m_sketchBoard;
-		m_sketchBoard = NULL;
-	}
+	delete[] m_sketchBoard;
+	m_sketchBoard = NULL;
 }
 
 void CBinarizer::CalcDistanceMap(const CRawImage<bool>* img)
@@ -233,4 +243,12 @@ void CBinarizer::CalcDistanceMap(const CRawImage<bool>* img)
 
 const CRawImage<int>* CBinarizer::GetDistanceMap() const {
 	return m_distanceMap;
+}
+
+void CBinarizer::Reset(void)
+{
+	delete[] m_sketchBoard;
+	m_sketchBoard = NULL;
+
+	m_isInitialized = false;
 }
