@@ -16,7 +16,7 @@ private:
 	vector<CSketchPoint*> m_points;
 public:
 	bool Contains(CPoint p);
-	int Size(void);
+	unsigned int Size(void);
 	//CSketchPoint* At(int i);
 	CPolyLine* Clone(void);
 	int HasKnots(void);
@@ -36,4 +36,6 @@ public:
 	void SetTail(bool val);
 	bool IsTail(void);
 	CPolyLine* SmoothPositions(void);
+	void Trace(void);
+	int RemoveDuplicatePoints(void);
 };
