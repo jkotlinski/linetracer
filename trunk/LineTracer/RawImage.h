@@ -31,6 +31,7 @@ public:
 	void Dilate(void);
 	void Erode(void);
 	void Fill(T val = 1);
+	CRawImage<T> *Clone();
 
 	void DrawUsingGraphics(Graphics& a_graphics);
 
@@ -333,4 +334,15 @@ void CRawImage<T>::DrawUsingGraphics(Graphics& a_graphics)
 		LOG ( "drawImageResult: %i\n", l_drawImageResult );
 		ASSERT ( false );
 	}
+}
+
+template <class T>
+CRawImage<T>* CRawImage<T>::Clone()
+{
+	CRawImage<T> *l_clone = new CRawImage<T>(GetWidth(), GetHeight());
+	for ( int i=0; i<GetWidth()*GetHeight(); i++) 
+	{
+		l_clone->SetPixel( i, GetPixel(i) );
+	}
+	return l_clone;
 }
