@@ -35,7 +35,7 @@ CSketchImage* CTailPruner::Process(CSketchImage *i_src) {
 		CProjectSettings::TAILPRUNER_THRESHOLD));
 
 	for(unsigned int i=0; i<src->Size(); i++) {
-		CPolyLine *line = src->At(i);
+		CPolyLine *line = src->GetLine(i);
 
 		if(line->Size() >= threshold || line->HasKnots()==2) {
 			dst->Add(line->Clone());
