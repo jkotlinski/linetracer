@@ -1,9 +1,7 @@
 TO DO:
 
-* ctrl+'+', ctrl+'-' zoom in/ut
 * flimmmer när man drar bild
 * laure2.gif blir väldigt fel
-* för över meny + shortcuts
 * ta tillbaka scrollbars för för stor bild
 * framtiden: kolla minnesanvändning (double->float?)
 * framtiden: x-korsning
@@ -17,7 +15,7 @@ idé för korsningar:
  och har control points som är ganska så motsatta varandra.
 
 idé för linjer:
- - linjer har någon sorts ackumulerad energi
+ - linjer har någon sorts ackumulerad energi... långa linjer som går ganska rakt har större energi, små och krokiga linjer lägre. fundera på implikationer
 
 idé för yta->linje: 
  - kopiera original till arbetsbild

@@ -56,3 +56,7 @@ v0.0.5
  * improved toolbox look a little
  * rewrote holefiller slightly (now consumes a LOT less RAM)
  
+ v0.1.5
+ 
+ * fixed stuff with menues, etc
+ 
