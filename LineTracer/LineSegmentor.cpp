@@ -89,12 +89,12 @@ void CLineSegmentor::Add(CPolyLine*dst, CPolyLine* src)
 		iter=src->Begin();
 		while(*iter!=p) {
 			l1.Add(*iter);
-			iter++;
+			++iter;
 		}
 		l1.Add(*iter);
 		while(iter!=src->End()) {
 			l2.Add(*iter);
-			iter++;
+			++iter;
 		}
 
 		Add(dst,&l1);
