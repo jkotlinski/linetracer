@@ -5,7 +5,6 @@
 #include "Logger.h"
 #include "RawImage.h"
 #include "Layer.h"
-#include "LineImagePainter.h"
 #include "ToolBox.h"
 
 #include "Binarizer.h"
@@ -24,7 +23,6 @@
 
 CLayerManager::CLayerManager(void)
 : m_processThread(NULL)
-, m_cachedBitmap(NULL)
 , m_restartProcess(false)
 , m_lineTracerView(NULL)
 {
@@ -91,10 +89,6 @@ CLayerManager::~CLayerManager(void)
 		for(unsigned int i=0; i<m_Layers.size(); i++) {
 			delete m_Layers.at(i);
 		}
-		if( m_cachedBitmap != NULL )
-		{
-			delete m_cachedBitmap;
-		}
 	} catch (...) {
 		try {
 			ASSERT ( false );
@@ -141,54 +135,6 @@ void CLayerManager::ProcessLayers()
 CLayer* CLayerManager::GetLayer(int layer)
 {
 	return m_Layers.at(layer);
-}
-
-Bitmap* CLayerManager::GetBitmap(void)
-{
-	LOG ( "layermanager->getCachedBitmap(): %x\n", GetCachedBitmap() );
-
-	CLayer* l_firstLayer = GetLayer(0);
-	ASSERT ( l_firstLayer != NULL );
-
-	CSketchImage *l_image = l_firstLayer->GetSketchImage();
-	
-	if ( l_image == NULL ) {
-		return NULL;
-	}
-
-	int width = l_image->GetWidth();
-	int height = l_image->GetHeight();
-
-	//int SCALE = int(CSkeletonizer::Instance()->GetParam("scale"));
-	static const int SCALE = 1;
-
-	CRawImage<ARGB> dst(width*SCALE,height*SCALE);
-	dst.Clear();
-
-	bool l_noLayersVisible = true;
-
-	// paint all visible layers
-	for ( unsigned int l_layerIndex = 1; 
-		l_layerIndex < LayerCount(); 
-		l_layerIndex++ )
-	{
-		CLayer *l_layer = GetLayer( l_layerIndex );
-
-		if ( l_layer->IsVisible() && l_layer->IsValid() )
-		{
-			CLogger::Activate();
-			LOG ( "painted: " );
-			LOG ( (LPCSTR)l_layer->GetName() );	
-			LOG ( "\n" );
-			l_layer->PaintImage ( &dst );
-			l_noLayersVisible = false;
-		}
-	}
-
-	if ( ( l_noLayersVisible == false ) ) {
-		DoCacheBitmap( dst.GetBitmap() );
-	}
-	return GetCachedBitmap();
 }
 
 unsigned int CLayerManager::LayerCount(void)
@@ -275,8 +221,6 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 
 	l_lm->m_processThread = NULL;
 
-	l_lm->InvalidateCachedBitmap();
-
 	LOG("LayerManager::ProcessLayers() done\n");
 	
 	K_ACTIVE_PROCESSES--;
@@ -284,6 +228,7 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 }
 
 #include <windows.h>
+#include ".\layermanager.h"
 void ErrorExit(LPTSTR lpszFunction) 
 { 
     TCHAR szBuf[80]; 
@@ -345,28 +290,8 @@ void ErrorExit(LPTSTR lpszFunction)
 	LOG ( "AbortOldThread() bye\n" );
 }*/
 
-void CLayerManager::InvalidateCachedBitmap(void)
-{
-	DoCacheBitmap( NULL );
-}
-
-Bitmap* CLayerManager::GetCachedBitmap(void)
-{
-	return m_cachedBitmap;
-}
-
-void CLayerManager::DoCacheBitmap(Bitmap* a_bitmap)
-{
-	if ( m_cachedBitmap != NULL )
-	{
-		delete m_cachedBitmap;
-	}
-	m_cachedBitmap = a_bitmap;
-}
-
 void CLayerManager::ChangedLayerVisibleState(void)
 {
-	InvalidateCachedBitmap();
 }
 
 void CLayerManager::SetLineTracerView(CView* a_lineTracerView)
@@ -379,4 +304,29 @@ void CLayerManager::SetLineTracerView(CView* a_lineTracerView)
 CView* CLayerManager::GetLineTracerView(void)
 {
 	return m_lineTracerView;
+}
+
+void CLayerManager::DrawAllLayers(Graphics & a_graphics)
+{
+	LOG ( "layermanager->DrawAllLayers()" );
+
+	bool l_noLayersVisible = true;
+
+	// paint all visible layers
+	for ( unsigned int l_layerIndex = 1; 
+		l_layerIndex < LayerCount(); 
+		l_layerIndex++ )
+	{
+		CLayer *l_layer = GetLayer( l_layerIndex );
+
+		if ( l_layer->IsVisible() && l_layer->IsValid() )
+		{
+			CLogger::Activate();
+			LOG ( "painted: " );
+			LOG ( (LPCSTR)l_layer->GetName() );	
+			LOG ( "\n" );
+			l_layer->DrawUsingGraphics ( a_graphics );
+			l_noLayersVisible = false;
+		}
+	}
 }
