@@ -8,7 +8,7 @@ CHoleFiller::CHoleFiller(void)
 : CImageProcessor()
 {
 	LOG("init holefiller\n");
-	SetName ( CString ( "HoleFiller" ) );
+	SetName ( CString ( "Hole Filler" ) );
 	SetType ( HOLEFILLER );
 }
 

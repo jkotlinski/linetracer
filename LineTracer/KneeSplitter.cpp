@@ -10,7 +10,7 @@
 CKneeSplitter::CKneeSplitter(void)
 : CImageProcessor()
 {
-	SetName ( CString ( "KneeSplitter" ) );
+	SetName ( CString ( "Knee Splitter" ) );
 }
 
 CKneeSplitter::~CKneeSplitter(void)
