@@ -133,34 +133,38 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
 END
 
-IDD_TOOLBOX DIALOGEX 0, 0, 91, 185
+IDD_TOOLBOX DIALOGEX 0, 0, 102, 235
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Noise Surpression",IDC_STATIC,7,34,62,8
-    LTEXT           "Black/White Threshold",IDC_STATIC,7,7,77,11
-    EDITTEXT        IDC_BWTHRESHOLD,7,18,77,12,ES_AUTOHSCROLL | 
+    LTEXT           "Black/White Threshold",IDC_STATIC,7,7,88,11
+    EDITTEXT        IDC_BWTHRESHOLD,7,18,88,12,ES_AUTOHSCROLL | 
                     ES_WANTRETURN | ES_NUMBER,WS_EX_TRANSPARENT | 
                     WS_EX_RIGHT
     CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,73,26,11,13,WS_EX_TRANSPARENT
+                    UDS_NOTHOUSANDS,84,26,11,13,WS_EX_TRANSPARENT
     CONTROL         "",IDC_DETAILENCHANCESLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,45,77,10
-    LTEXT           "Short Line Removal",IDC_STATIC,7,84,77,8
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,45,88,10
+    LTEXT           "Short Line Removal",IDC_STATIC,7,84,88,8
     CONTROL         "",IDC_TAILPRUNERSLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,94,77,10
-    LTEXT           "Curve Smoothing",IDC_STATIC,7,106,77,10
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,94,88,10
+    LTEXT           "Curve Smoothing",IDC_STATIC,7,106,88,10
     CONTROL         "",IDC_CURVEDETAILSLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,116,77,10
-    LTEXT           "Line Width",IDC_STATIC,7,127,77,9
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,116,88,10
+    LTEXT           "Line Width",IDC_STATIC,7,127,88,9
     CONTROL         "",IDC_SLIDER1,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | WS_DISABLED | WS_TABSTOP,7,137,77,10
+                    TBS_NOTICKS | WS_DISABLED | WS_TABSTOP,7,137,88,10
     CONTROL         "",IDC_HOLEFILLERSLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,71,77,10
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,71,88,10
     LTEXT           "Hole Filler",IDC_STATIC,7,60,64,9
-    PUSHBUTTON      "Move",IDC_MOVEBUTTON,7,159,34,19
-    PUSHBUTTON      "Zoom",IDC_ZOOMBUTTON,50,159,34,19
+    PUSHBUTTON      "Move",IDC_MOVEBUTTON,9,157,34,26,BS_ICON
+    PUSHBUTTON      "Zoom",IDC_ZOOMBUTTON,50,156,36,26,BS_ICON
+    GROUPBOX        "Move/Zoom",IDC_STATIC,7,148,88,36
+    PUSHBUTTON      "original",IDC_VIEW_ORIGINAL_BUTTON,7,206,26,22,BS_ICON
+    PUSHBUTTON      "vector",IDC_VIEW_RESULT_BUTTON,68,206,27,22,BS_ICON
+    PUSHBUTTON      "blend",IDC_VIEW_ALL_BUTTON,37,206,27,22,BS_ICON
 END
 
 
@@ -222,9 +226,9 @@ BEGIN
     IDD_TOOLBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 84
+        RIGHTMARGIN, 95
         TOPMARGIN, 7
-        BOTTOMMARGIN, 178
+        BOTTOMMARGIN, 228
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -354,6 +358,19 @@ LANGUAGE LANG_SWEDISH, SUBLANG_DEFAULT
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MOVE                ICON                    "res\\move.ico"
+IDI_ZOOM                ICON                    "res\\zoom.ico"
+IDI_ORIGINAL_LAYER      ICON                    "res\\show_pixel.ico"
+IDI_VECTOR_LAYER        ICON                    "res\\show_vector_red.ico"
+IDI_ALL_LAYERS          ICON                    "res\\icon2.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Dialog
 //
 
@@ -443,6 +460,17 @@ END
 //
 
 IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_CLOSED_HAND         CURSOR                  "res\\cursor1.cur"
+IDC_HAND                CURSOR                  "res\\cur00001.cur"
+IDC_ZOOM_OUT            CURSOR                  "res\\cur00003.cur"
+IDC_ZOOM_IN             CURSOR                  "res\\cur00002.cur"
+IDC_ZOOM                CURSOR                  "res\\cur00004.cur"
 #endif    // Swedish resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -9,6 +9,17 @@
 #define IDR_TOOLBAR1                    133
 #define IDC_COMBOBOX                    134
 #define IDD_TOOLBOX                     135
+#define IDC_CLOSED_HAND                 138
+#define IDC_ZOOM_OUT                    145
+#define IDC_ZOOM_IN                     146
+#define IDC_ZOOM                        147
+#define IDI_MOVE                        148
+#define IDI_ICON1                       149
+#define IDI_ZOOM                        149
+#define IDI_ORIGINAL_LAYER              150
+#define IDI_VECTOR_LAYER                151
+#define IDI_ICON2                       152
+#define IDI_ALL_LAYERS                  152
 #define IDC_EDIT                        1000
 #define IDC_SPIN1                       1001
 #define IDC_BWTHRESHOLD                 1002
@@ -19,10 +30,15 @@
 #define IDC_TAILPRUNERSLIDER            1006
 #define IDC_SLIDER3                     1007
 #define IDC_CURVEDETAILSLIDER           1007
+#define IDC_HAND                        1007
 #define IDC_CUSTOM1                     1008
 #define IDC_DETAILENCHANCESLIDER2       1008
 #define IDC_SLIDER1                     1009
 #define IDC_HOLEFILLERSLIDER            1013
+#define IDC_VIEW_ORIGINAL_BUTTON        1014
+#define IDC_EDIT1                       1016
+#define IDC_VIEW_RESULT_BUTTON          1017
+#define IDC_VIEW_ALL_BUTTON             1020
 #define ID_OPERATIONS_BINARIZE          32771
 #define ID_OPERATION_BINARIZE           32772
 #define ID_FILE_OPENIMAGE               32773
@@ -48,9 +64,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        137
+#define _APS_NEXT_RESOURCE_VALUE        153
 #define _APS_NEXT_COMMAND_VALUE         32799
-#define _APS_NEXT_CONTROL_VALUE         1014
+#define _APS_NEXT_CONTROL_VALUE         1021
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
