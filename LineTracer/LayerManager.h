@@ -22,7 +22,8 @@ public:
 		LINESEGMENTOR, 
 		FORKHANDLER, 
 		KNEESPLITTER, 
-		BEZIERMAKER 
+		BEZIERMAKER,
+		INVALID_TYPE
 	};
 
 	void InvalidateLayers(unsigned int startLayer=0);
