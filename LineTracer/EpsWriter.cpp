@@ -1,18 +1,15 @@
 #include "StdAfx.h"
-#include ".\epswriter.h"
+#include "epswriter.h"
 
 #include "LayerManager.h"
 
-#include <list>
 #include <vector>
 
 using namespace std;
 
-#include <math.h>
-
 CEpsWriter::CEpsWriter(void)
 {
-	TRACE("init epswriter\n");
+	LOG("init epswriter\n");
 }
 
 CEpsWriter::~CEpsWriter(void)
@@ -24,15 +21,15 @@ CEpsWriter* CEpsWriter::Instance() {
     return &inst;
 }
 
-void CEpsWriter::Write(CString *FileName)
+void CEpsWriter::Write(const CString &FileName)
 {
-	CStdioFile out(*FileName,CFile::modeCreate|CFile::typeText|CFile::modeWrite);
+	CStdioFile out(FileName,CFile::modeCreate|CFile::typeText|CFile::modeWrite);
 	CString str;
 
 	CLayerManager *lm = CLayerManager::Instance();
 
-	CLineImage *lineImage = static_cast<CLineImage*>(lm->GetLayer(lm->Layers()-1)->GetSketchImage());
-
+	CLineImage *lineImage = dynamic_cast<CLineImage*> (lm->GetLastLayer()->GetSketchImage());
+	ASSERT ( lineImage != NULL );
 	int width=lineImage->GetWidth();
 	int height=lineImage->GetHeight();
 
@@ -46,10 +43,10 @@ void CEpsWriter::Write(CString *FileName)
 
 	out.WriteString("0.5 setlinewidth\n");
 
-	for(unsigned int i=0; i<lineImage->Size(); i++) {
-		CPolyLine* pl=lineImage->At(i);
+	for(unsigned int l_lineIndex=0; l_lineIndex<lineImage->Size(); l_lineIndex++) {
+		CPolyLine* pl=lineImage->At(l_lineIndex);
 
-		str.Format("%f %f moveto\n",pl->At(0)->x,height-pl->At(0)->y);
+		str.Format("%f %f moveto\n",pl->At(0)->GetX(),height-pl->At(0)->GetY());
 		out.WriteString(str);
 
 		//-------------------------------------
@@ -57,17 +54,16 @@ void CEpsWriter::Write(CString *FileName)
 		for(unsigned int i=0; i<pl->Size()-1; i++) {
 
 			CFPoint p = pl->At(i)->GetControlPointForward();
-			str.Format("%f %f ",p.x,height-p.y);
+			str.Format("%f %f ",p.GetX(),height-p.GetY());
 			out.WriteString(str);
 
 			p = pl->At(i+1)->GetControlPointBack();
-			str.Format("%f %f ",p.x,height-p.y);
+			str.Format("%f %f ",p.GetX(),height-p.GetY());
 			out.WriteString(str);
 
 			//endpoint
-			p.x = pl->At(i+1)->x;
-			p.y = pl->At(i+1)->y;
-			str.Format("%f %f curveto\n",p.x,height-p.y);
+			p = CFPoint( pl->At(i+1)->GetX(), pl->At(i+1)->GetY() );
+			str.Format("%f %f curveto\n",p.GetX(),height-p.GetY());
 			out.WriteString(str);
 
 		}
