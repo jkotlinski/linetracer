@@ -33,17 +33,17 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 		tmp.SetPixel(i, val);
 	}
 
-	double min_area = CProjectSettings::Instance()->GetParam(
-		CProjectSettings::HOLEFILLER_MIN_AREA);
+	const unsigned int max_area = static_cast<const unsigned int>(CProjectSettings::Instance()->GetParam(
+		CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL));
 
 	for(int x=0; x<tmp.GetWidth(); x++) {
 		for(int y=0; y<tmp.GetHeight(); y++) {
 			if(tmp.GetPixel(x,y)) {
-				deque<CPoint,boost::fast_pool_allocator<CPoint> > pixelsInArea;
+				deque<int> pixelsInArea;
 				
-				ScanArea(&tmp, &pixelsInArea, CPoint(x,y));
+				ScanArea(&tmp, &pixelsInArea, CPoint(x,y), max_area);
 
-				if(pixelsInArea.size() < min_area) {
+				if(pixelsInArea.size() < max_area) {
 					while(!pixelsInArea.empty()) {
 						CPoint p = pixelsInArea.front();
 						dst->SetPixel(p.x,p.y, false);
@@ -56,31 +56,50 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 	return dst;
 }
 
-void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_pool_allocator<CPoint> >* pixelsInArea, const CPoint &start)
+void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<int>* pixelsInArea, const CPoint &start, const unsigned int a_max_area)
 const
 {
-	deque<CPoint,boost::fast_pool_allocator<CPoint> > pointsToCheck;
+	deque<int> pointsToCheck;
 
-	pointsToCheck.push_back(start);
-	pixelsInArea->push_back(start);
+	pointsToCheck.push_back(start.x | (start.y<<16));
+	pixelsInArea->push_back(start.x | (start.y<<16));
 
 	int width = canvas->GetWidth();
 	int height = canvas->GetHeight();
 
-	while(!pointsToCheck.empty()) {
-		CPoint p = pointsToCheck.front();
+	while(!pointsToCheck.empty()) 
+	{
+		int p = pointsToCheck.front();
+		int x = p&0xffff;
+		int y = p>>16;
 		pointsToCheck.pop_front();
 
-		if(p.x<0 || p.y<0) continue;
-		if(p.x==width) continue;
-		if(p.y==height) continue;
-		if(!canvas->GetPixel(p.x,p.y)) continue;
+		if(x<0 || y<0) continue;
+		if(x==width) continue;
+		if(y==height) continue;
+		if(!canvas->GetPixel(x,y)) continue;
 
-		pixelsInArea->push_back(p);
-		canvas->SetPixel(p.x,p.y,false);
-		pointsToCheck.push_back(CPoint(p.x+1,p.y));
-		pointsToCheck.push_back(CPoint(p.x-1,p.y));
-		pointsToCheck.push_back(CPoint(p.x,p.y+1));
-		pointsToCheck.push_back(CPoint(p.x,p.y-1));
+		if(pixelsInArea->size() <= a_max_area) 
+		{
+			pixelsInArea->push_back(x | (y<<16));
+		}
+		canvas->SetPixel(x,y,false);
+
+		if(canvas->GetPixel(x+1,y)) 
+		{
+			pointsToCheck.push_back( (x+1) | (y<<16));
+		}
+		if(canvas->GetPixel(x-1,y)) 
+		{
+			pointsToCheck.push_back( (x-1) | (y << 16));
+		}
+		if(canvas->GetPixel(x,y+1)) 
+		{
+			pointsToCheck.push_back( x | ((y+1)<<16 ) );
+		}
+		if(canvas->GetPixel(x,y-1)) 
+		{
+			pointsToCheck.push_back( x | ((y-1)<<16 ) );
+		}
 	}
 }
