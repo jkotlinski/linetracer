@@ -70,7 +70,8 @@ void CLineImage::SolderKnots(void)
 	map<unsigned int,int>::iterator iter;
 	map<unsigned int,bool> lineProcessed;
 
-	for(unsigned int line=0; line<Size(); line++) {
+	for(unsigned int line=0; line<Size(); line++) 
+	{
 		CSketchPoint *p = GetLine(line)->GetHeadPoint();
 		unsigned int pp = (int(p->GetX())&0xffff) | (int(p->GetY())<<16);
 		knotCount[pp]=knotCount[pp]+1;
@@ -78,13 +79,12 @@ void CLineImage::SolderKnots(void)
 		p = GetLine(line)->GetTailPoint();
 		pp = (int(p->GetX())&0xffff) | (int(p->GetY())<<16);
 		knotCount[pp]=knotCount[pp]+1;
-
-		ASSERT(GetLine(line)->GetHeadPoint()->Distance(GetLine(line)->GetTailPoint()->GetCoords()) 
-			> 0.1);
 	}
 
-	for( iter=knotCount.begin(); iter!=knotCount.end(); ++iter ) {
-		if((*iter).second==2) {
+	for( iter=knotCount.begin(); iter!=knotCount.end(); ++iter ) 
+	{
+		if((*iter).second==2) 
+		{
 			CFPoint p( double ( iter->first & 0xffff ), 
 				double ( iter->first >> 16 ) );
 
@@ -171,7 +171,7 @@ CLineImage* CLineImage::Clone(void) const
 	return clone;
 }
 
-bool CLineImage::IsTail(map<unsigned int,int>* a_tailCounterMap, CPolyLine* pl) const
+bool CLineImage::IsTail(map<unsigned int,int>* a_tailCounterMap, const CPolyLine* pl) const
 {
 	//CLogger::Inactivate();
 
@@ -228,8 +228,8 @@ void CLineImage::DrawUsingGraphics(Graphics & a_graphics)
 {
 	//int color=1;
 	Pen l_redPen(Color::Red);
-	l_redPen.SetWidth(3.0);
-	l_redPen.SetLineCap(LineCapRound,
+	(void) l_redPen.SetWidth(3.0f);
+	(void) l_redPen.SetLineCap(LineCapRound,
 		LineCapRound,
 		DashCapRound);
 
@@ -240,4 +240,86 @@ void CLineImage::DrawUsingGraphics(Graphics & a_graphics)
 		//color++;
 		//if(color==7) color=1;
 	}
+}
+
+void CLineImage::AssertNoEmptyLines(void)
+const
+{
+	for(unsigned int i=0; i<Size(); i++) 
+	{
+		ASSERT(GetLine(i)->Size()>1);		
+	}
+}
+
+void CLineImage::AssertNoDuplicateLines(void)
+const
+{
+	for(unsigned int i=0; i<Size(); i++) 
+	{
+		CPolyLine *l_line1 = GetLine(i);
+		for(unsigned int j=0; j<Size(); j++) 
+		{
+			if ( i == j )
+			{
+				continue;
+			}
+
+			CPolyLine *l_line2 = GetLine(j);
+			ASSERT ( l_line1->Equals(*l_line2) == false );
+		}
+	}
+}
+
+void CLineImage::DiscardDuplicateLines(void)
+{
+	bool *l_linesToDelete = new bool[Size()];
+
+	for ( unsigned int i=0; i<Size(); i++ )
+	{
+		l_linesToDelete[i] = false;
+	}
+
+	bool l_foundLinesToDelete = false;
+
+	for(unsigned int i=0; i<Size(); i++) 
+	{
+		if ( l_linesToDelete[i] == true )
+		{
+			continue;
+		}
+
+		CPolyLine *l_line1 = GetLine(i);
+
+		for(unsigned int j=0; j<Size(); j++) 
+		{
+			if ( i == j )
+			{
+				continue;
+			}
+
+			CPolyLine *l_line2 = GetLine(j);
+
+			if ( l_line1->Equals(*l_line2) ) 
+			{
+				//discard one of these line
+				l_linesToDelete[i] = true;
+				l_foundLinesToDelete = true;
+			}
+		}
+	}
+
+	if ( l_foundLinesToDelete == true )
+	{
+		CLineImage *l_tmpImage = Clone();
+		Clear();
+		for(unsigned int i=0; i<l_tmpImage->Size(); i++) 
+		{
+			if ( l_linesToDelete[i] == false )
+			{
+				Add ( l_tmpImage->GetLine(i)->Clone() );
+			}
+		}
+		delete l_tmpImage;
+	}
+	delete[] l_linesToDelete;
 }
