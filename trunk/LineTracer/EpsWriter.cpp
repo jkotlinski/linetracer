@@ -44,7 +44,7 @@ void CEpsWriter::Write(const CString &FileName)
 	out.WriteString("0.5 setlinewidth\n");
 
 	for(unsigned int l_lineIndex=0; l_lineIndex<lineImage->Size(); l_lineIndex++) {
-		CPolyLine* pl=lineImage->At(l_lineIndex);
+		CPolyLine* pl=lineImage->GetLine(l_lineIndex);
 
 		str.Format("%f %f moveto\n",pl->At(0)->GetX(),height-pl->At(0)->GetY());
 		out.WriteString(str);

@@ -36,7 +36,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	for(unsigned int i=0; i<src->Size(); i++) 
 	{
-		CPolyLine *line = src->At(i);
+		CPolyLine *line = src->GetLine(i);
 
 		vector<CSketchPoint*>::iterator iter;
 		vector<CSketchPoint*>::iterator end;
@@ -83,7 +83,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	for(unsigned int l_lineIndex=0; l_lineIndex<src->Size(); ++l_lineIndex) 
 	{
-		CPolyLine* line = src->At(l_lineIndex);
+		CPolyLine* line = src->GetLine(l_lineIndex);
 		CPolyLine* addLine = new CPolyLine();
 
 		vector<CSketchPoint*>::iterator iter = line->Begin();
