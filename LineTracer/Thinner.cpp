@@ -2,7 +2,10 @@
 #include "thinner.h"
 
 CThinner::CThinner(void)
+: CImageProcessor()
 {
+	SetName ( CString ( "Thinner" ) );
+	SetType ( THINNER );
 }
 
 CThinner::~CThinner(void)
@@ -210,3 +213,4 @@ void CThinner::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) cons
 		}
 	}
 }
+
