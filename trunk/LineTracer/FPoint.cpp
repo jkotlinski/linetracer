@@ -2,6 +2,7 @@
 #include "fpoint.h"
 
 #include <math.h>
+#include ".\fpoint.h"
 
 CFPoint::CFPoint(double ix,double iy)
 : m_x(ix)
@@ -68,18 +69,13 @@ bool operator<(const CFPoint& p1,const CFPoint& p2)
 const bool operator==(const CFPoint& a_p1, const CFPoint& a_p2)
 {
 	static const double MAX_DIFF_FOR_EQUALITY = 0.1;
-	if ( abs ( a_p1.GetX() - a_p2.GetX() ) > MAX_DIFF_FOR_EQUALITY ) {
-		return false;
-	}
-	if ( abs ( a_p1.GetY() - a_p2.GetY() ) > MAX_DIFF_FOR_EQUALITY ) {
-		return false;
-	}
-	return true;
+	return a_p1.Distance(a_p2) < MAX_DIFF_FOR_EQUALITY;
 }
 
 const bool operator!=(const CFPoint& a_p1, const CFPoint& a_p2)
 {
-	return ( a_p1 == a_p2 ) ? false : true;
+	static const double MAX_DIFF_FOR_EQUALITY = 0.1;
+	return a_p1.Distance(a_p2) >= MAX_DIFF_FOR_EQUALITY;
 }
 
 const CFPoint operator+(const CFPoint& a_p1, const CFPoint& a_p2)
