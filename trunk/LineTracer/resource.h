@@ -18,7 +18,6 @@
 #define IDI_ZOOM                        149
 #define IDI_ORIGINAL_LAYER              150
 #define IDI_VECTOR_LAYER                151
-#define IDI_ICON2                       152
 #define IDI_ALL_LAYERS                  152
 #define IDC_EDIT                        1000
 #define IDC_SPIN1                       1001
@@ -39,6 +38,8 @@
 #define IDC_EDIT1                       1016
 #define IDC_VIEW_RESULT_BUTTON          1017
 #define IDC_VIEW_ALL_BUTTON             1020
+#define IDC_BUTTON1                     1021
+#define IDC_EXPORT_TO_EPS_BUTTON        1021
 #define ID_OPERATIONS_BINARIZE          32771
 #define ID_OPERATION_BINARIZE           32772
 #define ID_FILE_OPENIMAGE               32773
@@ -66,7 +67,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        153
 #define _APS_NEXT_COMMAND_VALUE         32799
-#define _APS_NEXT_CONTROL_VALUE         1021
+#define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
