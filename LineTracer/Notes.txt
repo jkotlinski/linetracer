@@ -18,10 +18,6 @@ bilden fram.
 ned programmet genom att klicka på krysset övre högra hörnet) så får
 man frågan om man vill spara "Untitled". Men det finns alltså inget
 att spara.
-- det är lite störigt att det står "Ready" i statusbaren när
-programmet uppenbarligen håller på att tänka...
-- info på statusbaren för vad de olika menyalternativen innebär funkar
-bara för View->Statusbar. Inte för någon annan.
 
 STABILITET
 - programmet hänger sig (en gång hittills)

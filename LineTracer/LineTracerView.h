@@ -12,6 +12,7 @@
 #include "atltypes.h"
 
 #define WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS (WM_USER+0x100)
+#define		WM_UPDATE_STATUSBAR_WITH_STRING (WM_USER+0x101)
 
 class CLineTracerView : public CScrollView
 {
@@ -57,6 +58,7 @@ protected:
 	afx_msg void OnUpdateViewOriginal(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBeziermaker(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewThinner(CCmdUI *pCmdUI);
+	afx_msg LRESULT OnUpdateStatusbarWithString ( WPARAM wParam, LPARAM lParam );
 	
 	DECLARE_MESSAGE_MAP()
 private:

@@ -2,7 +2,6 @@
 #include "binarizer.h"
 
 #include "ProjectSettings.h"
-#include ".\binarizer.h"
 
 CBinarizer::CBinarizer(void)
 : CImageProcessor()
@@ -11,7 +10,7 @@ CBinarizer::CBinarizer(void)
 , m_isInitialized(false)
 {
 	LOG("init binarizer\n");
-	SetName(CString("binarizer"));
+	SetName(CString("Binarizer"));
 	SetType ( BINARIZER );
 }
 
