@@ -66,3 +66,7 @@ v0.0.5
  * fixed mouse pointer bug
  * merged load image/open
  
+ 2005-02-23: v0.1.7
+ 
+ * fixed status bar + menues
+ 
