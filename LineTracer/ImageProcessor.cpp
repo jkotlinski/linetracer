@@ -4,6 +4,7 @@
 CImageProcessor::CImageProcessor(void)
 : m_IsValid(false)
 {
+	TRACE("init imageprocessor\n");
 }
 
 CImageProcessor::~CImageProcessor(void)
@@ -20,7 +21,7 @@ double CImageProcessor::GetParam(char* name)
 	return m_Params[name];
 }
 
-hash_map<const char*,double> CImageProcessor::GetParams(void)
+map<const char*,double> CImageProcessor::GetParams(void)
 {
 	return m_Params;
 }

@@ -5,6 +5,7 @@
 #include "LineTracer.h"
 
 #include "MainFrm.h"
+#include ".\mainfrm.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -17,6 +18,7 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_CREATE()
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -26,7 +28,6 @@ static UINT indicators[] =
 	ID_INDICATOR_NUM,
 	ID_INDICATOR_SCRL,
 };
-
 
 // CMainFrame construction/destruction
 
@@ -45,6 +46,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
+	// Tell the frame window to permit docking.
+    EnableDocking (CBRS_ALIGN_ANY);
+
 	if (!m_wndStatusBar.Create(this) ||
 		!m_wndStatusBar.SetIndicators(indicators,
 		  sizeof(indicators)/sizeof(UINT)))
@@ -53,7 +57,32 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;      // fail to create
 	}
 
-	return 0;
+	CToolBox *m_wndToolbox = CToolBox::Instance();
+
+	// Create the dialog bar using one of its Create() methods
+	if( !m_wndToolbox->Create(this,
+			          IDD_TOOLBOX,
+			          CBRS_LEFT | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY,
+			          IDD_TOOLBOX) )
+	{
+		TRACE0(_T("Failed to create the toolbox\n"));
+		return -1;
+	}
+
+	// When the dialog bar is undocked, display a caption on its title bar
+	m_wndToolbox->SetWindowText("Toolbox");
+
+
+	// Allow the dialog bar to be dockable on the left or the right of the frame
+	m_wndToolbox->EnableDocking(0);
+	//DockControlBar(&m_wndToolbox);
+	FloatControlBar(m_wndToolbox, CPoint(0,0), CBRS_ALIGN_TOP);
+
+	//LoadBarState(_T("ToolbarState"));
+
+	m_wndToolbox->Init();
+
+    return 0;
 }
 
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
@@ -82,3 +111,8 @@ void CMainFrame::Dump(CDumpContext& dc) const
 
 #endif //_DEBUG
 
+afx_msg void CMainFrame::OnClose(void)
+{
+	SaveBarState(_T("ToolbarState"));
+	CFrameWnd::OnClose();
+}

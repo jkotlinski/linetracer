@@ -1,17 +1,24 @@
 #include "StdAfx.h"
-#include ".\skeletonizer.h"
+#include ".\Skeletonizer.h"
 
 #include "EpsWriter.h"
 
 #include <math.h>
 #include <map>
+#include <vector>
+#include <map>
 #include <assert.h>
 
 using namespace std;
 
+//#define DEFINE_BLOCK_ALLOCATED_MAP
+//#define DEFINE_BLOCK_ALLOCATED_MULTIMAP
+//#include "blockallocator.h"
+
 CSkeletonizer::CSkeletonizer(void)
 {
-	SetParam("segmentSizeThreshold",5.0);
+	SetParam("scale",1);
+		TRACE("init skeletonizer\n");
 }
 
 CSkeletonizer::~CSkeletonizer(void)
@@ -24,49 +31,40 @@ CSkeletonizer* CSkeletonizer::Instance() {
 }
 
 CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
-	CRawImage *src=static_cast<CRawImage*>(i_src);
-	CRawImage *distMap=new CRawImage(src->GetWidth(), src->GetHeight());
+	CRawImage<bool> *src=static_cast<CRawImage<bool>*>(i_src);
+	/*CRawImage<ARGB> *distMap=new CRawImage<ARGB>(src->GetWidth(), src->GetHeight());
 	distMap->Clear();
-
-	DistanceTransform(src,distMap,3,4);
+	DistanceTransform(src,distMap,3,4);*/
 	
-	CRawImage* maxMap = DeleteNonMaximums(distMap);
-
-	delete distMap;
-
-	CRawImage* knotImage=new CRawImage(src->GetWidth(),src->GetHeight());
+	CRawImage<ARGB>* knotImage=new CRawImage<ARGB>(src->GetWidth(),src->GetHeight());
 	knotImage->Clear();
 
-	CRawImage* segmentMap=CreateSegmentMap(maxMap,knotImage);
-
-	delete maxMap;
+	CRawImage<ARGB>* segmentMap=CreateSegmentMap(src,knotImage);
 
 	CLineImage* li= Vectorize(segmentMap, knotImage);
 
 	delete knotImage;
 
-	li->SetSize(segmentMap->GetWidth(),segmentMap->GetHeight());
-
 	//trace endpoints
 	for(int x=1; x<segmentMap->GetWidth()-1; x++) {
 		for(int y=1; y<segmentMap->GetHeight()-1; y++) {
 			if(segmentMap->GetPixel(x,y) && IsEndPoint(segmentMap, CPoint(x,y))) {
-				CPoint p,p_prev;
+				CFPoint p,p_prev;
 				CPolyLine *line = new CPolyLine();
 				//add first point
-				line->Add(CSketchPoint(x,y,true));
+				line->Add(new CSketchPoint(x,y,true));
 				segmentMap->SetPixel(x,y,0);
-				p_prev=FindSegmentNeighbor(segmentMap,CPoint(x,y));
+				p_prev=FindSegmentNeighbor(segmentMap,CFPoint(x,y));
 				while(1) {
 					p=FindSegmentNeighbor(segmentMap,p_prev);
 					if(p.x==-1) {
 						//add last point
-						line->Add(CSketchPoint(p_prev,true));
-						segmentMap->SetPixel(p_prev.x,p_prev.y,0);
+						line->Add(new CSketchPoint(p_prev,true));
+						segmentMap->SetPixel(int(p_prev.x),int(p_prev.y),0);
 						break;
 					}
-					line->Add(CSketchPoint(p_prev));
-					segmentMap->SetPixel(p_prev.x,p_prev.y,0);
+					line->Add(new CSketchPoint(p_prev));
+					segmentMap->SetPixel(int(p_prev.x),int(p_prev.y),0);
 					p_prev=p;
 				}
 				li->Add(line);
@@ -74,13 +72,21 @@ CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 		}
 	}
 
+	//TODO: circle detect
+
 	delete segmentMap;
 
-	return li;	
+	TRACE("process complete\n");
+	//TRACE("size: %i %i\n",maxMap->GetWidth(),maxMap->GetHeight());
+	li->UpdateTailData();
+
+	CLineImage* li2 = li->SmoothPositions();
+	delete li;
+	return li2;
 }
 
 
-void CSkeletonizer::DistanceTransform(CRawImage *src, CRawImage *dst, int DirectDistance, int IndirectDistance)
+void CSkeletonizer::DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst, int DirectDistance, int IndirectDistance)
 {
 	//clean image
 	for(int x=0; x<src->GetWidth()*src->GetHeight(); x++) {
@@ -114,9 +120,246 @@ void CSkeletonizer::DistanceTransform(CRawImage *src, CRawImage *dst, int Direct
 	}
 }
 
-CRawImage* CSkeletonizer::DeleteNonMaximums(CRawImage* dst)
+/*typedef boost::fast_pool_allocator<pair<float,int> > NBAllocator;
+typedef multimap<float,int,less<float>, NBAllocator > NBType;
+
+MaximumMapType* CSkeletonizer::DoAFMM(CRawImage<bool>* src, bool direction) {
+	static const float MAX_VALUE=1000000;
+	static const float THRESHOLD = 8;
+	static const bool paintU = true;
+
+	map<int,NBType::iterator,less<int>,boost::fast_pool_allocator<pair<int,NBType::iterator> > > ptr;
+	NBType NarrowBand;
+
+	int width=src->GetWidth();
+
+	MaximumMapType* maximumMap = new MaximumMapType();
+	char *f = new char[src->GetHeight()*src->GetWidth()];
+	float *T = new float[src->GetHeight()*src->GetWidth()];
+	float *U = new float[src->GetHeight()*src->GetWidth()];
+
+	TRACE("do AFMM\n");
+
+	for(int x=0; x<src->GetWidth(); x++) {
+		f[x]=KNOWN;
+		f[x+width*(src->GetHeight()-1)]=KNOWN;
+	}
+	for(int y=0; y<src->GetHeight(); y++) {
+		f[y*width]=KNOWN;
+		f[src->GetWidth()-1+width*y]=KNOWN;
+	}
+
+	//initialization
+	for(int x=1; x<src->GetWidth()-1; x++) {
+		for(int y=1; y<src->GetHeight()-1; y++) {
+			if(src->GetPixel(x,y)) {
+				//outside boundary
+				f[x+width*y]=KNOWN;
+				T[x+width*y]=0;
+				U[x+width*y]=0;
+				continue;
+			}
+
+			//on boundary?
+			bool onBoundary=false;
+			if(src->GetPixel(x-1,y) ||
+				src->GetPixel(x+1,y) ||
+				src->GetPixel(x,y-1) ||
+				src->GetPixel(x,y+1)) onBoundary=true;
+
+			if(onBoundary) {
+				f[x+y*width]=BAND;
+				T[x+width*y]=0;
+				U[x+width*y]=-1;
+				ptr[(x<<16)|y]=
+					NarrowBand.insert(pair<float,int>(0,(x<<16)|y));
+				//ptrSet[(x<<16)|y]=true;
+				//TRACE("%x\n",ptr[(x<<16)|(y&0xffff)]);
+			} else {
+				f[x+y*width]=INSIDE;
+				T[x+width*y]=MAX_VALUE;
+			}
+		}
+	}
+
+	TRACE("boundary done\n");
+	TRACE("i NarrowBand.size(): %i\n",NarrowBand.size());
+
+	float currU=0;
+
+	TRACE("do track boundary\n");
+
+	//initialize U val on boundary
+	if(direction) {
+		for(int x=1; x<src->GetWidth()-1; x++) {
+			for(int y=1; y<src->GetHeight()-1; y++) {
+				int p=x+y*width;
+
+				if(f[p]==BAND && U[p]<0) {
+					TrackBoundary(x,y,f,U,currU,width);
+				}
+			}
+		}
+	} else {
+		for(int x=src->GetWidth()-2; x>0; x--) {
+			for(int y=src->GetHeight()-2; y>0; y--) {
+				int p=x+y*width;
+
+				if(f[p]==BAND && U[p]<0) {
+					TrackBoundary(x,y,f,U,currU,width);
+				}
+			}
+		}
+	}
+
+	TRACE("U boundary val inited\n");
+
+	//main process
+	while(NarrowBand.size()) {
+		//extract first element from heap
+		int point = (*NarrowBand.begin()).second;
+		CPoint p(point>>16, point&0xffff);
+		NarrowBand.erase(NarrowBand.begin());
+		f[p.x+p.y*width]=KNOWN;
+
+		if(NarrowBand.size()%100==0) {
+			TRACE("m NarrowBand.size(): %i\n",NarrowBand.size());
+		}
+
+		int checkedNeighbors=0;
+
+		//check neighbors
+		for(int i=0; i<4; i++) {
+			int x = p.x;
+			int y = p.y;
+			switch(i) {
+				case 0:
+					x--;
+					break;
+				case 1:
+					x++;
+					break;
+				case 2:
+					y--;
+					break;
+				case 3:
+					y++;
+					break;
+			}
+
+			if(f[x+y*width]!=KNOWN) {
+				//march inwards, add point
+				if(f[x+y*width]==INSIDE) {
+					checkedNeighbors++;
+					f[x+y*width]=BAND;
+
+					//propagate U
+					int knownNeighbors = 0;
+					float a=0,m=1000000,M=-1;
+					int pp = x-1+y*width;
+					if(f[pp]==KNOWN) {
+						knownNeighbors++;
+						m=min(m,U[pp]);
+						M=max(M,U[pp]);
+						a+=U[pp];
+					}
+					pp=x+1+y*width;
+					if(f[pp]==KNOWN) {
+						knownNeighbors++;
+						m=min(m,U[pp]);
+						M=max(M,U[pp]);
+						a+=U[pp];
+					}
+					pp=x+(y-1)*width;
+					if(f[pp]==KNOWN) {
+						m=min(m,U[pp]);
+						M=max(M,U[pp]);
+						a+=U[pp];
+						knownNeighbors++;
+					}
+					pp=x+(y+1)*width;
+					if(f[pp]==KNOWN) {
+						m=min(m,U[pp]);
+						M=max(M,U[pp]);
+						a+=U[pp];
+						knownNeighbors++;
+					}
+					if(m-M<2) {
+						U[x+y*width]=a;
+					} else {
+						U[x+y*width]=m;
+					}
+				}
+
+				//compute T
+				float sol=MAX_VALUE;
+				sol=AFMMSolve(x-1,y,x,y-1,sol, f, T, width);
+				sol=AFMMSolve(x+1,y,x,y-1,sol, f, T, width);
+				sol=AFMMSolve(x-1,y,x,y+1,sol, f, T, width);
+				sol=AFMMSolve(x+1,y,x,y+1,sol, f, T, width);
+				T[x+width*y]=sol;
+
+				//TRACE("erase %x\n",ptr[(x<<16)|(y&0xffff)]);
+				if(ptr[(x<<16)|y]!=0) {
+					NarrowBand.erase(ptr[(x<<16)|y]);
+				}
+				ptr[(x<<16)|y]=
+					NarrowBand.insert(pair<float,int>(sol,(x<<16)|y));
+			}
+		}
+
+		if(!checkedNeighbors) {
+			(*maximumMap)[p.x+width*p.y]=1;
+		}
+	}
+
+	//CRawImage<short> *dst = new CRawImage<short>(src->GetWidth(), src->GetHeight());
+	//dst->Clear();
+
+	TRACE("main afmm complete\n");
+	
+	for(int y=1; y<src->GetHeight()-1; y++) {
+		int counter=width*y;
+		for(int x=1; x<src->GetWidth()-1; x++) {
+			counter++;
+			if(U[counter]>0.5) {
+				if(U[counter+1]>0.5) {
+					if(abs(U[counter]-U[counter+1])>=THRESHOLD) {
+						if((*maximumMap)[counter]) {
+							(*maximumMap)[counter]=0x8000|short(T[counter]);
+						} else {
+							(*maximumMap)[counter]=0x4000|short(T[counter]);
+						}
+						continue;
+					} 
+				}
+				if(U[counter+width]>0.5) {
+					if(abs(U[counter]-U[counter+width])>=THRESHOLD) {
+						if((*maximumMap)[counter]) {
+							(*maximumMap)[counter]=0x8000|short(T[counter]);
+						} else {
+							(*maximumMap)[counter]=0x4000|short(T[counter]);
+						}
+						continue;
+					} 
+				}
+				(*maximumMap)[counter]=0;
+			}
+			//if(paintU) dst->SetPixel(x,y,short(U[x+width*y]));
+		}
+	}
+
+	TRACE("painted tmp\n");
+	delete f;
+	delete T;
+	delete U;
+
+	return maximumMap;
+}*/
+
+CRawImage<ARGB>* CSkeletonizer::DeleteNonMaximumsSimple(CRawImage<ARGB>* dst)
 {
-	CRawImage *tmp=new CRawImage(dst->GetWidth(), dst->GetHeight());
+	CRawImage<ARGB> *tmp=new CRawImage<ARGB>(dst->GetWidth(), dst->GetHeight());
 
 	for(int y=1; y<dst->GetHeight()-1; y++) {
 		for(int x=1; x<dst->GetWidth()-1; x++) {
@@ -125,9 +368,11 @@ CRawImage* CSkeletonizer::DeleteNonMaximums(CRawImage* dst)
 			ARGB val=dst->GetPixel(x,y);
 
 			//check absolute local maximum
-			if(val>dst->GetPixel(x-1,y) && val>=dst->GetPixel(x+1,y)) {
+			if(val>dst->GetPixel(x-1,y) && val>=dst->GetPixel(x+1,y)) 
+			{
 				isLocalMaximum=true;
-			} else if(val>dst->GetPixel(x,y-1) && val>=dst->GetPixel(x,y+1)) {
+			} else if(val>dst->GetPixel(x,y-1) && val>=dst->GetPixel(x,y+1))
+			{
 				isLocalMaximum=true;
 			}
 
@@ -138,7 +383,7 @@ CRawImage* CSkeletonizer::DeleteNonMaximums(CRawImage* dst)
 	return tmp;
 }
 
-int CSkeletonizer::IsKnot(CRawImage* image, ARGB x, ARGB y)
+int CSkeletonizer::IsKnot(CRawImage<bool>* image, ARGB x, ARGB y)
 {
 	static int currentKnot = 1;
 
@@ -182,12 +427,12 @@ int CSkeletonizer::IsKnot(CRawImage* image, ARGB x, ARGB y)
 
 
 /*one-pass segmentation algorithm*/
-CRawImage* CSkeletonizer::CreateSegmentMap(CRawImage* image, CRawImage* knotImage)
+CRawImage<ARGB>* CSkeletonizer::CreateSegmentMap(CRawImage<bool>* image, CRawImage<ARGB>* knotImage)
 {
 	map<int,int> labelMap;	
 	map<int,int> labelCounter;	
 
-	CRawImage* segmentMap=new CRawImage(image->GetWidth(),image->GetHeight());
+	CRawImage<ARGB>* segmentMap=new CRawImage<ARGB>(image->GetWidth(),image->GetHeight());
 	segmentMap->Clear();
 
 	//paint knots red
@@ -237,7 +482,7 @@ CRawImage* CSkeletonizer::CreateSegmentMap(CRawImage* image, CRawImage* knotImag
 	for(int x=1; x<image->GetWidth()-1; x++) {
 		for(int y=1; y<image->GetHeight()-1; y++) {
 			if(knotImage->GetPixel(x,y)&0x80000000) {
-				image->SetPixel(x,y,0);
+				image->SetPixel(x,y,false);
 			}
 		}
 	}
@@ -248,7 +493,7 @@ CRawImage* CSkeletonizer::CreateSegmentMap(CRawImage* image, CRawImage* knotImag
 	for(int y=1; y<image->GetHeight(); y++) {
 		for(int x=1; x<image->GetWidth(); x++) {
 			//if on a line
-			if(image->GetPixel(x,y)&0xffff) {
+			if(image->GetPixel(x,y)) {
 				ARGB p1=segmentMap->GetPixel(x-1,y);
 				ARGB p2=segmentMap->GetPixel(x-1,y-1);
 				ARGB p3=segmentMap->GetPixel(x,y-1);
@@ -357,9 +602,9 @@ CRawImage* CSkeletonizer::CreateSegmentMap(CRawImage* image, CRawImage* knotImag
 	return segmentMap;
 }
 
-CLineImage* CSkeletonizer::Vectorize(CRawImage* segmentImg, CRawImage* knotImg)
+CLineImage* CSkeletonizer::Vectorize(CRawImage<ARGB>* segmentImg, CRawImage<ARGB>* knotImg)
 {
-	CLineImage* li=new CLineImage();
+	CLineImage* li=new CLineImage(knotImg->GetWidth(), knotImg->GetHeight());
 
 	//trace lines with knot endpoints
 	for(int y=1; y<knotImg->GetHeight()-1; y++) {
@@ -389,18 +634,18 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage* segmentImg, CRawImage* knotImg)
 				p=knotImg->GetPixel(x+1,y+1);
 				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
 
-				CSketchPoint startKnot=FindSegmentNeighbor(segmentImg, CPoint(x,y));
+				CSketchPoint startKnot=FindSegmentNeighbor(segmentImg, CFPoint(x,y));
 
 				while(startKnot.x!=-1) {
 					CPolyLine* line=new CPolyLine();
 
-					line->Add(CSketchPoint(x,y,true,true));
+					line->Add(new CSketchPoint(x,y,true,true));
 
-					TraceLine(segmentImg,knotImg,line,CPoint(startKnot.x,startKnot.y),&forbiddenEndKnot);
+					TraceLine(segmentImg,knotImg,line,CFPoint(startKnot.x,startKnot.y),&forbiddenEndKnot);
 
 					li->Add(line);
 
-					startKnot=FindSegmentNeighbor(segmentImg, CPoint(x,y));
+					startKnot=FindSegmentNeighbor(segmentImg, CFPoint(x,y));
 				}
 			}
 		}
@@ -415,8 +660,8 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage* segmentImg, CRawImage* knotImg)
 				//found neighbor
 				if(p.x!=-1) {
 					CPolyLine *line=new CPolyLine();
-					line->Add(CSketchPoint(x,y,true,true));
-					line->Add(p);
+					line->Add(new CSketchPoint(x,y,true,true));
+					line->Add(p.Clone());
 					li->Add(line);
 
 					//clear knot
@@ -429,23 +674,22 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage* segmentImg, CRawImage* knotImg)
 	return li;
 }
 
-void CSkeletonizer::TraceLine(CRawImage* segmentImage, CRawImage* knotImage, CPolyLine* line, CPoint start, map<int,bool> *forbiddenEndKnotIds)
+void CSkeletonizer::TraceLine(CRawImage<ARGB>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds)
 {
 	CSketchPoint p(start);
 
-	CPoint endKnot=IsKnotNeighbor(knotImage, p, forbiddenEndKnotIds);
+	CFPoint endKnot=IsKnotNeighbor(knotImage, p, forbiddenEndKnotIds);
 
 	if(endKnot.x!=-1 && NoOrthogonalNeighbors(segmentImage, p)) {
 		//point is a knot neighbor
 		//add point
-		line->Add(p);
+		line->Add(p.Clone());
 
 		//clear point
-		segmentImage->SetPixel(p.x,p.y,0);
+		segmentImage->SetPixel((int)p.x,(int)p.y,0);
 
 		//add neighbor knot
-		p=CSketchPoint(endKnot,true,true);
-		line->Add(p);
+		line->Add(new CSketchPoint(endKnot,true,true));
 		return;
 	}
 
@@ -459,37 +703,36 @@ void CSkeletonizer::TraceLine(CRawImage* segmentImage, CRawImage* knotImage, CPo
 		if(p_new.x==-1) {
 			//add point as endpoint
 			p.SetIsEndPoint(true);
-			line->Add(p);
+			line->Add(p.Clone());
 
 			//clear point
-			segmentImage->SetPixel(p.x,p.y,0);
+			segmentImage->SetPixel((int)p.x,(int)p.y,0);
 
 			//reached end of line
 			break;
 		}
 
 		//add point to line
-		line->Add(p);
+		line->Add(p.Clone());
 
 		assert(p_new.x>=-1);
 		assert(p_new.y>=-1);
 
 		//clear old pixel
-		segmentImage->SetPixel(p.x,p.y,0);
+		segmentImage->SetPixel((int)p.x,(int)p.y,0);
 
 		endKnot=IsKnotNeighbor(knotImage, p_new, forbiddenEndKnotIds);
 
 		if(endKnot.x!=-1 && NoOrthogonalNeighbors(segmentImage, p_new)) {
 			//point is a knot neighbor
 			//add point
-			line->Add(p_new);
+			line->Add(p_new.Clone());
 
 			//clear point
-			segmentImage->SetPixel(p_new.x,p_new.y,0);
+			segmentImage->SetPixel((int)p_new.x,(int)p_new.y,0);
 
 			//add neighbor knot
-			p=CSketchPoint(endKnot,true,true);
-			line->Add(p);
+			line->Add(new CSketchPoint(endKnot,true,true));
 			break;
 		}
 		p=p_new;
@@ -497,38 +740,41 @@ void CSkeletonizer::TraceLine(CRawImage* segmentImage, CRawImage* knotImage, CPo
 }
 
 /* return true if the point is a knot neighbor */
-CPoint CSkeletonizer::IsKnotNeighbor(CRawImage* knotImage, CPoint point, map<int,bool> *forbiddenEndKnotIds)
+CFPoint CSkeletonizer::IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point, map<int,bool> *forbiddenEndKnotIds)
 {
-	int x=point.x;
-	int y=point.y;
+	double x=point.x;
+	double y=point.y;
 
-	if(!(knotImage->GetPixel(x,y)&0x40000000)) return CPoint(-1,-1);
+	if(!x || x==knotImage->GetWidth()-1) return CFPoint(-1,-1);
+	if(!y || y==knotImage->GetHeight()-1) return CFPoint(-1,-1);
+
+	if(!(knotImage->GetPixel((int)x,(int)y)&0x40000000)) return CFPoint(-1,-1);
 
 	int p;
 
-	p=knotImage->GetPixel(x-1,y);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x-1,y);
-	p=knotImage->GetPixel(x+1,y);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x+1,y);
-	p=knotImage->GetPixel(x,y-1);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x,y-1);
-	p=knotImage->GetPixel(x,y+1);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x,y+1);
+	p=knotImage->GetPixel(int(x-1),(int)y);
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x-1,y);
+	p=knotImage->GetPixel(int(x+1),int(y));
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x+1,y);
+	p=knotImage->GetPixel(int(x),int(y-1));
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x,y-1);
+	p=knotImage->GetPixel(int(x),int(y+1));
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x,y+1);
 
-	p=knotImage->GetPixel(x+1,y+1);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x+1,y+1);
-	p=knotImage->GetPixel(x+1,y-1);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x+1,y-1);
-	p=knotImage->GetPixel(x-1,y+1);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x-1,y+1);
-	p=knotImage->GetPixel(x-1,y-1);
-	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CPoint(x-1,y-1);
+	p=knotImage->GetPixel(int(x+1),int(y+1));
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x+1,y+1);
+	p=knotImage->GetPixel(int(x+1),int(y-1));
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x+1,y-1);
+	p=knotImage->GetPixel(int(x-1),int(y+1));
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x-1,y+1);
+	p=knotImage->GetPixel(int(x-1),int(y-1));
+	if((p&0x80000000) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x-1,y-1);
 
-	return CPoint(-1,-1);
+	return CFPoint(-1,-1);
 }
 
 /* return the position of any knot neighboring p */
-CSketchPoint CSkeletonizer::FindNeighborKnot(CRawImage* knotImg, CPoint p)
+CSketchPoint CSkeletonizer::FindNeighborKnot(CRawImage<ARGB>* knotImg, CPoint p)
 {
 	//check horizontal+vertical neighbors
 	if(knotImg->GetPixel(p.x-1,p.y)&0x80000000) return CSketchPoint(p.x-1,p.y,true,true);
@@ -542,48 +788,51 @@ CSketchPoint CSkeletonizer::FindNeighborKnot(CRawImage* knotImg, CPoint p)
 	if(knotImg->GetPixel(p.x+1,p.y+1)&0x80000000) return CSketchPoint(p.x+1,p.y+1,true,true);
 	if(knotImg->GetPixel(p.x-1,p.y+1)&0x80000000) return CSketchPoint(p.x-1,p.y+1,true,true);
 
-	return CSketchPoint(CPoint(-1,-1));
+	return CSketchPoint(CFPoint(-1,-1));
 }
 
-CPoint CSkeletonizer::FindSegmentNeighbor(CRawImage* segmentImage, CPoint p)
+CFPoint CSkeletonizer::FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, CFPoint p)
 {
+	if(!p.x || p.x==segmentImage->GetWidth()-1) return CFPoint(-1,-1);
+	if(!p.y || p.y==segmentImage->GetHeight()-1) return CFPoint(-1,-1);
+
 	//check orthogonal neighbors
-	if(segmentImage->GetPixel(p.x-1,p.y)) return CPoint(p.x-1,p.y);
-	if(segmentImage->GetPixel(p.x,p.y-1)) return CPoint(p.x,p.y-1);
-	if(segmentImage->GetPixel(p.x+1,p.y)) return CPoint(p.x+1,p.y);
-	if(segmentImage->GetPixel(p.x,p.y+1)) return CPoint(p.x,p.y+1);
+	if(segmentImage->GetPixel(int(p.x-1),(int)p.y)) return CFPoint(p.x-1,p.y);
+	if(segmentImage->GetPixel((int)p.x,int(p.y-1))) return CFPoint(p.x,p.y-1);
+	if(segmentImage->GetPixel(int(p.x+1),(int)p.y)) return CFPoint(p.x+1,p.y);
+	if(segmentImage->GetPixel((int)p.x,int(p.y+1))) return CFPoint(p.x,p.y+1);
 
 	//check diagonal neighbors
-	int seg = segmentImage->GetPixel(p.x,p.y);
+	int seg = segmentImage->GetPixel((int)p.x,(int)p.y);
 
 	if(seg) {
 		//current point is a normal line point
-		if(segmentImage->GetPixel(p.x-1,p.y-1)==seg) return CPoint(p.x-1,p.y-1);
-		if(segmentImage->GetPixel(p.x+1,p.y-1)==seg) return CPoint(p.x+1,p.y-1);
-		if(segmentImage->GetPixel(p.x+1,p.y+1)==seg) return CPoint(p.x+1,p.y+1);
-		if(segmentImage->GetPixel(p.x-1,p.y+1)==seg) return CPoint(p.x-1,p.y+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y-1))==seg) return CFPoint(p.x-1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y-1))==seg) return CFPoint(p.x+1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y+1))==seg) return CFPoint(p.x+1,p.y+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y+1))==seg) return CFPoint(p.x-1,p.y+1);
 	} else {
 		//current point is a knot. return any segment
-		if(segmentImage->GetPixel(p.x-1,p.y-1)) return CPoint(p.x-1,p.y-1);
-		if(segmentImage->GetPixel(p.x+1,p.y-1)) return CPoint(p.x+1,p.y-1);
-		if(segmentImage->GetPixel(p.x+1,p.y+1)) return CPoint(p.x+1,p.y+1);
-		if(segmentImage->GetPixel(p.x-1,p.y+1)) return CPoint(p.x-1,p.y+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y-1))) return CFPoint(p.x-1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y-1))) return CFPoint(p.x+1,p.y-1);
+		if(segmentImage->GetPixel(int(p.x+1),int(p.y+1))) return CFPoint(p.x+1,p.y+1);
+		if(segmentImage->GetPixel(int(p.x-1),int(p.y+1))) return CFPoint(p.x-1,p.y+1);
 	}
 
-	return CPoint(-1,-1);
+	return CFPoint(-1,-1);
 }
 
-bool CSkeletonizer::NoOrthogonalNeighbors(CRawImage* segmentImage, CPoint p)
+bool CSkeletonizer::NoOrthogonalNeighbors(CRawImage<ARGB>* segmentImage, CFPoint p)
 {
 	//check horizontal+vertical neighbors
-	if(segmentImage->GetPixel(p.x-1,p.y)) return false;
-	if(segmentImage->GetPixel(p.x,p.y-1)) return false;
-	if(segmentImage->GetPixel(p.x+1,p.y)) return false;
-	if(segmentImage->GetPixel(p.x,p.y+1)) return false;
+	if(segmentImage->GetPixel(int(p.x-1),(int)p.y)) return false;
+	if(segmentImage->GetPixel((int)p.x,int(p.y-1))) return false;
+	if(segmentImage->GetPixel(int(p.x+1),(int)p.y)) return false;
+	if(segmentImage->GetPixel((int)p.x,int(p.y+1))) return false;
 	return true;
 }
 
-bool CSkeletonizer::IsEndPoint(CRawImage* image, CPoint p)
+bool CSkeletonizer::IsEndPoint(CRawImage<ARGB>* image, CPoint p)
 {
 	int x=p.x;
 	int y=p.y;
@@ -624,3 +873,113 @@ bool CSkeletonizer::IsEndPoint(CRawImage* image, CPoint p)
 
 	return (neighbors==1)?true:false;
 }
+
+float CSkeletonizer::AFMMSolve(int i1, int j1, int i2, int j2, float sol, char* f, float* T, int width)
+{
+	float r,s;
+	float newSol=sol;
+
+	int p1=i1+j1*width;
+	int p2=i2+j2*width;
+
+	if(f[p1]==KNOWN) {
+		if(f[p2]==KNOWN) {
+			//average
+			r = sqrt((2-(T[p1]-T[p2])*(T[p1]-T[p2])));
+			s = (T[p1]+T[p2]-r)/2;
+			if (s>=T[p1] && s>=T[p2]) {
+				newSol=min(sol,s);
+			} else {
+				s += r;
+				if ((s>=T[p1]) && (s>=T[p2])) newSol=min(sol,s);
+			}
+		}
+		else {
+			newSol=min(sol,1+T[p1]);
+		}
+	} else {
+		if (f[p2]==KNOWN) {
+			newSol=min(sol,1+T[p2]);
+		}
+	}
+	return newSol;
+}
+
+void CSkeletonizer::TrackBoundary(int x, int y, char* f, float* U,float &val, int width)
+{
+	while(U[x+width*y]<0) {
+		//TRACE("x,y: %i %i\n",x,y);
+		U[x+width*y]=++val;
+
+		if(f[x+1+y*width]==BAND && U[x+1+width*y]<0) {
+			x++;
+			continue;
+		}
+		if(f[x+(y+1)*width]==BAND && U[x+width*(1+y)]<0) {
+			y++;
+			continue;
+		}
+		if(f[x-1+width*y]==BAND && U[x-1+width*y]<0) {
+			x--;
+			continue;
+		}
+		if(f[x+width*(y-1)]==BAND && U[x+width*(y-1)]<0) {
+			y--;
+			continue;
+		}
+
+		if(f[x+1+width*(y+1)]==BAND && U[x+1+width*(y+1)]<0) {
+			x++;
+			y++;
+			continue;
+		}
+		if(f[x-1+width*(y+1)]==BAND && U[x-1+(y+1)*width]<0) {
+			y++;
+			x--;
+			continue;
+		}
+		if(f[x-1+width*(y-1)]==BAND && U[x-1+width*(y-1)]<0) {
+			x--;
+			y--;
+			continue;
+		}
+		if(f[x+1+width*(y-1)]==BAND && U[x+1+width*(y-1)]<0) {
+			y--;
+			x++;
+			continue;
+		}
+		break;
+	}
+}
+
+CRawImage<bool>* CSkeletonizer::MagnifyImage(CRawImage<bool>* img)
+{
+	int SCALE = int(GetParam("scale"));
+
+	CRawImage<bool> *tmp = new CRawImage<bool>(img->GetWidth()*SCALE, img->GetHeight()*SCALE);
+
+	tmp->Fill();
+
+	//blow up input image + 3 
+	for(int x=0; x<tmp->GetWidth(); x+=SCALE) {
+		for(int y=0; y<tmp->GetHeight(); y+=SCALE) {
+			ARGB c=img->GetPixel(x/SCALE,y/SCALE);
+			if(!c) {
+				for(int i=0; i<SCALE; i++) {
+					for(int j=0; j<SCALE; j++) {
+						tmp->SetPixel(x+i,y+j,false);
+					}
+				}
+			}
+		}
+	}
+
+	//dilate tmp image to ensure connectivity in diagonal single-pixel lines
+	
+	/*if(SCALE>1) {
+		tmp->Dilate();
+	}*/
+
+	return tmp;
+}
+

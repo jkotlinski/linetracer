@@ -4,6 +4,13 @@
 
 #include <map>
 
+using namespace std;
+
+#define __WIN32__
+#include <boost/pool/pool_alloc.hpp>
+
+typedef map<int,short,less<int>,boost::fast_pool_allocator<pair<int,short> > > MaximumMapType;
+
 class CSkeletonizer :
 	public CImageProcessor
 {
@@ -15,15 +22,25 @@ protected:
 public:
 	CSketchImage* Process(CSketchImage* src);
 private:
-	void DistanceTransform(CRawImage *src, CRawImage *dst, int DirectDistance, int IndirectDistance);
-	CRawImage* DeleteNonMaximums(CRawImage* dst);
-	int IsKnot(CRawImage* image, ARGB x, ARGB y);
-	CRawImage* CreateSegmentMap(CRawImage* image,CRawImage* knotImage);
-	CLineImage* Vectorize(CRawImage* segmentMap, CRawImage* knotMap);
-	void TraceLine(CRawImage* segmentImage, CRawImage* knotImage, CPolyLine* line, CPoint start, map<int,bool> *forbiddenEndKnotIds);
-	CPoint IsKnotNeighbor(CRawImage* knotImage, CPoint point, map<int,bool> *forbiddenEndKnotIds);
-	CSketchPoint FindNeighborKnot(CRawImage* knotImg, CPoint p);
-	CPoint FindSegmentNeighbor(CRawImage* segmentImage, CPoint p);
-	bool NoOrthogonalNeighbors(CRawImage* segmentImage, CPoint p);
-	bool IsEndPoint(CRawImage* image,CPoint p);
+	void DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst, int DirectDistance, int IndirectDistance);
+	CRawImage<ARGB>* DeleteNonMaximums(CRawImage<ARGB>* dst);
+	CRawImage<ARGB>* DeleteNonMaximumsSimple(CRawImage<ARGB>* dst);
+	MaximumMapType* DoAFMM(CRawImage<bool>* dst,bool direction);
+	int IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
+	CRawImage<ARGB>* CreateSegmentMap(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
+	CLineImage* Vectorize(CRawImage<ARGB>* segmentMap, CRawImage<ARGB>* knotMap);
+	void TraceLine(CRawImage<ARGB>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds);
+	CFPoint IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point, map<int,bool> *forbiddenEndKnotIds);
+	CSketchPoint FindNeighborKnot(CRawImage<ARGB>* knotImg, CPoint p);
+	CFPoint FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, CFPoint p);
+	bool NoOrthogonalNeighbors(CRawImage<ARGB>* segmentImage, CFPoint p);
+	bool IsEndPoint(CRawImage<ARGB>* image,CPoint p);
+	float AFMMSolve(int i1, int j1, int i2, int j2, float sol, char *f, float* T, int width);
+	
+	static const char CSkeletonizer::BAND=0;
+	static const char CSkeletonizer::INSIDE=1;
+	static const char CSkeletonizer::KNOWN=2;
+	void TrackBoundary(int x, int y, char* f, float* U, float &val, int width);
+	CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
+	CLineImage* SmoothPositions(CLineImage* lineImage);
 };

@@ -45,6 +45,10 @@ public:
 	afx_msg void OnUpdateViewGaussian(CCmdUI *pCmdUI);
 	afx_msg void OnFileExporteps();
 	afx_msg void OnUpdateViewOriginal(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateZoom200(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateZoom100(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateViewBeziermaker(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateViewThinner(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp

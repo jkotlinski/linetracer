@@ -7,6 +7,7 @@ CLayer::CLayer(void)
 , m_SketchImage(NULL)
 , m_IsValid(false)
 {
+	TRACE("init layer\n");
 }
 
 CLayer::~CLayer(void)
@@ -49,7 +50,7 @@ void CLayer::Process(CSketchImage *src)
 	m_SketchImage=m_ImageProcessor->Process(src);
 
 	SetValid(true);
-}
+}	
 
 bool CLayer::IsValid(void)
 {
@@ -59,4 +60,9 @@ bool CLayer::IsValid(void)
 void CLayer::SetValid(bool isValid)
 {
 	m_IsValid=isValid;
+}
+
+double CLayer::GetParam(char* name)
+{
+	return m_ImageProcessor->GetParam(name);
 }

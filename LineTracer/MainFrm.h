@@ -3,6 +3,9 @@
 
 
 #pragma once
+#include "afxext.h"
+#include "ToolBox.h"
+
 class CMainFrame : public CFrameWnd
 {
 	
@@ -30,11 +33,12 @@ public:
 
 protected:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
+	//CToolBox	m_wndToolbox;
 
 // Generated message map functions
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnClose(void);
 	DECLARE_MESSAGE_MAP()
 };
-
 

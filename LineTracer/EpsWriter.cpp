@@ -3,8 +3,16 @@
 
 #include "LayerManager.h"
 
+#include <list>
+#include <vector>
+
+using namespace std;
+
+#include <math.h>
+
 CEpsWriter::CEpsWriter(void)
 {
+	TRACE("init epswriter\n");
 }
 
 CEpsWriter::~CEpsWriter(void)
@@ -41,23 +49,30 @@ void CEpsWriter::Write(CString *FileName)
 	for(int i=0; i<lineImage->Size(); i++) {
 		CPolyLine* pl=lineImage->At(i);
 
-		if(1/*pl->Size()>3*/) {
+		str.Format("%f %f moveto\n",pl->At(0)->x,height-pl->At(0)->y);
+		out.WriteString(str);
 
-			CPoint curr(pl->At(0).x,pl->At(0).y);
-			CPoint prev;
+		//-------------------------------------
 
-			str.Format("%i %i moveto\n",curr.x,height-curr.y);
+		for(int i=0; i<pl->Size()-1; i++) {
+
+			CFPoint p = pl->At(i)->GetControlPointForward();
+			str.Format("%f %f ",p.x,height-p.y);
 			out.WriteString(str);
 
-			for(int j=1; j<pl->Size(); j++) {
-				prev=curr;
-				curr=pl->At(j);
+			p = pl->At(i+1)->GetControlPointBack();
+			str.Format("%f %f ",p.x,height-p.y);
+			out.WriteString(str);
 
-				str.Format("%i %i rlineto ",curr.x-prev.x, prev.y-curr.y);
-				out.WriteString(str);
-			}
-			out.WriteString("stroke\n");
+			//endpoint
+			p.x = pl->At(i+1)->x;
+			p.y = pl->At(i+1)->y;
+			str.Format("%f %f curveto\n",p.x,height-p.y);
+			out.WriteString(str);
+
 		}
+
+		out.WriteString("stroke\n");
 	}
 	out.Close();
 }

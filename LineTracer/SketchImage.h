@@ -6,10 +6,11 @@ public:
 	CSketchImage(void);
 	virtual ~CSketchImage(void);
 
+	void SetSize(int width, int height);
 	int GetWidth(void);
 	int GetHeight(void);
 	int GetPixels(void);
-protected:
+private:
 	int m_Width;
 	int m_Height;
 	int m_Pixels;
@@ -28,3 +29,4 @@ inline int CSketchImage::GetWidth() {
 inline int CSketchImage::GetPixels() {
 	return m_Pixels;
 }
+

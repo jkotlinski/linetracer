@@ -11,7 +11,7 @@ public:
 	~CLayerManager(void);
 	static CLayerManager* Instance(void);
 
-	enum layer { DESATURATOR, GAUSSIAN, BINARIZER, SKELETONIZER };
+	enum layer { DESATURATOR, GAUSSIAN, BINARIZER, HOLEFILLER, THINNER, SKELETONIZER, TAILPRUNER, LINESEGMENTOR, FORKHANDLER, KNEESPLITTER, BEZIERMAKER };
 
 protected:
 	CLayerManager(void);
@@ -25,4 +25,5 @@ public:
 	Bitmap* MakeBitmap(void);
 	int Layers(void);
 	void Serialize(CArchive &ar);
+	CLayer* GetLastLayer(void);
 };
