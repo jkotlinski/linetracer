@@ -60,7 +60,7 @@ BOOL CToolBox::OnInitDialogBar()
 
 	c_detailEnchanceControl.SetRange(1,20);
 	c_detailEnchanceControl.SetPos( 
-		int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C ) ) );
+		21 - int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C ) ) );
 
 	c_holeFillerControl.SetRange(0,40);
 	c_holeFillerControl.SetPos( 
@@ -136,7 +136,7 @@ double CToolBox::GetParam(CProjectSettings::ParamName a_name) const
 			break;
 
 		case CProjectSettings::BINARIZER_MEAN_C:
-			retVal = c_detailEnchanceControl.GetPos();
+			retVal = 21 - c_detailEnchanceControl.GetPos();
 			break;
 
 		case CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL:
@@ -174,7 +174,7 @@ afx_msg LRESULT CToolBox::OnUpdateToolboxDataFromLayers
 	(void) c_binarizerThresholdControl.SetPos( 255 - l_binarizerThresholdVal );
 	
 	int l_detailEnchanceVal = int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C) );
-	(void) c_detailEnchanceControl.SetPos( l_detailEnchanceVal );
+	(void) c_detailEnchanceControl.SetPos( 21 - l_detailEnchanceVal );
 
 	int l_holeFillerVal = int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL) );
 	(void) c_holeFillerControl.SetPos( l_holeFillerVal );
