@@ -7,6 +7,8 @@
 #include "LineTracerDoc.h"
 #include "ProjectSettings.h"
 
+#include "Magnification.h"
+
 #define WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS (WM_USER+0x100)
 
 class CLineTracerView : public CScrollView
@@ -59,10 +61,37 @@ private:
 public:
 	void HandleChangedToolboxParam(CLayerManager::LayerTypes a_layerId, 
 		CProjectSettings::ParamName a_paramName);
+private:
+	float GetXTranslation(void);	
+	float GetYTranslation(void);
+	float GetScale(void);
+	int GetImageWidth(void);
+	int GetImageHeight(void);
+
+	void SetInputImageFileName(CString FileName);
+	bool LoadImage(Bitmap** bitmap, CString *fileName);
+	CLayerManager *m_layerManager;
+	int m_imageWidth;
+	int m_imageHeight;
+	Magnification m_magnification;
+private:
+	int m_activeToolType;
+	enum ToolTypes 
+	{ 
+		ToolTypeNone,
+		ToolTypeZoom,
+		ToolTypeMove
+	};
+public:
+	void OnLButtonDown(UINT nFlags, CPoint point);
+	void OnRButtonDown(UINT nFlags, CPoint point);
+	void OnLButtonUp(UINT nFlags, CPoint point);
+	void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnBnClickedMovebutton();
+	afx_msg void OnBnClickedZoombutton();
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp
 inline CLineTracerDoc* CLineTracerView::GetDocument() const
    { return reinterpret_cast<CLineTracerDoc*>(m_pDocument); }
 #endif
-
