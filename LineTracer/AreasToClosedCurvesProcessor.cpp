@@ -59,16 +59,6 @@ CSketchImage* AreasToClosedCurvesProcessor::Process(CSketchImage *a_src_image)
 	{
 	//    dilate work_bitmap
 		l_workImage->Dilate();
-
-	//	  work_bitmap &= source_bitmap
-		for ( int l_offset=0; l_offset<l_workImage->GetPixels(); l_offset++)
-		{
-			if ( l_dstImage->GetPixel(l_offset) == true )
-			{
-				//source pixel == white --> paint work pixel white
-				l_dstImage->SetPixel(l_offset, true);
-			}
-		}
 	}
 
 	//source_bitmap &= !work_bitmap
