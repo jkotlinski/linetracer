@@ -51,8 +51,6 @@ public:
 	afx_msg void OnViewGaussian();
 	afx_msg void OnViewOriginal();
 	afx_msg void OnParametersLineLength();
-	afx_msg void OnZoom100();
-	afx_msg void OnZoom200();
 	void SetZoom(int factor);
 	int GetZoom(void) const;
 private:

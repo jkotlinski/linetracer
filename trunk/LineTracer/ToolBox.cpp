@@ -72,6 +72,8 @@ BOOL CToolBox::OnInitDialogBar()
 	c_curveDetailControl.SetPos( 
 		int( l_settings->GetParam( CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD ) ) );
 
+	c_zoomButton.SetState( true );
+
 	m_isInitialized = true;
 	return TRUE;
 }

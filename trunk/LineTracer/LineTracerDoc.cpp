@@ -39,8 +39,6 @@ BEGIN_MESSAGE_MAP(CLineTracerDoc, CDocument)
 	ON_COMMAND(ID_VIEW_GAUSSIAN, OnViewGaussian)
 	ON_COMMAND(ID_VIEW_ORIGINAL, OnViewOriginal)
 	ON_COMMAND(ID_PARAMETERS_LINESIZETHRESHOLD, OnParametersLineLength)
-	ON_COMMAND(ID_ZOOM_100, OnZoom100)
-	ON_COMMAND(ID_ZOOM_200, OnZoom200)
 	ON_COMMAND(ID_VIEW_BEZIERMAKER, OnViewBeziermaker)
 	ON_COMMAND(ID_VIEW_THINNER, OnViewThinner)
 END_MESSAGE_MAP()
@@ -251,16 +249,6 @@ void CLineTracerDoc::OnParametersLineLength()
 			ProcessLayers();
 		}
 	}
-}
-
-void CLineTracerDoc::OnZoom100()
-{
-	SetZoom(100);
-}
-
-void CLineTracerDoc::OnZoom200()
-{
-	SetZoom(200);
 }
 
 void CLineTracerDoc::SetZoom(int factor)

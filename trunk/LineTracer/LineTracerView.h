@@ -8,6 +8,7 @@
 #include "ProjectSettings.h"
 
 #include "Magnification.h"
+#include "AffineTransform.h"
 
 #define WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS (WM_USER+0x100)
 
@@ -50,8 +51,6 @@ protected:
 	afx_msg void OnUpdateViewGaussian(CCmdUI *pCmdUI);
 	afx_msg void OnFileExporteps();
 	afx_msg void OnUpdateViewOriginal(CCmdUI *pCmdUI);
-	afx_msg void OnUpdateZoom200(CCmdUI *pCmdUI);
-	afx_msg void OnUpdateZoom100(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBeziermaker(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewThinner(CCmdUI *pCmdUI);
 	
@@ -89,6 +88,19 @@ public:
 	void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnBnClickedMovebutton();
 	afx_msg void OnBnClickedZoombutton();
+private:
+	int GetViewWidth(void);
+	int GetViewHeight(void);
+	void ZoomIn(CPoint a_point);
+	void ZoomOut(CPoint a_point);
+public:
+	void SetImageCenter(PointF a_point);
+private:
+	float m_translationX;
+	float m_translationY;
+	void SetXTranslation(float a_Translation);
+	void SetYTranslation(float a_Translation);
+	AffineTransform GetTransform(void);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp
