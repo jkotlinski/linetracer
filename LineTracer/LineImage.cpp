@@ -79,6 +79,9 @@ void CLineImage::SolderKnots(void)
 		p = GetLine(line)->GetTailPoint();
 		pp = (int(p->GetX())&0xffff) | (int(p->GetY())<<16);
 		knotCount[pp]=knotCount[pp]+1;
+
+		ASSERT(GetLine(line)->GetHeadPoint()->Distance(GetLine(line)->GetTailPoint()->GetCoords()) 
+			> 0.1);
 	}
 
 	for( iter=knotCount.begin(); iter!=knotCount.end(); ++iter ) 
