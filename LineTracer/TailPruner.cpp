@@ -7,7 +7,7 @@
 CTailPruner::CTailPruner(void)
 : CImageProcessor()
 {
-	SetName ( CString ( "TailPruner" ) );
+	SetName ( CString ( "Tail Pruner" ) );
 	SetType ( TAILPRUNER );
 }
 
