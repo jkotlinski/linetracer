@@ -17,6 +17,8 @@ public:
 private:
 	double m_x;
 	double m_y;
+public:
+	PointF GetPointF(void);
 };
 
 bool operator<(const CFPoint& p1,const CFPoint& p2);
