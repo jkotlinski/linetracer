@@ -1,5 +1,5 @@
 TO DO:
 
-- floating line detection
 - new line prune layer
-- make CRawImage as template
+- make CRawImage as template?
+- rewrite polyline structure? global point collection?

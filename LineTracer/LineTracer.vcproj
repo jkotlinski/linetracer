@@ -134,7 +134,7 @@
 				RelativePath=".\Binarizer.cpp">
 			</File>
 			<File
-				RelativePath=".\DeColorizer.cpp">
+				RelativePath=".\DeSaturator.cpp">
 			</File>
 			<File
 				RelativePath=".\EpsWriter.cpp">
@@ -211,7 +211,7 @@
 				RelativePath=".\Binarizer.h">
 			</File>
 			<File
-				RelativePath=".\DeColorizer.h">
+				RelativePath=".\DeSaturator.h">
 			</File>
 			<File
 				RelativePath=".\EpsWriter.h">

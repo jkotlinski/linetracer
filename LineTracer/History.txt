@@ -2,4 +2,14 @@
 
 2004-04-04: v0.0.1
 
-* implemented gaussian blur, binarization, skeletonization, simple EPS export
+ * implemented gaussian blur, binarization, skeletonization, simple EPS export
+
+2004-04-05: v0.0.2
+
+ * restructured things (most notably layer manager + base class CSketchImage)
+ * added EPS export
+
+v0.0.3
+
+ * added floating line detection
+ * added view original menu toggle

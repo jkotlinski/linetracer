@@ -16,13 +16,14 @@
 #define ID_VIEW_BINARIZER               32777
 #define ID_VIEW_SKELETONIZER            32778
 #define ID_FILE_EXPORTEPS               32779
+#define ID_VIEW_ORIGINAL                32780
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
-#define _APS_NEXT_COMMAND_VALUE         32780
+#define _APS_NEXT_COMMAND_VALUE         32781
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
