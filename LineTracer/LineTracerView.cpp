@@ -178,10 +178,11 @@ void CLineTracerView::OnFileOpenimage()
 	CFileDialog dlg (TRUE,_T("jpg;gif;tiff;tif"),
 		_T("*.jpg;*.gif;*.tiff;*.tif"),OFN_FILEMUSTEXIST,szFilters);
 
-	if(dlg.DoModal()==IDOK) {
-		CLineTracerDoc *pDoc = GetDocument();
+	if(dlg.DoModal()==IDOK) 
+	{
+		ResetParameterSettings();
 		SetInputImageFileName(dlg.GetPathName());
-		pDoc->ProcessLayers();
+		ProcessLayers();
 	}
 }
 
@@ -694,4 +695,11 @@ void CLineTracerView::UpdateLayerVisibilitiesFromToolbox(void)
 	CLayerManager::Instance()->SetVectorLayerVisibility(l_vectorLayerIsVisible);
 
 	Invalidate(FALSE);
+}
+
+void CLineTracerView::ResetParameterSettings(void)
+{
+	CProjectSettings::Instance()->Reset();
+	BOOL l_result = ::PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 0, 0 );
+	ASSERT ( l_result != 0 );
 }

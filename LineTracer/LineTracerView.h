@@ -118,6 +118,7 @@ public:
 	afx_msg void OnBnClickedViewAllLayersButton();
 private:
 	void UpdateLayerVisibilitiesFromToolbox(void);
+	void ResetParameterSettings(void);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp
