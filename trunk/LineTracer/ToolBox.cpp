@@ -72,7 +72,7 @@ BOOL CToolBox::OnInitDialogBar()
 	c_curveDetailControl.SetPos( 
 		int( l_settings->GetParam( CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD ) ) );
 
-	c_zoomButton.SetState( true );
+	c_zoomButton.SetState( TRUE );
 
 	m_isInitialized = true;
 	return TRUE;
@@ -216,12 +216,12 @@ void CToolBox::OnCurveDetailSlider(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CToolBox::MoveButtonClicked()
 {
-	c_moveButton.SetState( true );
-	c_zoomButton.SetState( false );
+	c_moveButton.SetState( TRUE );
+	c_zoomButton.SetState( FALSE );
 }
 
 void CToolBox::ZoomButtonClicked()
 {
-	c_moveButton.SetState( false );
-	c_zoomButton.SetState( true );
+	c_moveButton.SetState( FALSE );
+	c_zoomButton.SetState( TRUE );
 }
