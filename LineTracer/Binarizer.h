@@ -22,6 +22,4 @@ public:
 private:
 	CRawImage<int>* m_distanceMap;
 	void CalcDistanceMap(const CRawImage<bool>* img);
-public:
-	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };

@@ -121,7 +121,3 @@ void CGaussian::MakeGaussianKernel(double sigma, double **kernel, int *windowsiz
 
 	for(i=0; i<(*windowsize); i++) (*kernel)[i] /= sum;
 }
-
-void CGaussian::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
-}

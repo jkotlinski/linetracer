@@ -37,8 +37,3 @@ CSketchImage* CDeSaturator::Process(CSketchImage* i_src)
 	}
 	return dst;
 }
-
-//lint -e{715} some params unused
-void CDeSaturator::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
-}

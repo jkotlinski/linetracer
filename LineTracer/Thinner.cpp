@@ -189,28 +189,3 @@ bool CThinner::IsPointThinnableZhangSuen(CRawImage<bool>* img, CPoint p, int pas
 	}
 	return true;
 }
-
-void CThinner::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
-	static const int SCALE = 1;
-	int width = a_canvas->GetWidth();
-	int height = a_canvas->GetHeight();
-	CRawImage<bool> *l_src = dynamic_cast<CRawImage<bool>*>(a_image);
-	ASSERT ( l_src != NULL );
-
-	for(int x=0; x<width*SCALE; x+=SCALE) {
-		for(int y=0; y<height*SCALE; y+=SCALE) {
-			ARGB p = l_src->GetPixel(x/SCALE,y/SCALE);
-
-			if( p != 0 ) 
-			{
-				for(int i=0; i<SCALE; i++) {
-					for(int j=0; j<SCALE; j++) {
-						a_canvas->SetPixel(x+i, y+j, 0xff00ff00);
-					}
-				}
-			}
-		}
-	}
-}
-

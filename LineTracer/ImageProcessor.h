@@ -10,7 +10,6 @@ public:
 	virtual ~CImageProcessor(void);
 
 	virtual CSketchImage* Process(CSketchImage* src) = 0;
-	virtual void PaintImage(CSketchImage *a_image, CRawImage<ARGB> *a_canvas) const = 0;
 
 public:
 

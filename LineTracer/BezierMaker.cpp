@@ -5,7 +5,6 @@
 #include "PolyLine.h"
 #include "LineImage.h"
 #include "SketchPoint.h"
-#include "LineImagePainter.h"
 
 #include <math.h>
 #include <vector>
@@ -723,22 +722,4 @@ bool CBezierMaker::ImprovementSmallEnough(double a_error, double a_previousError
 	bool l_improvementSmallEnough = l_improvement < REPARAM_SMALLEST_USEFUL_IMPROVEMENT;
 
 	return l_improvementSmallEnough;
-}
-
-void CBezierMaker::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
-	static const int SCALE = 1;
-	int width = a_canvas->GetWidth();
-	int height = a_canvas->GetHeight();
-
-	CRawImage<ARGB> *tmp = new CRawImage<ARGB>(width*SCALE,height*SCALE);
-	tmp->Clear();
-	CLineImage *src = dynamic_cast<CLineImage*>( a_image );
-	ASSERT ( src != NULL );
-	CLineImagePainter::Paint(tmp,src);
-	for(int i=0; i<width*height; i++) {
-		ARGB p=tmp->GetPixel(i);
-		if(p) a_canvas->SetPixel(i, p);
-	}
-	delete tmp;
 }

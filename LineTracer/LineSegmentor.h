@@ -17,6 +17,4 @@ public:
 
 private:
 	void Add(CPolyLine* dst, CPolyLine* src);
-public:
-	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };

@@ -104,6 +104,3 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	return dst;
 }
-void CKneeSplitter::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
-{
-}
