@@ -17,7 +17,6 @@ private:
 public:
 	bool Contains(CPoint p);
 	unsigned int Size(void);
-	//CSketchPoint* At(int i);
 	CPolyLine* Clone(void);
 	int HasKnots(void);
 	CSketchPoint* GetHeadPoint(void);
@@ -28,7 +27,7 @@ public:
 	double GetMaxDeviation();
 	void Clear(void);
 	CSketchPoint* GetMaxDeviationPoint(void);
-	CSketchPoint* At(int i);
+	CSketchPoint* At(unsigned int i);
 	int GetMedianThickness(void);
 private:
 	bool m_isTail;
@@ -38,4 +37,5 @@ public:
 	CPolyLine* SmoothPositions(void);
 	void Trace(void);
 	int RemoveDuplicatePoints(void);
+	void SmoothPoint(int a_pointIndex);
 };
