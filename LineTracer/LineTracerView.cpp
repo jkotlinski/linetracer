@@ -111,6 +111,13 @@ void CLineTracerView::OnDraw(CDC* dc)
 
 	if ( GetImageWidth() == 0 )
 	{
+		//clear all background
+		static const unsigned int l_BGCOLOR = 0x808080;
+		CRect l_rect;
+		dc->GetClipBox(l_rect);
+		dc->FillSolidRect ( 
+			CRect(0,0,l_rect.right,l_rect.bottom), 
+			l_BGCOLOR );
 		return;
 	}
 	
@@ -135,6 +142,8 @@ void CLineTracerView::OnDraw(CDC* dc)
 
 	CLayerManager *l_layerManager = CLayerManager::Instance();
 	l_layerManager->DrawAllLayers ( gr );
+
+	PostMessage ( WM_SETCURSOR );
 
 	delete l_matrix;
 }
@@ -528,7 +537,6 @@ void CLineTracerView::FillBackground(
 	int a_imageWidth, 
 	int a_imageHeight)
 {
-	static const unsigned int l_BGCOLOR = 0x808080;
 	CRect l_rect;
 	a_dc->GetClipBox(l_rect);
 
@@ -549,6 +557,7 @@ void CLineTracerView::FillBackground(
 	|____|_______|____|
 	*/
 
+	static const unsigned int l_BGCOLOR = 0x808080;
 	//L
     a_dc->FillSolidRect ( 
 		CRect(0,0,int(l_topLeftImagePoint.X)+1,l_rect.bottom), 
@@ -571,6 +580,15 @@ void CLineTracerView::FillBackground(
 		CRect(int(l_topLeftImagePoint.X),int(l_bottomRightImagePoint.Y),
 			int(l_bottomRightImagePoint.X)+1,l_rect.bottom), 
 		l_BGCOLOR );
+
+	/*
+	//image background
+	static const unsigned int l_WHITE = 0xffffff;
+    a_dc->FillSolidRect ( 
+		CRect(int(l_topLeftImagePoint.X), int(l_topLeftImagePoint.Y)+1, 
+		int(l_bottomRightImagePoint.X)+1, int(l_bottomRightImagePoint.Y)),
+		l_WHITE );
+		*/
 }
 
 
@@ -578,6 +596,17 @@ void CLineTracerView::FillBackground(
 BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
 	TRACE ( "OnSetCursor\n" );
+	if ( GetImageWidth() == 0 )
+	{
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		return TRUE;
+	}
+
+	if ( CLayerManager::Instance()->IsProcessing() )
+	{
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+		return TRUE;
+	}
 
 	switch ( GetCursorType() )
 	{
@@ -659,5 +688,5 @@ void CLineTracerView::UpdateLayerVisibilitiesFromToolbox(void)
 	CLayerManager::Instance()->SetOriginalLayerVisibility(l_originalLayerIsVisible);
 	CLayerManager::Instance()->SetVectorLayerVisibility(l_vectorLayerIsVisible);
 
-	Invalidate(TRUE);
+	Invalidate(FALSE);
 }
