@@ -44,6 +44,6 @@ private:
 	//CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
 	//CLineImage* SmoothPositions(CLineImage* lineImage);
 private:
-	void CSkeletonizer::TraceEndpoints( CRawImage<ARGB> &segmentMap, CLineImage &li );
-	void CSkeletonizer::TraceCircles( CRawImage<ARGB> &segmentMap, CLineImage &li );
+	void TraceEndpoints( CRawImage<ARGB> &segmentMap, CLineImage &li );
+	void TraceCircles( CRawImage<ARGB> &segmentMap, CLineImage &li );
 };
