@@ -19,5 +19,4 @@ private:
 		CRawImage<bool> & a_canvas);
 	bool IsPointThinnable(const CRawImage<bool>* img, const CPoint & p) const;
 	bool IsPointThinnableZhangSuen(const CRawImage<bool>* img, const CPoint & p, int pass) const;
-	int m_maxPeelIterationsUntilAreaIsDetected;
 };
