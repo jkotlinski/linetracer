@@ -74,13 +74,14 @@
 #define ID_ROTATE_92                    32810
 #define ID_FILE_CLOSE32811              32811
 #define ID_FILE_OPENRECENT              32812
+#define ID_FITONSCREEN                  32819
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        157
-#define _APS_NEXT_COMMAND_VALUE         32813
+#define _APS_NEXT_RESOURCE_VALUE        158
+#define _APS_NEXT_COMMAND_VALUE         32821
 #define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
