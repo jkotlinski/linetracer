@@ -38,4 +38,5 @@ public:
 	int m_color;
 	void SwapControlPoints(void);
 	bool m_yFork;
+	void Trace(void);
 };

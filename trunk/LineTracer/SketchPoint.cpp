@@ -97,3 +97,8 @@ void CSketchPoint::SwapControlPoints(void)
 	m_controlPointForward = m_controlPointBack;
 	m_controlPointBack = tmp;
 }
+
+void CSketchPoint::Trace(void)
+{
+	TRACE( "x=%f, y=%f\n", x, y );
+}
