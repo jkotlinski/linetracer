@@ -3,40 +3,58 @@
 
 #include "FPoint.h"
 
-class CSketchPoint :
-	public CFPoint
+class CSketchPoint
 {
 public:
 	~CSketchPoint(void);
-protected:
-	bool m_isEndPoint;
 public:
-	CSketchPoint(double x,double y,bool isEndPoint=false,bool isKnot=false);
-	CSketchPoint(CFPoint p,bool isEndPoint=false,bool isKnot=false);
-protected:
-	bool m_isKnot;
-	float m_Width;
+	CSketchPoint();
+	explicit CSketchPoint(double a_x, double a_y,bool isEndPoint=false,bool isKnot=false);
+	explicit CSketchPoint(const CFPoint &p, bool isEndPoint=false, bool isKnot=false);
 public:
-	bool IsKnot(void);
-	bool IsEndPoint(void);
+	const bool IsKnot(void) const;
+	const bool IsEndPoint(void) const;
 	void SetIsEndPoint(bool val);
 	void SetIsKnot(bool val);
-	CSketchPoint* Clone(void);
+	CSketchPoint* Clone(void) const;
 	void SetKnee(bool val);
 private:
+	CFPoint m_point;
+	bool m_isEndPoint;
+	bool m_isKnot;
 	bool m_isKnee;
-public:
-	bool IsKnee(void);
-private:
+	bool m_isYFork;
 	CFPoint m_controlPointBack;
 	CFPoint m_controlPointForward;
-public:
-	void SetControlPointBack(CFPoint point);
-	void SetControlPointForward(CFPoint point);
-	CFPoint GetControlPointBack();
-	CFPoint GetControlPointForward();
+	double m_Width;
 	int m_color;
+public:
+	const bool IsKnee(void) const;
+	void SetControlPointBack(const CFPoint &point);
+	void SetControlPointForward(const CFPoint &point);
+	CFPoint GetControlPointBack() const;
+	CFPoint GetControlPointForward() const;
 	void SwapControlPoints(void);
-	bool m_yFork;
-	void Trace(void);
+	void Trace(void) const;
+public:
+	const double GetX(void) const;
+	const double GetY(void) const;
+	const CFPoint GetCoords(void) const;
+	const double Distance(const CFPoint &a_p) const;
+	void SetX(double a_val);
+	void SetY(double a_val);
+	void SetIsYFork(bool a_isTrue);
+	const bool IsYFork(void) const;
 };
+
+inline const double CSketchPoint::GetX(void) const {
+	return m_point.GetX();
+}
+
+inline const double CSketchPoint::GetY(void) const {
+	return m_point.GetY();
+}
+
+inline const CFPoint CSketchPoint::GetCoords(void) const {
+	return m_point;
+}
