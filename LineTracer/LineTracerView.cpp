@@ -26,6 +26,7 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BINARIZER, OnUpdateViewBinarizer)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_GAUSSIAN, OnUpdateViewGaussian)
 	ON_COMMAND(ID_FILE_EXPORTEPS, OnFileExporteps)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_ORIGINAL, OnUpdateViewOriginal)
 END_MESSAGE_MAP()
 
 // CLineTracerView construction/destruction
@@ -62,12 +63,14 @@ void CLineTracerView::OnDraw(CDC* pDC)
 
 	inputFileName.ReleaseBuffer();
 
-	if(pDoc->GetInputBitmap()!=NULL) {
-		Bitmap *b=CLayerManager::Instance()->MakeBitmap();
+	CLayerManager *lm = CLayerManager::Instance();
+
+	if(lm->GetLayer(CLayerManager::DESATURATOR)->IsValid()) {
+		Bitmap *b=lm->MakeBitmap();
 
 		Graphics gr(*pDC);
-		Bitmap *original=pDoc->GetInputBitmap();
-		gr.DrawImage(original,0,0,original->GetWidth(),original->GetHeight());
+		//Bitmap *original=pDoc->GetInputBitmap();
+		//gr.DrawImage(original,0,0,original->GetWidth(),original->GetHeight());
 
 		SetScrollSizes(MM_TEXT, CSize(b->GetWidth(), b->GetHeight()));
 
@@ -142,7 +145,8 @@ void CLineTracerView::OnUpdateViewBinarizer(CCmdUI *pCmdUI)
 
 void CLineTracerView::OnUpdateViewGaussian(CCmdUI *pCmdUI)
 {
-	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::GAUSSIAN);
+	CLayerManager *lm = CLayerManager::Instance();
+	CLayer* l = lm->GetLayer(CLayerManager::GAUSSIAN);
 	pCmdUI->SetCheck(l->IsVisible());
 }
 
@@ -155,4 +159,12 @@ void CLineTracerView::OnFileExporteps() {
 	if(dlg.DoModal()==IDOK) {
 		CEpsWriter::Write(&dlg.GetPathName());
 	}
+}
+
+
+void CLineTracerView::OnUpdateViewOriginal(CCmdUI *pCmdUI)
+{
+	CLayerManager *lm = CLayerManager::Instance();
+	CLayer* l = lm->GetLayer(CLayerManager::DESATURATOR);
+	pCmdUI->SetCheck(l->IsVisible());
 }

@@ -10,9 +10,11 @@
 #include ".\linetracerdoc.h"
 
 #include "Binarizer.h"
-#include "DeColorizer.h"
+#include "DeSaturator.h"
 #include "Gaussian.h"
 #include "Skeletonizer.h"
+
+#include "RawImage.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -31,6 +33,7 @@ BEGIN_MESSAGE_MAP(CLineTracerDoc, CDocument)
 	ON_COMMAND(ID_VIEW_SKELETONIZER, OnViewSkeletonizer)
 	ON_COMMAND(ID_VIEW_BINARIZER, OnViewBinarizer)
 	ON_COMMAND(ID_VIEW_GAUSSIAN, OnViewGaussian)
+	ON_COMMAND(ID_VIEW_ORIGINAL, OnViewOriginal)
 END_MESSAGE_MAP()
 
 
@@ -38,13 +41,11 @@ END_MESSAGE_MAP()
 
 CLineTracerDoc::CLineTracerDoc()
 : m_InputBitmapFileName(_T(""))
-, m_InputBitmap(0)
 {
 }
 
 CLineTracerDoc::~CLineTracerDoc()
 {
-	if(m_InputBitmap!=NULL) delete m_InputBitmap;
 }
 
 BOOL CLineTracerDoc::OnNewDocument()
@@ -55,11 +56,6 @@ BOOL CLineTracerDoc::OnNewDocument()
 	// TODO: add reinitialization code here
 	// (SDI documents will reuse this document)
 	SetInputImageFileName(CString(_T("")));
-
-	if(m_InputBitmap) {
-		delete m_InputBitmap;
-		m_InputBitmap=0;
-	}
 
 	return TRUE;
 }
@@ -83,6 +79,9 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 	else
 	{
 		// TODO: add loading code here
+		CLayerManager *lm = CLayerManager::Instance();
+		lm->InvalidateLayers();
+
 		CString tmpString;
 		double tmp;
 		ar >> tmpString;
@@ -95,10 +94,10 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 		ar >> tmp;
 		CBinarizer::Instance()->SetParam("threshold",tmp);
 
-		CLayerManager::Instance()->Serialize(ar);
+		lm->Serialize(ar);
 
-		if(m_InputBitmap) {
-			CLayerManager::Instance()->ProcessLayers(m_InputBitmap);
+		if(lm->GetLayer(CLayerManager::DESATURATOR)->IsValid()) {
+			lm->ProcessLayers();
 		}
 		TRACE(">> gauss: %f\n",CGaussian::Instance()->GetParam("radius"));
 		TRACE(">> thresh: %f\n",CBinarizer::Instance()->GetParam("threshold"));
@@ -126,13 +125,21 @@ void CLineTracerDoc::Dump(CDumpContext& dc) const
 void CLineTracerDoc::SetInputImageFileName(CString FileName)
 {
 	m_InputBitmapFileName=FileName;
+	Bitmap *inputBitmap;
 
 	if(FileName!=_T("")) {
-		if(LoadImage(&m_InputBitmap, &FileName)) {
+		if(LoadImage(&inputBitmap, &FileName)) {
 			SetModifiedFlag();
 			CBinarizer::Instance()->SetParam("threshold",-1);
 
-			CLayerManager::Instance()->InvalidateLayers();
+			CRawImage img(inputBitmap);
+
+			CLayerManager *lm=CLayerManager::Instance();
+			lm->InvalidateLayers();
+
+			lm->GetLayer(CLayerManager::DESATURATOR)->Process(&img);
+			lm->GetLayer(CLayerManager::DESATURATOR)->SetValid(true);
+			delete inputBitmap;
 		}
 	}
 }
@@ -144,19 +151,15 @@ CString CLineTracerDoc::GetInputImageFileName(void)
 
 void CLineTracerDoc::ProcessLayers(void)
 {
+	CLayerManager *lm = CLayerManager::Instance();
+	if(lm->GetLayer(0)->GetSketchImage() == NULL) return;
 
-	if(m_InputBitmap==NULL) return;
-
-	CLayerManager::Instance()->ProcessLayers(m_InputBitmap);
+	CLayerManager::Instance()->ProcessLayers();
 	UpdateAllViews(NULL);
 }
 
 bool CLineTracerDoc::LoadImage(Bitmap** image, CString *fileName)
 {	
-	if(*image!=NULL) delete *image;
-
-	*image=NULL;
-
 	LPWSTR lpszW = new WCHAR[1024];
 
 	LPTSTR lpStr = fileName->GetBuffer(fileName->GetLength() );
@@ -170,10 +173,10 @@ bool CLineTracerDoc::LoadImage(Bitmap** image, CString *fileName)
 	return (*image!=NULL)?true:false;
 }
 
-Bitmap* CLineTracerDoc::GetInputBitmap(void)
+/*Bitmap* CLineTracerDoc::GetInputBitmap(void)
 {
 	return m_InputBitmap;
-}
+}*/
 
 
 void CLineTracerDoc::OnParametersBinarizer()
@@ -231,16 +234,39 @@ void CLineTracerDoc::OnViewSkeletonizer()
 
 void CLineTracerDoc::OnViewBinarizer()
 {
-	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::BINARIZER);
+	CLayerManager *lm = CLayerManager::Instance();
+	CLayer *l = lm->GetLayer(CLayerManager::BINARIZER);
 	l->SetVisible(!l->IsVisible());
+
+	lm->GetLayer(CLayerManager::DESATURATOR)->SetVisible(false);
+	lm->GetLayer(CLayerManager::GAUSSIAN)->SetVisible(false);
+
 	UpdateAllViews(NULL);
 	SetModifiedFlag();
 }
 
 void CLineTracerDoc::OnViewGaussian()
 {
-	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::GAUSSIAN);
+	CLayerManager *lm = CLayerManager::Instance();
+	CLayer *l = lm->GetLayer(CLayerManager::GAUSSIAN);
 	l->SetVisible(!l->IsVisible());
+
+	lm->GetLayer(CLayerManager::DESATURATOR)->SetVisible(false);
+	lm->GetLayer(CLayerManager::BINARIZER)->SetVisible(false);
+
+	UpdateAllViews(NULL);
+	SetModifiedFlag();
+}
+
+void CLineTracerDoc::OnViewOriginal()
+{
+	CLayerManager *lm = CLayerManager::Instance();
+	CLayer *l = lm->GetLayer(CLayerManager::DESATURATOR);
+	l->SetVisible(!l->IsVisible());
+
+	lm->GetLayer(CLayerManager::BINARIZER)->SetVisible(false);
+	lm->GetLayer(CLayerManager::GAUSSIAN)->SetVisible(false);
+
 	UpdateAllViews(NULL);
 	SetModifiedFlag();
 }
