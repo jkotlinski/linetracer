@@ -384,6 +384,7 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CLineTracerView::OnLButtonUp(UINT nFlags, CPoint point) 
 {
+	TRACE( "OnLButtonUp()\n" );
 	if ( m_activeToolType == ToolTypeMove ) 
 	{
 		::ReleaseCapture();
@@ -595,16 +596,20 @@ void CLineTracerView::FillBackground(
 
 BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
-	TRACE ( "OnSetCursor\n" );
-	if ( GetImageWidth() == 0 )
+	if ( CLayerManager::Instance()->IsProcessing() )
 	{
-		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
+		//show hourglass while working
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
 		return TRUE;
 	}
 
-	if ( CLayerManager::Instance()->IsProcessing() )
+	bool l_messageFromAnotherWindow = ( pWnd == NULL );
+	bool l_noImageLoaded = ( GetImageWidth() == 0 );
+
+	if ( l_messageFromAnotherWindow || l_noImageLoaded )
 	{
-		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+		//change to default arrow
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_ARROW));
 		return TRUE;
 	}
 
