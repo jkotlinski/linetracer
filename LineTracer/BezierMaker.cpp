@@ -634,6 +634,7 @@ void CBezierMaker::ReparametrizeT(CPolyLine* pl,
 								 vector<double>* tlist,
 								 bool &a_foundBetterTListStatus) const
 {
+	CLogger::Inactivate();
 	LOG( " ReparametrizeT start \n" );
 
 	a_foundBetterTListStatus = false;
