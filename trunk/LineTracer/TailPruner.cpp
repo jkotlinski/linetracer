@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include ".\tailpruner.h"
 
+#include <assert.h>
+
 #include "LineImage.h"
 
 CTailPruner::CTailPruner(void)
@@ -23,9 +25,9 @@ CSketchImage* CTailPruner::Process(CSketchImage *i_src) {
 
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
-	int threshold = int(GetParam("threshold"));
+	unsigned int threshold = (unsigned int)(GetParam("threshold"));
 
-	for(int i=0; i<src->Size(); i++) {
+	for(unsigned int i=0; i<src->Size(); i++) {
 		CPolyLine *line = src->At(i);
 
 		if(line->Size() >= threshold || line->HasKnots()==2) {
