@@ -39,7 +39,7 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 	for(int x=0; x<tmp.GetWidth(); x++) {
 		for(int y=0; y<tmp.GetHeight(); y++) {
 			if(tmp.GetPixel(x,y)) {
-				deque<unsigned int> pixelsInArea;
+				deque<int> pixelsInArea;
 				
 				ScanArea(&tmp, &pixelsInArea, CPoint(x,y), max_area);
 
@@ -58,10 +58,10 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 	return dst;
 }
 
-void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<unsigned int>* pixelsInArea, const CPoint &start, const unsigned int a_max_area)
+void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<int>* pixelsInArea, const CPoint &start, const unsigned int a_max_area)
 const
 {
-	deque<unsigned int> pointsToCheck;
+	deque<int> pointsToCheck;
 
 	pointsToCheck.push_back(start.x | (start.y<<16));
 	pixelsInArea->push_back(start.x | (start.y<<16));
@@ -71,7 +71,7 @@ const
 
 	while(!pointsToCheck.empty()) 
 	{
-		unsigned int p = pointsToCheck.front();
+		int p = pointsToCheck.front();
 		int x = p&0xffff;
 		int y = p>>16;
 		pointsToCheck.pop_front();
