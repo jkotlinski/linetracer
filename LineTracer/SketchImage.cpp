@@ -1,9 +1,12 @@
 #include "StdAfx.h"
-#include ".\sketchimage.h"
+#include "sketchimage.h"
 
 CSketchImage::CSketchImage(void)
+: m_Width(0)
+, m_Height(0)
+, m_Pixels(0)
 {
-		TRACE("init sketchimage\n");
+		//LOG("init sketchimage\n");
 }
 
 CSketchImage::~CSketchImage(void)
