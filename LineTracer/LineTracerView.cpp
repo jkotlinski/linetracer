@@ -143,7 +143,7 @@ void CLineTracerView::OnDraw(CDC* dc)
 	CLayerManager *l_layerManager = CLayerManager::Instance();
 	l_layerManager->DrawAllLayers ( gr );
 
-	PostMessage ( WM_SETCURSOR );
+	PostMessage ( WM_SETCURSOR, (WPARAM)this );
 
 	delete l_matrix;
 }
@@ -373,8 +373,8 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 		}
 		break;
 	case ToolTypeMove:
-		::SetCursor(AfxGetApp()->LoadCursor(IDC_CLOSED_HAND));
 		SetCursorType(CursorTypeClosedHand);
+		PostMessage(WM_SETCURSOR, (WPARAM)this);
 		SetCapture();
 		m_mouseIsBeingDragged = true;
 		m_previousDragPoint = point;
@@ -668,7 +668,7 @@ void CLineTracerView::OnSysKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	TRACE ( "OnSysKeyDown\n" );
 	if ( nChar == VK_MENU )
 	{
-		PostMessage ( WM_SETCURSOR );
+		PostMessage ( WM_SETCURSOR, (WPARAM)this );
 		return;
 	}
 	CView::OnSysKeyDown(nChar, nRepCnt, nFlags);
@@ -678,7 +678,7 @@ void CLineTracerView::OnSysKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	if ( nChar == VK_MENU )
 	{
-		PostMessage ( WM_SETCURSOR );
+		PostMessage ( WM_SETCURSOR, (WPARAM)this );
 		return;
 	}
 	CView::OnSysKeyUp(nChar, nRepCnt, nFlags);
