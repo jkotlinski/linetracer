@@ -2,11 +2,16 @@
 #include "holefiller.h"
 
 #include "RawImage.h"
+#include "ProjectSettings.h"
 
 CHoleFiller::CHoleFiller(void)
+: CImageProcessor()
 {
-	LOG("init binarizer\n");
-	SetParam(HOLEFILLER_MIN_AREA,20);
+	LOG("init holefiller\n");
+	SetName ( CString ( "HoleFiller" ) );
+	SetType ( HOLEFILLER );
+	CProjectSettings::Instance()->SetParam( 
+		CProjectSettings::HOLEFILLER_MIN_AREA, 20.0 );
 }
 
 CHoleFiller::~CHoleFiller(void)
@@ -30,7 +35,8 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 		tmp.SetPixel(i, val);
 	}
 
-	double min_area = GetParam(HOLEFILLER_MIN_AREA);
+	double min_area = CProjectSettings::Instance()->GetParam(
+		CProjectSettings::HOLEFILLER_MIN_AREA);
 
 	for(int x=0; x<tmp.GetWidth(); x++) {
 		for(int y=0; y<tmp.GetHeight(); y++) {
@@ -52,7 +58,7 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 	return dst;
 }
 
-void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_pool_allocator<CPoint> >* pixelsInArea, CPoint start)
+void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_pool_allocator<CPoint> >* pixelsInArea, const CPoint &start)
 {
 	deque<CPoint,boost::fast_pool_allocator<CPoint> > pointsToCheck;
 
@@ -82,4 +88,22 @@ void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_poo
 
 void CHoleFiller::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
 {
+	static const int SCALE = 1;
+	int width = a_image->GetWidth();
+	int height = a_image->GetHeight();
+	CRawImage<bool> *src = dynamic_cast<CRawImage<bool>*> (a_image);
+	ASSERT ( src != NULL );
+
+	for(int x=0; x<width*SCALE; x+=SCALE) {
+		for(int y=0; y<height*SCALE; y+=SCALE) {
+			ARGB p=src->GetPixel(x/SCALE,y/SCALE)?0xffffff:0;
+			if(!p) {
+				for(int i=0; i<SCALE; i++) {
+					for(int j=0; j<SCALE; j++) {
+						a_canvas->SetPixel(x+i, y+j, 0xff000000 | p);
+					}
+				}
+			}
+		}
+	}
 }
