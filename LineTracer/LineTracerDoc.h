@@ -3,8 +3,7 @@
 
 #pragma once
 
-#include <vector>
-#include "layer.h"
+#include "layermanager.h"
 
 using namespace std;
 
@@ -44,17 +43,18 @@ public:
 private:
 	CString m_InputBitmapFileName;
 
-	vector<CLayer*> m_Layers;
-
 	Bitmap *m_InputBitmap;
 	bool LoadImage(Bitmap** bitmap, CString *fileName);
 
 public:
 	void ProcessLayers(void);
 	Bitmap* GetInputBitmap(void);
-	CLayer* GetLayer(int layer);
 	afx_msg void OnParametersBinarizer();
 	afx_msg void OnParametersGaussian();
+
+	afx_msg void OnViewSkeletonizer();
+	afx_msg void OnViewBinarizer();
+	afx_msg void OnViewGaussian();
 };
 
 

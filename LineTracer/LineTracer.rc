@@ -68,6 +68,11 @@ BEGIN
     END
     POPUP "&View"
     BEGIN
+        MENUITEM "Gaussian Blur",               ID_VIEW_GAUSSIAN
+        MENUITEM "Binarizer",                   ID_VIEW_BINARIZER
+        MENUITEM "Skeletonizer",                ID_VIEW_SKELETONIZER
+        , CHECKED
+        MENUITEM SEPARATOR
         MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
     END
     POPUP "&Help"
