@@ -24,9 +24,13 @@ protected:
 	CSliderCtrl c_holeFillerControl;
 	CSliderCtrl c_tailPrunerControl;
 	CSliderCtrl c_curveDetailControl;
+	
 	CButton c_moveButton;
 	CButton c_zoomButton;
 
+	CButton c_viewOriginalLayerButton;
+	CButton c_viewAllLayersButton;
+	CButton c_viewVectorLayerButton;
 public:
 	double GetParam(CProjectSettings::ParamName a_name) const;
 
@@ -47,6 +51,18 @@ private:
 	bool m_isInitialized;
 public:
 	afx_msg void OnCurveDetailSlider(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void MoveButtonClicked();
-	afx_msg void ZoomButtonClicked();
+	void MoveButtonClicked();
+	void ZoomButtonClicked();
+	void ViewOriginalLayerButtonClicked();
+	void ViewVectorLayerButtonClicked();
+private:
+	bool m_viewOriginalLayerButtonIsDown;
+	bool m_viewVectorLayerButtonIsDown;
+public:
+	void ViewAllLayersButtonClicked(void);
+private:
+	void ResetLayerViewButtons(void);
+public:
+	bool IsVectorLayerVisible(void);
+	bool IsOriginalLayerVisible(void);
 };

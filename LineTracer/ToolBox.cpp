@@ -31,6 +31,8 @@ CToolBox::CToolBox()
 : CInitDialogBar()
 , m_lineTracerView(NULL)
 , m_isInitialized(false)
+, m_viewOriginalLayerButtonIsDown(true)
+, m_viewVectorLayerButtonIsDown(true)
 {
 }
 
@@ -74,6 +76,15 @@ BOOL CToolBox::OnInitDialogBar()
 
 	c_zoomButton.SetState( TRUE );
 
+	(void) c_zoomButton.SetIcon ( AfxGetApp()->LoadIcon(IDI_ZOOM) );
+	(void) c_moveButton.SetIcon ( AfxGetApp()->LoadIcon(IDI_MOVE) );
+
+	(void) c_viewAllLayersButton.SetIcon ( AfxGetApp()->LoadIcon(IDI_ALL_LAYERS) );
+	(void) c_viewOriginalLayerButton.SetIcon ( AfxGetApp()->LoadIcon(IDI_ORIGINAL_LAYER) );
+	(void) c_viewVectorLayerButton.SetIcon ( AfxGetApp()->LoadIcon(IDI_VECTOR_LAYER) );
+
+	ViewAllLayersButtonClicked();
+
 	m_isInitialized = true;
 	return TRUE;
 }
@@ -98,6 +109,9 @@ void CToolBox::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CURVEDETAILSLIDER, c_curveDetailControl);
 	DDX_Control(pDX, IDC_MOVEBUTTON, c_moveButton);
 	DDX_Control(pDX, IDC_ZOOMBUTTON, c_zoomButton);
+	DDX_Control(pDX, IDC_VIEW_RESULT_BUTTON, c_viewVectorLayerButton);
+	DDX_Control(pDX, IDC_VIEW_ORIGINAL_BUTTON, c_viewOriginalLayerButton);
+	DDX_Control(pDX, IDC_VIEW_ALL_BUTTON, c_viewAllLayersButton);
 	//}}AFX_DATA_MAP
 }
 
@@ -179,6 +193,8 @@ void CToolBox::OnDrawHoleFillerSlider(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	CLogger::Activate();
 	LOG ( "caught OnDrawHoleFillerSlider()\n" );
+
+	ASSERT ( m_lineTracerView );
 	m_lineTracerView->HandleChangedToolboxParam( CLayerManager::HOLEFILLER,
 		CProjectSettings::HOLEFILLER_MIN_AREA);
 	*pResult = 0;
@@ -190,18 +206,21 @@ void CToolBox::SetLineTracerView(CLineTracerView* a_view)
 }
 
 afx_msg void CToolBox::OnNMReleasedCaptureDetailEnchanceSlider(NMHDR *pNMHDR, LRESULT *pResult) {
+	ASSERT ( m_lineTracerView );
 	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::BINARIZER,
 		CProjectSettings::BINARIZER_MEAN_C);
 	*pResult = 0;
 }
 
 afx_msg void CToolBox::OnToolboxChangeBwthreshold() {
+	ASSERT ( m_lineTracerView );
 	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::BINARIZER,
 		CProjectSettings::BINARIZER_THRESHOLD);
 }
 
 afx_msg void CToolBox::OnLineLengthSlider(NMHDR *pNMHDR, LRESULT *pResult)
 {
+	ASSERT ( m_lineTracerView );
 	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::TAILPRUNER,
 		CProjectSettings::TAILPRUNER_THRESHOLD);
 	*pResult = 0;
@@ -209,6 +228,7 @@ afx_msg void CToolBox::OnLineLengthSlider(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CToolBox::OnCurveDetailSlider(NMHDR *pNMHDR, LRESULT *pResult)
 {
+	ASSERT ( m_lineTracerView );
 	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::BEZIERMAKER,
 		CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD);
 	*pResult = 0;
@@ -216,12 +236,59 @@ void CToolBox::OnCurveDetailSlider(NMHDR *pNMHDR, LRESULT *pResult)
 
 void CToolBox::MoveButtonClicked()
 {
+	TRACE ("movebuttonclicked");
 	c_moveButton.SetState( TRUE );
 	c_zoomButton.SetState( FALSE );
 }
 
 void CToolBox::ZoomButtonClicked()
 {
+	TRACE ("zoombuttonclicked");
 	c_moveButton.SetState( FALSE );
 	c_zoomButton.SetState( TRUE );
+}
+
+void CToolBox::ViewOriginalLayerButtonClicked()
+{
+	ResetLayerViewButtons();
+	c_viewOriginalLayerButton.SetState( TRUE );
+}
+
+void CToolBox::ViewVectorLayerButtonClicked()
+{
+	ResetLayerViewButtons();
+	c_viewVectorLayerButton.SetState( TRUE );
+}
+
+void CToolBox::ViewAllLayersButtonClicked(void)
+{
+	ResetLayerViewButtons();
+	c_viewAllLayersButton.SetState( TRUE );
+}
+
+void CToolBox::ResetLayerViewButtons(void)
+{
+	c_viewVectorLayerButton.SetState( FALSE );
+	c_viewOriginalLayerButton.SetState( FALSE );
+	c_viewAllLayersButton.SetState( FALSE );
+}
+
+bool CToolBox::IsVectorLayerVisible(void)
+{
+	if ( c_viewAllLayersButton.GetState() ||
+		c_viewVectorLayerButton.GetState() )
+	{
+		return true;
+	}
+	return false;
+}
+
+bool CToolBox::IsOriginalLayerVisible(void)
+{
+	if ( c_viewAllLayersButton.GetState() ||
+		c_viewOriginalLayerButton.GetState() )
+	{
+		return true;
+	}
+	return false;
 }
