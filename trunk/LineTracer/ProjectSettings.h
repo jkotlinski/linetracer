@@ -34,4 +34,5 @@ private:
 	map<int,double> m_params;
 public:
 	void Init(void);
+	void Reset(void);
 };
