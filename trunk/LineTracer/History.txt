@@ -49,3 +49,10 @@ v0.0.5
 
  * fixed simple but nasty multithreading bug
  * fixed mouse pointer issues
+ 
+ v0.1.4
+ 
+ * fixed small simple bugs
+ * improved toolbox look a little
+ * rewrote holefiller slightly (now consumes a LOT less RAM)
+ 
