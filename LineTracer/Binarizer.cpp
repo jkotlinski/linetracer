@@ -1,15 +1,16 @@
 #include "StdAfx.h"
-#include ".\binarizer.h"
+#include "binarizer.h"
 
-#include <math.h>
+//#include <math.h>
 
 CBinarizer::CBinarizer(void)
-: m_sketchBoard(NULL)
+: CImageProcessor()
+, m_sketchBoard(NULL)
+, m_distanceMap()
 {
-	TRACE("init binarizer\n");
-	SetParam("min_threshold",-1);
-	SetParam("mean_c",5);
-	m_distanceMap = new CRawImage<int>(0,0);
+	LOG("init binarizer\n");
+	SetParam(BINARIZER_THRESHOLD, -1.0);
+	SetParam(BINARIZER_MEAN_C, 5.0);
 }
 
 CBinarizer::~CBinarizer(void)
@@ -25,23 +26,28 @@ CBinarizer *CBinarizer::Instance() {
 
 CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 {
-	CRawImage<unsigned char> *src=static_cast<CRawImage<unsigned char>*>(i_src);
+	CRawImage<unsigned char> *src=dynamic_cast<CRawImage<unsigned char>*>(i_src);
+	ASSERT ( src != NULL );
 
 	static const int WINDOW_SIZE = 3;
 	//static const int WINDOW_SIZE = 0;
 
-	int C = int(GetParam("mean_c"));
-	int MIN_THRESHOLD = int(GetParam("min_threshold"));
+	int C = int(GetParam(BINARIZER_MEAN_C));
+	double MIN_THRESHOLD = GetParam(BINARIZER_THRESHOLD);
 
-	if(MIN_THRESHOLD == -1) {
+	if(int(MIN_THRESHOLD) == -1) {
 		MIN_THRESHOLD = CalculateOtsuThreshold(src);
-		SetParam("min_threshold",MIN_THRESHOLD);
+		SetParam(BINARIZER_THRESHOLD, MIN_THRESHOLD);
 	}
 
+	ASSERT ( src!=NULL );
 	int width = src->GetWidth();
 	int height = src->GetHeight();
 
-	if(m_sketchBoard==NULL) {
+	if(m_sketchBoard == NULL) {
+		ASSERT ( width >= 0 );
+		ASSERT ( height >= 0 );
+		//lint -e{737} safe because of asserts!
 		m_sketchBoard = new int[width*height];
 
 		for(int x=0; x<width; x++) {
@@ -56,12 +62,16 @@ CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 							if(y+j<height) {
 								int p = src->GetPixel(x+i, y+j);
 								pixelCount++;
-								pixelVal+=p;
+								ASSERT ( p>=0 );
+								//lint -e{737} safe because of assert!
+								pixelVal += p;
 							}
 						}
 					}
 				}
-				m_sketchBoard[x+y*width] = pixelVal/pixelCount;
+				ASSERT ( pixelCount != 0 );
+				ASSERT ( m_sketchBoard != NULL );
+				m_sketchBoard[x+y*width] = int(pixelVal/pixelCount);
 			}
 		}
 	}
@@ -73,9 +83,11 @@ CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 		for(int y=0; y<height; y++) {
 			//calculate mean threshold
 
+			ASSERT ( m_sketchBoard != NULL );
+
 			int c = int(src->GetPixel(x,y));
 			if(c < m_sketchBoard[x+y*width]-C) {
-				dst->SetPixel(x,y,0);
+				dst->SetPixel(x, y, false);
 			} else {
 				if (c < MIN_THRESHOLD) {
 					dst->SetPixel(x,y,false); //green?
@@ -91,19 +103,22 @@ CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 	return dst;
 }
 
-int CBinarizer::CalculateOtsuThreshold(CRawImage<unsigned char> *img)
+int CBinarizer::CalculateOtsuThreshold(const CRawImage<unsigned char> *img) const
 {
+	ASSERT ( img != NULL );
 	//calculate histogram
 	int histogram[256];
 	for(int i=0; i<256; i++) histogram[i]=0;
-	for(int i=0; i<img->GetHeight()*img->GetWidth(); i++) {
-		histogram[img->GetPixel(i)]++;
+	for(int l_pixelIndex=0; 
+		l_pixelIndex<img->GetHeight()*img->GetWidth(); 
+		l_pixelIndex++) {
+		histogram[img->GetPixel(l_pixelIndex)]++;
 	}
 
 	int bestThreshold = -1;
 	int bestThresholdVariance = 0xfffffff;
 
-	for(int i=1; i<255; i++) {
+	for(int l_threshold=1; l_threshold<255; l_threshold++) {
 		int p1 = 0;
 		int p2 = 0;
 		int mu1 = 0;
@@ -112,44 +127,50 @@ int CBinarizer::CalculateOtsuThreshold(CRawImage<unsigned char> *img)
 		int v2 = 0;
 
 		//calculate p1,p2
-		for(int j=0; j<=i; j++) {
-			p1+=histogram[j];
+		for(int l_lowerIndex=0; 
+			l_lowerIndex<=l_threshold; 
+			l_lowerIndex++) {
+			p1+=histogram[l_lowerIndex];
 		}
-		for(int j=i+1; j<256; j++) {
-			p2+=histogram[j];
+		for(int l_upperIndex=l_threshold+1; 
+			l_upperIndex<256; 
+			l_upperIndex++) {
+			p2+=histogram[l_upperIndex];
 		}
 
 		if(p1 && p2) {
 
 			//calculate mu1, mu2
-			for(int j=0; j<=i; j++) {
-				mu1+=histogram[j]*j;
+			for(int l_lower=0; l_lower<=l_threshold; l_lower++) {
+				mu1+=histogram[l_lower]*l_lower;
 			}
-			for(int j=i+1; j<256; j++) {
-				mu2+=histogram[j]*j;
+			for(int l_upper=l_threshold+1; l_upper<256; l_upper++) {
+				mu2+=histogram[l_upper]*l_upper;
 			}
 			mu1/=p1;
 			mu2/=p2;
 
 			//calculate v1, v2
-			for(int j=0; j<=i; j++) {
-				v1+=histogram[j]*(j-mu1)*(j-mu1);
-			}
-			for(int j=i+1; j<256; j++) {
-				v2+=histogram[j]*(j-mu2)*(j-mu2);
+			{
+				for(int l_lower=0; l_lower<=l_threshold; l_lower++) {
+					v1+=histogram[l_lower]*(l_lower-mu1)*(l_lower-mu1);
+				}
+				for(int l_upper=l_threshold+1; l_upper<256; l_upper++) {
+					v2+=histogram[l_upper]*(l_upper-mu2)*(l_upper-mu2);
+				}
 			}
 			v1/=p1;
 			v2/=p2;
 
 			int variance = p1*v1 + p2*v2;
 			if(variance<bestThresholdVariance) {
-				bestThreshold = i;
+				bestThreshold = l_threshold;
 				bestThresholdVariance=variance;
 			}
 		}
 	}
 
-	TRACE("find otsu: %i\n", bestThreshold);
+	//LOG("find otsu: %i\n", bestThreshold);
 
 	return bestThreshold;
 }
@@ -162,7 +183,7 @@ void CBinarizer::Init(void)
 	}
 }
 
-void CBinarizer::CalcDistanceMap(CRawImage<bool>* img)
+void CBinarizer::CalcDistanceMap(const CRawImage<bool>* img)
 {
 	delete m_distanceMap;
 	m_distanceMap = new CRawImage<int>(img->GetWidth(),img->GetHeight());
@@ -175,25 +196,62 @@ void CBinarizer::CalcDistanceMap(CRawImage<bool>* img)
 		}
 	}*/
 
-	for(int x=1; x<img->GetWidth()-1; x++) {
-		for(int y=1; y<img->GetHeight()-1; y++) {
-			if(!img->GetPixel(x,y)) {
-				int newVal = m_distanceMap->GetPixel(x-1,y)+3;
-				newVal = min(newVal, m_distanceMap->GetPixel(x,y-1)+3);
-				newVal = min(newVal, m_distanceMap->GetPixel(x-1,y-1)+4);
-				m_distanceMap->SetPixel(x,y,newVal);
+	{
+		for(int x=1; x<img->GetWidth()-1; x++) {
+			for(int y=1; y<img->GetHeight()-1; y++) {
+				if(!img->GetPixel(x,y)) {
+					int l_westVal = m_distanceMap->GetPixel(x-1,y)+3;
+					int l_southVal = m_distanceMap->GetPixel(x,y-1)+3;
+					int l_southWestVal = m_distanceMap->GetPixel(x-1,y-1)+4;
+					int l_newVal = min(l_southVal, l_westVal );
+					l_newVal = min(l_newVal, l_southWestVal);
+					m_distanceMap->SetPixel(x, y, l_newVal);
+				}
 			}
 		}
 	}
 	//pass 2
-	for(int x=img->GetWidth()-2; x>0; x--) {
-		for(int y=img->GetHeight()-2; y>0; y--) {
-			if(!img->GetPixel(x,y)) {
-				int newVal = min(m_distanceMap->GetPixel(x,y),m_distanceMap->GetPixel(x+1,y)+3);
-				newVal = min(newVal, m_distanceMap->GetPixel(x,y+1)+3);
-				newVal = min(newVal, m_distanceMap->GetPixel(x+1,y+1)+4);
-				m_distanceMap->SetPixel(x,y,newVal);
+	{
+		for(int x=img->GetWidth()-2; x>0; x--) {
+			for(int y=img->GetHeight()-2; y>0; y--) {
+				if(!img->GetPixel(x,y)) {
+					int l_myVal = m_distanceMap->GetPixel(x,y);
+					int l_eastVal = m_distanceMap->GetPixel(x+1,y)+3;
+					int l_northVal = m_distanceMap->GetPixel(x,y+1)+3;
+					int l_northEastVal = m_distanceMap->GetPixel(x+1,y+1)+4;
+
+					int l_newVal = min( l_myVal, l_eastVal );
+					l_newVal = min( l_newVal, l_northVal );
+					l_newVal = min( l_newVal, l_northEastVal );
+					m_distanceMap->SetPixel(x,y,l_newVal);
+				}
 			}
 		}
 	}
+}
+
+void CBinarizer::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
+{
+	static const int SCALE = 1;
+	int width = a_image->GetWidth();
+	int height = a_image->GetHeight();
+	CRawImage<bool> *src = dynamic_cast<CRawImage<bool>*> (a_image);
+	ASSERT ( src != NULL );
+
+	for(int x=0; x<width*SCALE; x+=SCALE) {
+		for(int y=0; y<height*SCALE; y+=SCALE) {
+			ARGB p=src->GetPixel(x/SCALE,y/SCALE)?0xffffff:0;
+			if(!p) {
+				for(int i=0; i<SCALE; i++) {
+					for(int j=0; j<SCALE; j++) {
+						a_canvas->SetPixel(x+i, y+j, 0xff000000 | p);
+					}
+				}
+			}
+		}
+	}
+}
+
+const CRawImage<int>* CBinarizer::GetDistanceMap() const {
+	return m_distanceMap;
 }
