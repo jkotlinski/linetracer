@@ -15,7 +15,6 @@ private:
 	CSketchImage *m_SketchImage;
 	bool m_IsVisible;
 	bool m_IsValid;
-	Bitmap* m_cachedBitmap;
 public:
 	void SetImageProcessor(CImageProcessor* ImageProcessor);
 public:
