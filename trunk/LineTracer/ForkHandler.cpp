@@ -499,8 +499,8 @@ void CForkHandler::HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* 
 			newLine1->Add(baseLine->At(i)->Clone());
 		}
 	}
-	TRACE ( "newLine1\n" );
-	newLine1->Trace();
+	//TRACE ( "newLine1\n" );
+	//newLine1->Trace();
 
 	//add line 2
 	if(line2->GetTailPoint()->Distance(p)<0.8) {
@@ -545,11 +545,12 @@ void CForkHandler::HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* 
 	ASSERT ( newLine1->Size() > 1 );
 	ASSERT ( newLine2->Size() > 1 );
 
+	/*
 	TRACE ( "finalLine1:\n" );
 	newLine1->Trace();
 	TRACE ( "finalLine2:\n" );
 	newLine2->Trace();
-
+*/
 	img->Add(newLine1);
 	img->Add(newLine2);
 }
