@@ -221,11 +221,8 @@ void CLineTracerDoc::OnViewGaussian()
 void CLineTracerDoc::OnViewOriginal()
 {
 	CLayerManager *lm = CLayerManager::Instance();
-	CLayer *l = lm->GetLayer(CLayerManager::DESATURATOR);
+	CLayer *l = lm->GetLayer(CLayerManager::HOLEFILLER);
 	l->SetVisible(!l->IsVisible());
-
-	lm->GetLayer(CLayerManager::BINARIZER)->SetVisible(false);
-	lm->GetLayer(CLayerManager::GAUSSIAN)->SetVisible(false);
 
 	UpdateAllViews(NULL);
 	SetModifiedFlag();
