@@ -52,7 +52,7 @@ bool CPolyLine::Contains(CPoint p)
 	return false;
 }
 
-unsigned int CPolyLine::Size(void)
+unsigned int CPolyLine::Size(void) const
 {
 	return (unsigned int) m_points.size();
 }
@@ -86,12 +86,12 @@ int CPolyLine::HasKnots(void)
 	return knotCount;
 }
 
-CSketchPoint *CPolyLine::GetHeadPoint(void)
+CSketchPoint *CPolyLine::GetHeadPoint(void) const
 {
 	return m_points.front();
 }
 
-CSketchPoint *CPolyLine::GetTailPoint(void)
+CSketchPoint *CPolyLine::GetTailPoint(void) const
 {
 	return m_points.back();
 }
@@ -104,6 +104,9 @@ away - but this shouldn't matter if those points are close.
 */
 CPolyLine* CPolyLine::MergeLine(CPolyLine* line) 
 {
+	//ASSERT ( 0 == line->RemoveDuplicatePoints() );
+	//ASSERT ( 0 == RemoveDuplicatePoints() );
+
 	CLogger *l_logger = CLogger::Instance();
 	l_logger->Inactivate();
 	
@@ -149,6 +152,8 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		l_shortestIntersectionDistance = l_distance;
 		l_shortestIntersectionType = INTERSECTION_TAIL_TO_TAIL;
 	}
+
+	ASSERT ( l_shortestIntersectionDistance < 5 );
 
 	switch( l_shortestIntersectionType )
 	{
@@ -285,7 +290,13 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		ASSERT(false);
 	}
 
-	ASSERT ( 0 == tmp->RemoveDuplicatePoints() );
+	/*
+	if ( 0 == tmp->RemoveDuplicatePoints() )
+	{
+		tmp->Trace();
+		ASSERT ( false );
+	}
+	*/
 
 	return tmp;
 }
@@ -377,7 +388,8 @@ CSketchPoint* CPolyLine::GetMaxDeviationPoint(void)
 	return maxDeviationPoint;
 }
 
-CSketchPoint* CPolyLine::At(unsigned int i) {
+CSketchPoint* CPolyLine::At(unsigned int i) const
+{
 	return m_points.at(i);
 }
 
@@ -404,12 +416,14 @@ bool CPolyLine::IsTail(void)
 
 CPolyLine* CPolyLine::SmoothPositions(void)
 {
+	ASSERT ( Size() > 1 );
 	CPolyLine* nuLine = new CPolyLine();
 	nuLine->SetTail(IsTail());
 
 	nuLine->Add(GetHeadPoint()->Clone());
 
-	for(unsigned int point=1; point<Size()-1; point++) {
+	for(unsigned int point=1; point<Size()-1; point++) 
+	{
 		double x = 0.5 * At(point)->GetX();
 		double y = 0.5 * At(point)->GetY();
 		x += 0.25 * At(point-1)->GetX();
@@ -423,10 +437,11 @@ CPolyLine* CPolyLine::SmoothPositions(void)
 	}
 
 	nuLine->Add(GetTailPoint()->Clone());
+	ASSERT ( nuLine->Size() > 1 );
 	return nuLine;
 }
 
-void CPolyLine::Trace(void)
+void CPolyLine::Trace(void) const
 {
 	if ( Size() == 0 ) 
 	{
@@ -438,7 +453,7 @@ void CPolyLine::Trace(void)
 		l_pointIndex++) 
 	{
 		CSketchPoint *p = At(l_pointIndex);
-		LOG ("CPolyLine[%i]: ", l_pointIndex);
+		TRACE ("CPolyLine[%i]: ", l_pointIndex);
 		p->Trace();
 	}
 }
@@ -461,8 +476,12 @@ int CPolyLine::RemoveDuplicatePoints (void)
 	// keep points we want to this line
 	CPolyLine *l_newLine = new CPolyLine();
 
-	for ( unsigned int l_pointIndex = 0;
-		l_pointIndex < Size()-1;
+	//always store first point
+	CSketchPoint* l_firstPoint = At ( 0 );
+	l_newLine->Add ( l_firstPoint );
+
+	for ( unsigned int l_pointIndex = 1;
+		l_pointIndex < Size() - 2;
 		l_pointIndex++ ) 
 	{
 		CSketchPoint *l_point1 = At( l_pointIndex );
@@ -548,4 +567,79 @@ void CPolyLine::DrawCurve(Graphics& a_graphics, Pen &a_pen, CSketchPoint* a_star
 		a_endPoint->GetControlPointBack().GetPointF(),
 		a_endPoint->GetPointF()
 		);
+}
+
+void CPolyLine::AssertNotEqualTo(const CPolyLine & a_otherLine)
+{
+	if ( Equals( a_otherLine ) == false )
+	{
+		return;
+	}
+
+	TRACE ( "! Lines not equal!\n" );
+
+	Trace();
+	a_otherLine.Trace();
+	ASSERT ( false );
+}
+
+const bool CPolyLine::Equals(const CPolyLine& a_line)
+{
+	static const double K_MAX_DISTANCE_FOR_EQUALITY = 0.1;
+
+	//size not equal?
+	if ( Size() != a_line.Size() )
+	{
+		return false;
+	}
+
+	//head and tailpoints not equal?
+	if ( ( GetHeadPoint()->Distance(*(a_line.GetHeadPoint())) > K_MAX_DISTANCE_FOR_EQUALITY ) &&
+		( GetHeadPoint()->Distance(*(a_line.GetTailPoint())) > K_MAX_DISTANCE_FOR_EQUALITY ) )
+	{
+		return false;
+	}
+	if ( ( GetTailPoint()->Distance( *(a_line.GetHeadPoint()) ) > K_MAX_DISTANCE_FOR_EQUALITY ) &&
+		( GetTailPoint()->Distance( *(a_line.GetTailPoint()) ) > K_MAX_DISTANCE_FOR_EQUALITY ) )
+	{
+		return false;
+	}
+
+	//full line check, point-by-point
+	int l_index1 = 0;
+	const int l_endIndex1 = Size();
+
+	int l_index2;
+	int l_step2;
+
+	if ( GetHeadPoint()->Distance( *(a_line.GetHeadPoint()) ) < K_MAX_DISTANCE_FOR_EQUALITY )
+	{
+		//headpoint of line 1 equals headpoint of line 2 - both forward
+		l_index2 = 0;
+		l_step2 = 1;
+	}
+	else 
+	{
+		//i forward, other line backward
+		l_index2 = a_line.Size()-1;
+		l_step2 = -1;
+	}
+
+	bool l_differenceFound = false;
+	while ( l_index1 < l_endIndex1 &&
+		l_differenceFound == false )
+	{
+		const CSketchPoint *l_point1 = At(l_index1);
+		const CSketchPoint *l_point2 = a_line.At(l_index2);
+
+		if ( l_point1->Distance(*l_point2) > 0.1 )
+		{
+			return false;
+		}
+
+		l_index1++;
+		l_index2 += l_step2;
+	}
+
+	return true;
 }
