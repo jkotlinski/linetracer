@@ -11,7 +11,7 @@ public:
 	void Decrease(void);
 private:
 
-	int m_level;
+	unsigned int m_level;
 public:
 	double GetValue(void);
 private:
