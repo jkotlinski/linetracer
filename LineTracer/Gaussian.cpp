@@ -1,12 +1,12 @@
 #include "StdAfx.h"
-#include ".\gaussian.h"
+#include "gaussian.h"
 
 #include <math.h>
 
 CGaussian::CGaussian(void)
 {
-	SetParam("radius",0.5);
-	TRACE("init gaussian\n");
+	SetParam(GAUSSIAN_RADIUS,0.5);
+	LOG("init gaussian\n");
 }
 
 CGaussian::~CGaussian(void)
@@ -20,15 +20,16 @@ CGaussian* CGaussian::Instance() {
 
 CSketchImage* CGaussian::Process(CSketchImage* i_src)
 {
-	CRawImage<unsigned char> *src=static_cast<CRawImage<unsigned char>*>(i_src);
+	CRawImage<unsigned char> *src=dynamic_cast<CRawImage<unsigned char>*>(i_src);
+	ASSERT ( src != NULL );
 
-	double radius=GetParam("radius");
+	double radius=GetParam(GAUSSIAN_RADIUS);
 
 	CRawImage<unsigned char> *dst=new CRawImage<unsigned char>(src->GetWidth(), src->GetHeight());
 
 	if(radius>0.0) {
 		//smooth
-		GaussianSmooth(src, dst, (float)radius);
+		GaussianSmooth(src, dst, (double)radius);
 	} else {
 		for(int i=0; i<src->GetHeight()*src->GetWidth(); i++) {
 			dst->SetPixel(i,src->GetPixel(i));
@@ -38,12 +39,12 @@ CSketchImage* CGaussian::Process(CSketchImage* i_src)
 	return dst;
 }
 
-void CGaussian::GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned char> *dst, float sigma)
+void CGaussian::GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned char> *dst, double sigma)
 {
 	int r, c, rr, cc,     /* Counter variables. */
 		windowsize,        /* Dimension of the gaussian kernel. */
 		center;            /* Half of the windowsize. */
-	float *tempim,        /* Buffer for separable filter gaussian smoothing. */
+	double *tempim,        /* Buffer for separable filter gaussian smoothing. */
 		*kernel,        /* A one dimensional gaussian kernel. */
 		dot,            /* Dot product summing variable. */
 		sum;            /* Sum of the kernel weights variable. */
@@ -58,7 +59,7 @@ void CGaussian::GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned
 	int rows = src->GetHeight();
 	int cols = src->GetWidth();
 
-	tempim = new float[rows*cols];
+	tempim = new double[rows*cols];
 
 	// Blur in the x - direction.
 	for(r=0;r<rows;r++){
@@ -90,27 +91,31 @@ void CGaussian::GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned
 		}
 	}
 
-	delete tempim;
+	delete[] tempim;
 	delete kernel;
 }
 
 
-void CGaussian::MakeGaussianKernel(float sigma, float **kernel, int *windowsize)
+void CGaussian::MakeGaussianKernel(double sigma, double **kernel, int *windowsize)
 {
 	int i, center;
-	float x, fx, sum=0.0;
+	double x, fx, sum=0.0;
 
 	*windowsize = 1 + 2 * (int)ceil(2.5 * sigma);
 	center = (*windowsize) / 2;
 
-	*kernel = new float[*windowsize];
+	*kernel = new double[*windowsize];
 
 	for(i=0; i<(*windowsize); i++){
-		x = float(i - center);
-		fx = float(pow(2.71828, -0.5*x*x/(sigma*sigma)) / (sigma * sqrt(6.2831853)));
+		x = double(i - center);
+		fx = double(pow(2.71828, -0.5*x*x/(sigma*sigma)) / (sigma * sqrt(6.2831853)));
 		(*kernel)[i] = fx;
 		sum += fx;
 	}
 
 	for(i=0; i<(*windowsize); i++) (*kernel)[i] /= sum;
+}
+
+void CGaussian::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
+{
 }

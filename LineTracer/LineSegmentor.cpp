@@ -1,17 +1,15 @@
 #include "StdAfx.h"
-#include ".\linesegmentor.h"
+#include "linesegmentor.h"
 
 #include "LineImage.h"
-
-#include <assert.h>
 #include <list>
 
 using namespace std;
 
 CLineSegmentor::CLineSegmentor(void)
 {
-	SetParam("threshold",1.5);
-		TRACE("init linesegmentor\n");
+	SetParam(LINESEGMENTOR_THRESHOLD,1.5);
+		LOG("init linesegmentor\n");
 }
 
 CLineSegmentor::~CLineSegmentor(void)
@@ -26,10 +24,12 @@ CLineSegmentor* CLineSegmentor::Instance() {
 CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 	static const bool useMaxErrors = false;
 
-	CLineImage *src = static_cast<CLineImage*>(i_src);
+	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
+	ASSERT ( src != NULL );
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
-	if(useMaxErrors) {
+	//lint -e{774} const is ok
+	if( useMaxErrors ) {
 		//SMART SELECTION: CHOOSE MAXIMUM ERRORS
 		for(unsigned int i=0; i<src->Size(); i++) {
 			CPolyLine *line = new CPolyLine();
@@ -64,7 +64,7 @@ void CLineSegmentor::Add(CPolyLine*dst, CPolyLine* src)
 {
 	CSketchPoint *p;
 
-	double THRESHOLD = GetParam("threshold");
+	double THRESHOLD = GetParam(LINESEGMENTOR_THRESHOLD);
 
 	if(src->GetMaxDeviation()>=THRESHOLD) {
 		p = src->GetMaxDeviationPoint();
@@ -92,4 +92,8 @@ void CLineSegmentor::Add(CPolyLine*dst, CPolyLine* src)
 		l1.Clear();
 		l2.Clear();
 	}
+}
+
+void CLineSegmentor::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
+{
 }

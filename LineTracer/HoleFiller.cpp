@@ -1,12 +1,12 @@
 #include "StdAfx.h"
-#include ".\holefiller.h"
+#include "holefiller.h"
 
 #include "RawImage.h"
 
 CHoleFiller::CHoleFiller(void)
 {
-	TRACE("init binarizer\n");
-	SetParam("min_area",20);
+	LOG("init binarizer\n");
+	SetParam(HOLEFILLER_MIN_AREA,20);
 }
 
 CHoleFiller::~CHoleFiller(void)
@@ -19,7 +19,8 @@ CHoleFiller *CHoleFiller::Instance() {
 }
 
 CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
-	CRawImage<bool> *src=static_cast<CRawImage<bool>*>(i_src);
+	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
+	ASSERT ( src != NULL );
 
 	CRawImage<bool> *dst = new CRawImage<bool>(src->GetWidth(),src->GetHeight());
 	CRawImage<bool> tmp(src->GetWidth(),src->GetHeight());
@@ -29,7 +30,7 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 		tmp.SetPixel(i, val);
 	}
 
-	double min_area = GetParam("min_area");
+	double min_area = GetParam(HOLEFILLER_MIN_AREA);
 
 	for(int x=0; x<tmp.GetWidth(); x++) {
 		for(int y=0; y<tmp.GetHeight(); y++) {
@@ -45,8 +46,6 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 						pixelsInArea.pop_front();
 					}
 				}
-
-				TRACE("pixelsInArea: %i\n",pixelsInArea.size());
 			}
 		}
 	}
@@ -79,4 +78,8 @@ void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_poo
 		pointsToCheck.push_back(CPoint(p.x,p.y+1));
 		pointsToCheck.push_back(CPoint(p.x,p.y-1));
 	}
+}
+
+void CHoleFiller::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
+{
 }
