@@ -34,11 +34,9 @@ CSketchImage* CBezierMaker::Process(CSketchImage* i_src)
 {
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
 	ASSERT ( src != NULL );
-
-	//return ShaoZhou(src);
-	CLineImage *dst = DoSchneider(src);
-	dst->SolderKnots();
-	return dst;
+	src->AssertNoDuplicateLines();
+	src->AssertNoEmptyLines();
+	return DoSchneider(src);
 }
 
 //simple method. just add good looking control points.
@@ -201,16 +199,19 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 	oldMemState.Checkpoint();
 #endif
 
-	for(unsigned int l_lineIndex=0; l_lineIndex<l_workImage->Size(); l_lineIndex++) {
+	for(unsigned int l_lineIndex=0; l_lineIndex<l_workImage->Size(); l_lineIndex++) 
+	{
 		CPolyLine* pl = l_workImage->GetLine(l_lineIndex);
-
-		ASSERT ( 0 == pl->RemoveDuplicatePoints() );
+		ASSERT ( pl->Size() > 1 );
+		//ASSERT ( 0 == pl->RemoveDuplicatePoints() );
+		//ASSERT ( pl->Size() > 1 );
 
 		//make tangent map
 		vector<CFPoint>* tangentList;
 		
 #ifdef REUSE_TANGENTS
-		if(hasTangents[l_lineIndex]) {
+		if(hasTangents[l_lineIndex]) 
+		{
 			tangentList = hasTangentList.front();
 			hasTangentList.pop_front();
 
@@ -219,8 +220,12 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 			CSketchPoint endTangent ( (*tangentList)[(*tangentList).size()-1] );
 			delete tangentList;
 
+			ASSERT ( pl->Size() > 1 );
 			tangentList = CalcTangents(pl,&startTangent,&endTangent);
-		} else {
+		} 
+		else 
+		{
+			ASSERT ( pl->Size() > 1 );
 			tangentList = CalcTangents(pl);
 		}
 #else
@@ -269,10 +274,8 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 				if( foundBetterCurve ) 
 				{
 					// store curve in bestCurve
-					if(bestCurve != NULL) 
-					{
-						delete bestCurve;
-					}
+					delete bestCurve;
+
 					bestError = error;
 					bestCurve = curve->Clone();
 				}
@@ -311,7 +314,7 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 
 			bool errorTooBig = bestError > ERROR_THRESHOLD;
 
-			if(errorTooBig) 
+			if( errorTooBig ) 
 			{
 				//divide line
 				unsigned int subdivIndex = worstPoint;
@@ -344,8 +347,15 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 #endif
 				}
 				
+				//TRACE ( "add new back line:\n" );
+				//newBackLine->Trace();
+
 				l_workImage->Add(newBackLine);
+
+				//TRACE ( "add new forward line:\n" );
+				//newForwardLine->Trace();
 				l_workImage->Add(newForwardLine);
+				//TRACE ( "new workimage size: %i\n", l_workImage->Size() );
 
 #ifdef REUSE_TANGENTS
 				hasTangents[l_workImage->Size()-2]=true;
@@ -437,28 +447,36 @@ vector<double>* CBezierMaker::CalcT(CPolyLine* line) const
 
 vector<CFPoint>* CBezierMaker::CalcTangents(CPolyLine* line, const CSketchPoint* startTangent, const CSketchPoint* endTangent) const
 {
+	ASSERT ( line->Size() > 1 );
 	vector<CFPoint>* tlist = new vector<CFPoint>;
 
-	for(unsigned int i=0; i<line->Size(); i++) {
-
+	for(unsigned int i=0; i<line->Size(); i++) 
+	{
 		double xdiff; 
 		double ydiff;
 
 		bool usingPrecalced = false;
 
-		if(i==0) {
+		if(i==0) 
+		{
 			//first point
-			if(startTangent == NULL) {
+			if(startTangent == NULL) 
+			{
 				xdiff = line->At(i+1)->GetX() - line->At(i)->GetX();
 				ydiff = line->At(i+1)->GetY() - line->At(i)->GetY();
-			} else {
+			} 
+			else 
+			{
 				xdiff = startTangent->GetX();
 				ydiff = startTangent->GetY();
 				//LOG("use precalced start. x y: %f %f\n",xdiff,ydiff);
 				usingPrecalced = true;
 			}
-		} else {
-			if(i==line->Size()-1) {
+		} 
+		else 
+		{
+			if( i == line->Size() - 1 ) 
+			{
 				//endpoint
 				if(endTangent == NULL) {
 					xdiff = line->At(i)->GetX() - line->At(i-1)->GetX();
@@ -528,7 +546,8 @@ CPolyLine* CBezierMaker::FitSpline(CPolyLine* pl, vector<double>* tlist, vector<
 		A2v.push_back(A2);
 		//LOG("%i A1: %f %f; A2: %f %f\n",i,A1.GetX(),A1.GetY(),A2.GetX(),A2.GetY());
 	}
-	for(unsigned int i=0; i < pl->Size(); i++) {
+	for(unsigned int i=0; i < pl->Size(); i++) 
+	{
 		//LOG("A1v[%i]: %f %f\n",i,A1v[i].GetX(),A1v[i].GetY());
 		//LOG("A2v[%i]: %f %f\n",i,A2v[i].GetX(),A2v[i].GetY());
 		//LOG("(*tlist)[%i]: %f\n",i,(*tlist)[i]);
