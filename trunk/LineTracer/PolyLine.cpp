@@ -1,12 +1,13 @@
 #include "StdAfx.h"
-#include ".\polyline.h"
+#include "polyline.h"
+#include "Logger.h"
 
-#include <assert.h>
 #include <list>
 #include <math.h>
 #include <algorithm>
 
 #include "Binarizer.h"
+#include "polyline.h"
 
 CPolyLine::CPolyLine(void)
 : m_isTail(false)
@@ -15,18 +16,26 @@ CPolyLine::CPolyLine(void)
 
 CPolyLine::~CPolyLine(void)
 {
-	vector<CSketchPoint*>::iterator iter;
-	for(iter=Begin(); iter!=End(); iter++) {
-		if(*iter!=NULL) {
-			delete *iter;
-			*iter = NULL;
+	try {
+		vector<CSketchPoint*>::iterator iter;
+		for(iter=Begin(); iter!=End(); iter++) {
+			if(*iter!=NULL) {
+				delete *iter;
+				*iter = NULL;
+			}
+		}
+	} catch (...) {
+		try {
+			LOG ( "!!!! caught exception in ~CPolyLine" );
+			ASSERT ( false );
+		} catch (...) {
 		}
 	}
 }
 
 void CPolyLine::Add(CSketchPoint *point)
 {
-	//TRACE("added point %i:%i\n",point.x,point.y);
+	//LOG("added point %i:%i\n",point.x,point.y);
 	m_points.push_back(point);
 }
 
@@ -35,7 +44,7 @@ bool CPolyLine::Contains(CPoint p)
 {
 	vector<CSketchPoint*>::iterator iter;
 	for(iter=Begin(); iter!=End(); iter++) {
-		if((*iter)->x==p.x && (*iter)->y==p.y) {
+		if((*iter)->GetX() == p.x && (*iter)->GetY() == p.y) {
 			return true;
 		}
 	}
@@ -92,7 +101,11 @@ the closest endpoints of the lines will be merged.
 one of the endpoints that are glued together will be throwed 
 away - but this shouldn't matter if those points are close.
 */
-CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
+CPolyLine* CPolyLine::MergeLine(CPolyLine* line) 
+{
+	CLogger *l_logger = CLogger::Instance();
+	l_logger->Inactivate();
+	
 	CPolyLine *tmp=new CPolyLine();
 
 	enum {
@@ -108,28 +121,28 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 	
 	//find best intersection type
 
-	double l_distance = GetHeadPoint()->Distance(*line->GetHeadPoint());
+	double l_distance = GetHeadPoint()->Distance( line->GetHeadPoint()->GetCoords() );
 	if( l_distance < l_shortestIntersectionDistance )
 	{
 		l_shortestIntersectionDistance = l_distance;
 		l_shortestIntersectionType = INTERSECTION_HEAD_TO_HEAD;
 	}
 	
-	l_distance = GetHeadPoint()->Distance(*line->GetTailPoint());
+	l_distance = GetHeadPoint()->Distance( line->GetTailPoint()->GetCoords() );
 	if( l_distance < l_shortestIntersectionDistance )
 	{
 		l_shortestIntersectionDistance = l_distance;
 		l_shortestIntersectionType = INTERSECTION_HEAD_TO_TAIL;
 	}
 	
-	l_distance = GetTailPoint()->Distance(*line->GetHeadPoint());
+	l_distance = GetTailPoint()->Distance( line->GetHeadPoint()->GetCoords() );
 	if( l_distance < l_shortestIntersectionDistance )
 	{
 		l_shortestIntersectionDistance = l_distance;
 		l_shortestIntersectionType = INTERSECTION_TAIL_TO_HEAD;
 	}
 
-	l_distance = GetTailPoint()->Distance(*line->GetTailPoint());
+	l_distance = GetTailPoint()->Distance( line->GetTailPoint()->GetCoords() );
 	if( l_distance < l_shortestIntersectionDistance )
 	{
 		l_shortestIntersectionDistance = l_distance;
@@ -140,7 +153,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 	{
 	case INTERSECTION_HEAD_TO_HEAD:
 		{
-		TRACE( "me backwards, line forwards\n" );
+		LOG( "me backwards, line forwards\n" );
 
 		//me backwards
 		vector<CSketchPoint*>::iterator iter;
@@ -152,7 +165,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 			*iter=0;
 			iter--;
 		}
-		CSketchPoint *linkPoint = new CSketchPoint(*(*iter),false,false);
+		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointForward());
 		//line forwards
 		iter=line->Begin();
@@ -166,7 +179,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		}
 	case INTERSECTION_HEAD_TO_TAIL:
 		{
-		TRACE( "me backwards, line backwards\n" );
+		LOG( "me backwards, line backwards\n" );
 
 		//me backwards
 		vector<CSketchPoint*>::iterator iter;
@@ -179,7 +192,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 			iter--;
 		} 
 
-		CSketchPoint *linkPoint = new CSketchPoint(*(*iter),false,false);
+		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointForward());
 		//line backwards
 		iter=line->End();
@@ -200,7 +213,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		}
 	case INTERSECTION_TAIL_TO_HEAD:
 		{
-		TRACE( "me forwards, line forwards\n" );
+		LOG( "me forwards, line forwards\n" );
 		//me forwards
 		vector<CSketchPoint*>::iterator iter;
 		iter=Begin();
@@ -214,13 +227,13 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 			iter++;
 		}
 
-		CSketchPoint *linkPoint = new CSketchPoint(*(*iter),false,false);
+		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointBack());
 		//line forwards
 		iter=line->Begin();
 		linkPoint->SetControlPointForward((*iter)->GetControlPointForward());
 		tmp->Add(linkPoint);
-		//TRACE("linkPoint: ");
+		//LOG("linkPoint: ");
 		//linkPoint->Trace();
 		
 		iter++;
@@ -235,7 +248,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		}
 	case INTERSECTION_TAIL_TO_TAIL:
 		{
-		TRACE( "me forwards, line backwards\n" );
+		LOG( "me forwards, line backwards\n" );
 		//me forwards
 		vector<CSketchPoint*>::iterator iter;
 		iter=Begin();
@@ -247,7 +260,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 			iter++;
 		} while(iter!=end);
 
-		CSketchPoint *linkPoint = new CSketchPoint(*(*iter),false,false);
+		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointBack());
 		//line backwards
 		iter=line->End();
@@ -268,10 +281,10 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		break;
 		}
 	default:
-		assert(false);
+		ASSERT(false);
 	}
 
-	Assert ( 0 == tmp->RemoveDuplicatePoints() );
+	ASSERT ( 0 == tmp->RemoveDuplicatePoints() );
 
 	return tmp;
 }
@@ -289,10 +302,9 @@ vector<CSketchPoint*>::iterator CPolyLine::End(void)
 double CPolyLine::GetMaxDeviation()
 {
 	double maxDeviation = -1.0;
-	CSketchPoint* maxDeviationPoint;
 
-	CFPoint *p1=m_points.front();
-	CFPoint *p2=m_points.back();
+	CFPoint p1 = ( m_points.front() )->GetCoords();
+	CFPoint p2 = ( m_points.back() )->GetCoords();
 
 	vector<CSketchPoint*>::iterator iter;
 	vector<CSketchPoint*>::iterator end;
@@ -307,20 +319,19 @@ double CPolyLine::GetMaxDeviation()
 
 		CSketchPoint *p = *iter;
 
-		double dev = (p1->y-p2->y)*p->x;
-		dev += (p2->x-p1->x)*p->y;
-		dev += p1->x*p2->y;
-		dev -= p2->x*p1->y;
+		double dev = (p1.GetY() - p2.GetY()) * p->GetX();
+		dev += (p2.GetX()-p1.GetX())*p->GetY();
+		dev += p1.GetX()*p2.GetY();
+		dev -= p2.GetX()*p1.GetY();
 		dev = abs(dev);
-		dev /= sqrt(double((p2->x-p1->x)*(p2->x-p1->x) + (p2->y-p1->y)*(p2->y-p1->y)));
+		dev /= sqrt(double((p2.GetX()-p1.GetX())*(p2.GetX()-p1.GetX()) + (p2.GetY()-p1.GetY())*(p2.GetY()-p1.GetY())));
 
 		if(dev>maxDeviation) {
 			maxDeviation = dev;
-			maxDeviationPoint = p;
 		}
 	}
 
-	//TRACE("maxDeviation: %f\n",maxDeviation);
+	//LOG("maxDeviation: %f\n",maxDeviation);
 	return maxDeviation;
 }
 
@@ -332,10 +343,10 @@ void CPolyLine::Clear(void)
 CSketchPoint* CPolyLine::GetMaxDeviationPoint(void)
 {
 	double maxDeviation = -1.0;
-	CSketchPoint* maxDeviationPoint;
+	CSketchPoint* maxDeviationPoint = NULL;
 
-	CFPoint *p1=m_points.front();
-	CFPoint *p2=m_points.back();
+	CFPoint p1 = m_points.front()->GetCoords();
+	CFPoint p2 = m_points.back()->GetCoords();
 
 	vector<CSketchPoint*>::iterator iter;
 	vector<CSketchPoint*>::iterator end;
@@ -350,12 +361,12 @@ CSketchPoint* CPolyLine::GetMaxDeviationPoint(void)
 
 		CSketchPoint *p = *iter;
 
-		double dev = (p1->y-p2->y)*p->x;
-		dev += (p2->x-p1->x)*p->y;
-		dev += p1->x*p2->y;
-		dev -= p2->x*p1->y;
+		double dev = (p1.GetY()-p2.GetY())*p->GetX();
+		dev += (p2.GetX()-p1.GetX())*p->GetY();
+		dev += p1.GetX()*p2.GetY();
+		dev -= p2.GetX()*p1.GetY();
 		dev = abs(dev);
-		dev /= sqrt(double((p2->x-p1->x)*(p2->x-p1->x) + (p2->y-p1->y)*(p2->y-p1->y)));
+		dev /= sqrt(double((p2.GetX()-p1.GetX())*(p2.GetX()-p1.GetX()) + (p2.GetY()-p1.GetY())*(p2.GetY()-p1.GetY())));
 
 		if(dev>maxDeviation) {
 			maxDeviation = dev;
@@ -365,9 +376,7 @@ CSketchPoint* CPolyLine::GetMaxDeviationPoint(void)
 	return maxDeviationPoint;
 }
 
-CSketchPoint* CPolyLine::At(int i)
-{
-	assert ( i >= 0 );
+CSketchPoint* CPolyLine::At(unsigned int i) {
 	return m_points.at(i);
 }
 
@@ -376,7 +385,7 @@ int CPolyLine::GetMedianThickness(void)
 	vector<CSketchPoint*>::iterator iter;
 	vector<int> thicknesses;
 	for(iter=m_points.begin(); iter!=m_points.end(); iter++) {
-		thicknesses.push_back(CBinarizer::Instance()->m_distanceMap->GetPixel(int(0.5+(*iter)->x),int(0.5+(*iter)->y)));
+		thicknesses.push_back(CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(0.5+(*iter)->GetX()),int(0.5+(*iter)->GetY())));
 	}
 	sort(thicknesses.begin(),thicknesses.end());
 	return thicknesses.at(thicknesses.size()/2);
@@ -400,15 +409,15 @@ CPolyLine* CPolyLine::SmoothPositions(void)
 	nuLine->Add(GetHeadPoint()->Clone());
 
 	for(unsigned int point=1; point<Size()-1; point++) {
-		double x = 0.5 * At(point)->x;
-		double y = 0.5 * At(point)->y;
-		x += 0.25 * At(point-1)->x;
-		x += 0.25 * At(point+1)->x;
-		y += 0.25 * At(point-1)->y;
-		y += 0.25 * At(point+1)->y;
-		//TRACE("point: %i; ",point);
-		//TRACE("old: %f %f; ",At(point)->x,At(point)->y);
-		//TRACE("new: %f %f\n",x,y);
+		double x = 0.5 * At(point)->GetX();
+		double y = 0.5 * At(point)->GetY();
+		x += 0.25 * At(point-1)->GetX();
+		x += 0.25 * At(point+1)->GetX();
+		y += 0.25 * At(point-1)->GetY();
+		y += 0.25 * At(point+1)->GetY();
+		//LOG("point: %i; ",point);
+		//LOG("old: %f %f; ",At(point)->GetX(),At(point)->GetY());
+		//LOG("new: %f %f\n",x,y);
 		nuLine->Add(new CSketchPoint(CFPoint(x,y)));
 	}
 
@@ -420,7 +429,7 @@ void CPolyLine::Trace(void)
 {
 	if ( Size() == 0 ) 
 	{
-		TRACE ( "CPolyLine is empty" );
+		LOG ( "CPolyLine is empty" );
 	}
 
 	for(unsigned int l_pointIndex=0; 
@@ -428,7 +437,7 @@ void CPolyLine::Trace(void)
 		l_pointIndex++) 
 	{
 		CSketchPoint *p = At(l_pointIndex);
-		TRACE("CPolyLine[%i]: ", l_pointIndex);
+		LOG ("CPolyLine[%i]: ", l_pointIndex);
 		p->Trace();
 	}
 }
@@ -439,12 +448,14 @@ returns number of removed points!
 */
 int CPolyLine::RemoveDuplicatePoints (void)
 {
+	CLogger::Instance()->Inactivate();
+
 	static const double MIN_POINT_DISTANCE = 0.1;
 	int l_removedPoints = 0;
 
-	TRACE( "RemoveDuplicatePoints\n" );
+	LOG ( "RemoveDuplicatePoints\n" );
 
-	TRACE( "size was: %i\n", Size() );
+	LOG ( "size was: %i\n", Size() );
 
 	// keep points we want to this line
 	CPolyLine *l_newLine = new CPolyLine();
@@ -456,14 +467,14 @@ int CPolyLine::RemoveDuplicatePoints (void)
 		CSketchPoint *l_point1 = At( l_pointIndex );
 		CSketchPoint *l_point2 = At( l_pointIndex + 1 );
 
-		double l_distance = l_point1->Distance( *l_point2 );
+		double l_distance = l_point1->Distance( l_point2->GetCoords() );
 
 		bool l_distanceIsZero = l_distance < MIN_POINT_DISTANCE;
 		
 		if ( l_distanceIsZero )
 		{
 			l_removedPoints++;
-			TRACE("delete point\n");
+			LOG("delete point\n");
 			//don't keep this point!
 			delete l_point1;
 		}
@@ -490,9 +501,18 @@ int CPolyLine::RemoveDuplicatePoints (void)
 		Add( (*iter)->Clone() );
 	}
 
-	TRACE( "size became: %i\n", Size() );
+	LOG ( "size became: %i\n", Size() );
 
 	delete l_newLine;
 
 	return l_removedPoints;
+}
+
+void CPolyLine::SmoothPoint(int a_pointIndex)
+{
+	CFPoint p = At(a_pointIndex-1)->GetCoords() * 0.5;
+	p += At(a_pointIndex+1)->GetCoords() * 0.5;
+
+	At(a_pointIndex)->SetX( p.GetX() );
+	At(a_pointIndex)->SetY( p.GetY() );
 }
