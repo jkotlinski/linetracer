@@ -10,11 +10,7 @@ class CImageProcessor
 public:
 	CImageProcessor(void);
 	~CImageProcessor(void);
-private:
-	bool m_IsActive;
-public:
-	void SetActive(bool state);
-	bool IsActive(void);
+
 	virtual CSketchImage* Process(CSketchImage* src) = 0;
 private:
 	bool m_IsValid;
