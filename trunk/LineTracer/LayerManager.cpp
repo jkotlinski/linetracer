@@ -25,6 +25,7 @@ CLayerManager::CLayerManager(void)
 : m_processThread(NULL)
 , m_restartProcess(false)
 , m_lineTracerView(NULL)
+, m_incrementalLayerDrawing(false)
 {
 	LOG("init layermanager\n");
 
@@ -180,6 +181,8 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 
 	CLayerManager *l_lm = static_cast<CLayerManager*>(pParam);
 
+	l_lm->m_incrementalLayerDrawing = true; 
+
 	ASSERT ( l_lm->LayerCount() > 0 );
 
 	do {
@@ -210,7 +213,7 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 			ASSERT ( l_result != 0 );
 
 			//redraw!
-			l_lm->GetLineTracerView()->Invalidate();
+			l_lm->GetLineTracerView()->Invalidate( FALSE );
 
 			img = layer->GetSketchImage();
 		}
@@ -222,6 +225,8 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 	l_lm->m_processThread = NULL;
 
 	LOG("LayerManager::ProcessLayers() done\n");
+
+	l_lm->m_incrementalLayerDrawing = false; 
 	
 	K_ACTIVE_PROCESSES--;
 	return 0;
@@ -321,12 +326,15 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 
 		if ( l_layer->IsVisible() && l_layer->IsValid() )
 		{
-			CLogger::Activate();
-			LOG ( "painted: " );
-			LOG ( (LPCSTR)l_layer->GetName() );	
-			LOG ( "\n" );
-			l_layer->DrawUsingGraphics ( a_graphics );
-			l_noLayersVisible = false;
+			if ( !m_incrementalLayerDrawing || !l_layer->HasBeenDrawn() )
+			{
+				CLogger::Activate();
+				LOG ( "painted: " );
+				LOG ( (LPCSTR)l_layer->GetName() );	
+				LOG ( "\n" );
+				l_layer->DrawUsingGraphics ( a_graphics );
+				l_noLayersVisible = false;
+			}
 		}
 	}
 }

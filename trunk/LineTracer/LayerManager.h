@@ -54,4 +54,6 @@ private:
 	volatile bool m_restartProcess;
 public:
 	void DrawAllLayers(Graphics & a_graphics);
+private:
+	bool m_incrementalLayerDrawing;
 };
