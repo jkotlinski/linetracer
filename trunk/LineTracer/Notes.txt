@@ -1,8 +1,8 @@
 TO DO:
 
+- utritningen blir fel när man ändrar parametrar via toolboxen
 - fixa linjebredd (min-max)
 - linjebredd vid linjeutritning
-- cirkel-detektion
 
 - zoom
 - new line prune layer
