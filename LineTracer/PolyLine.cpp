@@ -290,8 +290,8 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		ASSERT(false);
 	}
 
-	ASSERT ( 0 == tmp->RemoveDuplicatePoints() );
-
+	//ASSERT ( 0 == tmp->RemoveDuplicatePoints() );
+	ASSERT ( Size() + line->Size() == tmp->Size() + 1 );
 	return tmp;
 }
 
@@ -525,6 +525,10 @@ int CPolyLine::RemoveDuplicatePoints (void)
 
 void CPolyLine::SmoothPoint(int a_pointIndex)
 {
+	ASSERT ( a_pointIndex > 0 );
+	unsigned int l_size = Size();
+	ASSERT ( static_cast<unsigned int>(a_pointIndex) < l_size - 1 );
+
 	CFPoint p = At(a_pointIndex-1)->GetCoords() * 0.5;
 	p += At(a_pointIndex+1)->GetCoords() * 0.5;
 
