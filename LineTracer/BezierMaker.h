@@ -23,4 +23,6 @@ private:
 	CPolyLine* FitLine(CPolyLine* pl, const vector<CFPoint>* tangentList) const;
 	void ReparametrizeT(CPolyLine* pl, CPolyLine* curve, vector<double>* tlist, bool &a_foundBetterTListStatus) const;
 	bool ImprovementSmallEnough(double error, double previousError) const;
+	bool TListTooUnevenlyDistributed(const vector<double> & a_tList) const;
+	bool CurveTooCrazy(const CPolyLine & a_curve) const;
 };
