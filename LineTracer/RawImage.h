@@ -276,7 +276,8 @@ void CRawImage<T>::Dilate(void)
 	for(int x=1; x<GetWidth()-1; x++) {
 		for(int y=1; y<GetHeight()-1; y++) {
 			if(GetPixel(x,y)) {
-				if(!GetPixel(x-1,y) || !GetPixel(x+1,y) || !GetPixel(x,y-1) || !GetPixel(x,y+1)) {
+				if(!GetPixel(x-1,y) || !GetPixel(x+1,y) || !GetPixel(x,y-1) || !GetPixel(x,y+1) ||
+					!GetPixel(x-1,y-1) || !GetPixel(x+1,y-1) || !GetPixel(x+1,y+1) || !GetPixel(x-1,y+1)) {
 					tmp2.push_back(CPoint(x,y));
 				}
 			}
@@ -297,7 +298,9 @@ void CRawImage<T>::Erode(void)
 	for(int x=1; x<GetWidth()-1; x++) {
 		for(int y=1; y<GetHeight()-1; y++) {
 			if(!GetPixel(x,y)) {
-				if(GetPixel(x-1,y) || GetPixel(x+1,y) || GetPixel(x,y-1) || GetPixel(x,y+1)) {
+				if(GetPixel(x-1,y) || GetPixel(x+1,y) || GetPixel(x,y-1) || GetPixel(x,y+1) ||
+					GetPixel(x-1,y-1) || GetPixel(x+1,y-1) || GetPixel(x+1,y+1) || GetPixel(x-1,y+1)
+					) {
 					tmp2.push_back(CPoint(x,y));
 				}
 			}
