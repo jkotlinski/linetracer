@@ -109,7 +109,7 @@ void CSketchPoint::SwapControlPoints(void)
 }
 
 void CSketchPoint::Trace(void) const {
-	LOG ( "x=%f, y=%f\n", m_point.GetX(), m_point.GetY() );
+	TRACE ( "x=%f, y=%f\n", m_point.GetX(), m_point.GetY() );
 }
 
 
@@ -140,4 +140,14 @@ const bool CSketchPoint::IsYFork(void) const {
 PointF CSketchPoint::GetPointF(void)
 {
 	return m_point.GetPointF();
+}
+
+float CSketchPoint::Distance(const CSketchPoint & a_point) const
+{
+	return float(m_point.Distance( a_point.GetCFPoint() ));
+}
+
+CFPoint CSketchPoint::GetCFPoint(void) const
+{
+	return m_point;
 }
