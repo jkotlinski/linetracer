@@ -11,6 +11,7 @@
 
 //#define MEM_DEBUG
 #include "ProjectSettings.h"
+#include ".\beziermaker.h"
 
 CBezierMaker::CBezierMaker(void)
 : CImageProcessor()
@@ -32,7 +33,7 @@ CSketchImage* CBezierMaker::Process(CSketchImage* i_src)
 {
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
 	ASSERT ( src != NULL );
-	src->AssertNoDuplicateLines();
+	src->DiscardDuplicateLines();
 	src->AssertNoEmptyLines();
 	return DoSchneider(src);
 }
@@ -266,6 +267,15 @@ CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 					//give up curvefitting - we'll subdivide line and try again
 					break;
 				}
+				/*if ( CurveTooCrazy(*curve) )
+				{
+					// store curve in bestCurve
+					delete bestCurve;
+
+					bestError = 0;
+					bestCurve = curve;
+					break;
+				}*/
 
 				bool foundBetterCurve = error < previousError;
 
@@ -740,4 +750,64 @@ bool CBezierMaker::ImprovementSmallEnough(double a_error, double a_previousError
 	bool l_improvementSmallEnough = l_improvement < REPARAM_SMALLEST_USEFUL_IMPROVEMENT;
 
 	return l_improvementSmallEnough;
+}
+
+bool CBezierMaker::TListTooUnevenlyDistributed(const vector<double> & a_tList)
+const
+{
+	double l_minDifference=1.0;
+	double l_maxDifference=0.0;
+
+	for ( unsigned int l_tIndex = 1; l_tIndex < a_tList.size(); l_tIndex++ )
+	{
+		l_minDifference = min ( l_minDifference, a_tList[l_tIndex] - a_tList[l_tIndex-1] );
+		l_maxDifference = max ( l_maxDifference, a_tList[l_tIndex] - a_tList[l_tIndex-1] );
+	}
+
+	if ( (l_maxDifference / l_minDifference) > 5 )
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool CBezierMaker::CurveTooCrazy(const CPolyLine & a_curve)
+const
+{
+	double l_pointToPointLength = 0.0;
+
+	for ( unsigned int l_curveIndex = 1;
+		l_curveIndex < a_curve.Size();
+		l_curveIndex++ )
+	{
+		l_pointToPointLength += a_curve.At(l_curveIndex)->Distance(*a_curve.At(l_curveIndex-1));
+	}
+
+	CSketchPoint *l_point0 = a_curve.GetHeadPoint();
+	CSketchPoint *l_point3 = a_curve.GetTailPoint();
+	CFPoint l_controlPoint1 = l_point0->GetControlPointForward();
+	CFPoint l_controlPoint2 = l_point3->GetControlPointBack();
+
+	double l_controlPointDistance1 = l_point0->Distance(l_controlPoint1);
+	double l_controlPointDistance2 = l_point3->Distance(l_controlPoint2);
+
+	double l_distanceBetweenControlPoints = 
+		l_controlPoint1.Distance(l_controlPoint2);
+
+	/*reference: Jens Gravesen: "Adaptive subdivision and the length of 
+	Bezier curves" mat-report no. 1992-10, Mathematical Institute, The 
+	Technical University of Denmark. */
+	double L1 = l_controlPointDistance1 + l_controlPointDistance2 + l_distanceBetweenControlPoints;
+	double L0 = l_point0->Distance(*l_point3);
+
+	double l_bezierCurveLength = 0.5 * L0 + 0.5 * L1;
+
+	if ( l_bezierCurveLength > 3*l_pointToPointLength )
+	{
+		return true;
+	}
+	return false;
 }
