@@ -32,7 +32,7 @@ private:
 	void TraceLine(CRawImage<ARGB>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds);
 	CFPoint IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point, map<int,bool> *forbiddenEndKnotIds);
 	CSketchPoint FindNeighborKnot(CRawImage<ARGB>* knotImg, CPoint p);
-	CFPoint FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, CFPoint p);
+	CPoint FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, const CPoint &p);
 	bool NoOrthogonalNeighbors(CRawImage<ARGB>* segmentImage, CFPoint p);
 	bool IsEndPoint(CRawImage<ARGB>* image,CPoint p);
 	double AFMMSolve(int i1, int j1, int i2, int j2, double sol, char *f, double* T, int width);
@@ -43,4 +43,7 @@ private:
 	void TrackBoundary(int x, int y, char* f, double* U, double &val, int width);
 	//CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
 	//CLineImage* SmoothPositions(CLineImage* lineImage);
+private:
+	void CSkeletonizer::TraceEndpoints( CRawImage<ARGB> &segmentMap, CLineImage &li );
+	void CSkeletonizer::TraceCircles( CRawImage<ARGB> &segmentMap, CLineImage &li );
 };
