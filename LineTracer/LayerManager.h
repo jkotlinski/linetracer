@@ -55,8 +55,9 @@ private:
 public:
 	void DrawAllLayers(Graphics & a_graphics);
 private:
-	bool m_incrementalLayerDrawing;
+	bool m_isProcessing;
 public:
 	void SetOriginalLayerVisibility(bool a_isVisible);
 	void SetVectorLayerVisibility(bool a_isVisible);
+	bool IsProcessing(void);
 };
