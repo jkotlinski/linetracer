@@ -2,6 +2,7 @@
 #include "layer.h"
 
 #include "LayerManager.h"
+#include ".\layer.h"
 
 CLayer::CLayer()
 : m_ImageProcessor(NULL)
@@ -95,10 +96,42 @@ const CString* CLayer::GetName(void)
 	return l_name;
 }
 
+/*
 void CLayer::PaintImage(CRawImage<ARGB>* a_canvas) const
 {
 	ASSERT ( a_canvas != NULL );
 	ASSERT ( m_ImageProcessor != NULL );
 
 	m_ImageProcessor->PaintImage ( m_SketchImage, a_canvas );
+}
+*/
+
+int CLayer::GetImageWidth(void)
+{
+	CSketchImage *l_sketchImage = GetSketchImage();
+	if ( l_sketchImage == NULL )
+	{
+		return 0;
+	}
+	return l_sketchImage->GetWidth();;
+}
+
+int CLayer::GetImageHeight(void)
+{
+	CSketchImage *l_sketchImage = GetSketchImage();
+	if ( l_sketchImage == NULL )
+	{
+		return 0;
+	}
+	return l_sketchImage->GetHeight();
+}
+
+void CLayer::DrawUsingGraphics(Graphics & a_graphics)
+{
+	CSketchImage *l_sketchImage = GetSketchImage();
+	if ( l_sketchImage == NULL )
+	{
+		return;
+	}
+	l_sketchImage->DrawUsingGraphics( a_graphics );
 }

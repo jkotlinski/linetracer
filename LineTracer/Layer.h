@@ -27,5 +27,8 @@ public:
 	bool IsValid(void) const;
 	void SetValid(bool isValid);
 	const CString* GetName(void);
-	void PaintImage(CRawImage<ARGB>* a_canvas) const;
+	//void PaintImage(CRawImage<ARGB>* a_canvas) const;
+	int GetImageWidth(void);
+	int GetImageHeight(void);
+	void DrawUsingGraphics(Graphics & a_graphics);
 };
