@@ -83,6 +83,8 @@ public:
 	void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnBnClickedMovebutton();
 	afx_msg void OnBnClickedZoombutton();
+	afx_msg void OnBnClickedViewOriginalLayerButton();
+	afx_msg void OnBnClickedViewVectorLayerButton();
 private:
 	int GetViewWidth(void);
 	int GetViewHeight(void);
@@ -111,7 +113,11 @@ private:
 	enum CursorTypes GetCursorType(void);
 	bool AltKeyIsPressed(void);
 public:
-	void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	void OnSysKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	void OnSysKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnBnClickedViewAllLayersButton();
+private:
+	void UpdateLayerVisibilitiesFromToolbox(void);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp

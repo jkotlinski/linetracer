@@ -54,10 +54,14 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
-	ON_WM_KEYDOWN()
+	ON_WM_SYSKEYDOWN()
+	ON_WM_SYSKEYUP()
 	ON_WM_SETCURSOR()
 	ON_BN_CLICKED(IDC_MOVEBUTTON, OnBnClickedMovebutton)
 	ON_BN_CLICKED(IDC_ZOOMBUTTON, OnBnClickedZoombutton)
+	ON_BN_CLICKED(IDC_VIEW_ORIGINAL_BUTTON, OnBnClickedViewOriginalLayerButton)
+	ON_BN_CLICKED(IDC_VIEW_RESULT_BUTTON, OnBnClickedViewVectorLayerButton)
+	ON_BN_CLICKED(IDC_VIEW_ALL_BUTTON, OnBnClickedViewAllLayersButton)
 END_MESSAGE_MAP()
 
 
@@ -350,13 +354,13 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 	switch ( m_activeToolType )
 	{
 	case ToolTypeZoom:
-		if ( AltKeyIsPressed() == false )
+		if ( AltKeyIsPressed() )
 		{
-			SetCursorType(CursorTypeZoomIn);
+			ZoomOut(point);
 		}
 		else 
 		{
-			SetCursorType(CursorTypeZoomOut);
+			ZoomIn(point);
 		}
 		break;
 	case ToolTypeMove:
@@ -424,6 +428,24 @@ void CLineTracerView::OnBnClickedZoombutton()
 	m_activeToolType = ToolTypeZoom;
 }
 
+void CLineTracerView::OnBnClickedViewOriginalLayerButton()
+{
+	CToolBox::Instance()->ViewOriginalLayerButtonClicked();
+	UpdateLayerVisibilitiesFromToolbox();
+}
+
+void CLineTracerView::OnBnClickedViewVectorLayerButton()
+{
+	CToolBox::Instance()->ViewVectorLayerButtonClicked();
+	UpdateLayerVisibilitiesFromToolbox();
+}
+
+void CLineTracerView::OnBnClickedViewAllLayersButton()
+{
+	CToolBox::Instance()->ViewAllLayersButtonClicked();
+	UpdateLayerVisibilitiesFromToolbox();
+}
+
 int CLineTracerView::GetViewWidth(void)
 {
 	CRect l_clientRect;
@@ -441,8 +463,6 @@ int CLineTracerView::GetViewHeight(void)
 
 void CLineTracerView::ZoomIn(const CPoint &a_point)
 {
-	SetCursorType(CursorTypeZoomIn);
-
 	AffineTransform l_inverse = GetTransform();
 	l_inverse.Invert();
 
@@ -456,8 +476,6 @@ void CLineTracerView::ZoomIn(const CPoint &a_point)
 
 void CLineTracerView::ZoomOut(const CPoint &a_point)
 {
-	SetCursorType(CursorTypeZoomOut);
-
 	AffineTransform l_inverse = GetTransform();
 	l_inverse.Invert();
 
@@ -570,7 +588,7 @@ BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 		::SetCursor(AfxGetApp()->LoadCursor(IDC_CLOSED_HAND));
 		return TRUE;
 	case CursorTypeZoomIn:
-		if( AltKeyIsPressed() == false ) 
+		if ( AltKeyIsPressed() == false )
 		{
 			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_IN));
 		}
@@ -580,13 +598,13 @@ BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 		}
 		return TRUE;
 	case CursorTypeZoomOut:
-		if( AltKeyIsPressed() == true ) 
+		if ( AltKeyIsPressed() == false )
 		{
-			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_IN));
+			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_OUT));
 		}
 		else
 		{
-			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_OUT));
+			::SetCursor(AfxGetApp()->LoadCursor(IDC_ZOOM_IN));
 		}
 		return TRUE;
 	case CursorTypeHand:
@@ -611,7 +629,35 @@ bool CLineTracerView::AltKeyIsPressed(void)
 	return ( ::GetKeyState(VK_MENU) < 0 );
 }
 
-void CLineTracerView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+void CLineTracerView::OnSysKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-	//do nothing
+	TRACE ( "OnSysKeyDown\n" );
+	if ( nChar == VK_MENU )
+	{
+		PostMessage ( WM_SETCURSOR );
+		return;
+	}
+	CView::OnSysKeyDown(nChar, nRepCnt, nFlags);
+}
+
+void CLineTracerView::OnSysKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	if ( nChar == VK_MENU )
+	{
+		PostMessage ( WM_SETCURSOR );
+		return;
+	}
+	CView::OnSysKeyUp(nChar, nRepCnt, nFlags);
+}
+
+
+void CLineTracerView::UpdateLayerVisibilitiesFromToolbox(void)
+{
+	bool l_originalLayerIsVisible = CToolBox::Instance()->IsOriginalLayerVisible();
+	bool l_vectorLayerIsVisible = CToolBox::Instance()->IsVectorLayerVisible();
+
+	CLayerManager::Instance()->SetOriginalLayerVisibility(l_originalLayerIsVisible);
+	CLayerManager::Instance()->SetVectorLayerVisibility(l_vectorLayerIsVisible);
+
+	Invalidate(TRUE);
 }
