@@ -173,10 +173,10 @@ CLineTracerDoc* CLineTracerView::GetDocument() const // non-debug version is inl
 
 void CLineTracerView::OnFileOpenimage()
 {
-	TCHAR szFilters[] = _T("Images (*.jpg;*.gif;*.tiff)");
+	TCHAR szFilters[] = _T("Images (*.jpg;*.gif;*.tiff;*.tif)");
 
-	CFileDialog dlg (TRUE,_T("jpg;gif;tiff"),
-		_T("*.jpg;*.gif;*.tiff"),OFN_FILEMUSTEXIST,szFilters);
+	CFileDialog dlg (TRUE,_T("jpg;gif;tiff;tif"),
+		_T("*.jpg;*.gif;*.tiff;*.tif"),OFN_FILEMUSTEXIST,szFilters);
 
 	if(dlg.DoModal()==IDOK) {
 		CLineTracerDoc *pDoc = GetDocument();
