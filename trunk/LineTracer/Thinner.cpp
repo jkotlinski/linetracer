@@ -3,6 +3,7 @@
 
 CThinner::CThinner(void)
 : CImageProcessor()
+, m_maxPeelIterationsUntilAreaIsDetected(3)
 {
 	SetName ( CString ( "Thinner" ) );
 	SetType ( THINNER );
@@ -27,14 +28,32 @@ CSketchImage* CThinner::Process(CSketchImage *i_src) {
 		dst->SetPixel(i,!src->GetPixel(i));
 	}
 
-	int pixelsThinned = 0;
-	
-	do 
+	bool l_processComplete = false;
+
+	for ( int l_peelIteration=1; 
+		l_peelIteration < m_maxPeelIterationsUntilAreaIsDetected;
+		l_peelIteration++ )
 	{
-		pixelsThinned = Thin(dst);
-		//LOG("thinned: %i\n",thinned);
+		deque<CPoint> l_pixelPoints = PeelPixels(dst);
+		int pixelsThinned = DeletePixels(l_pixelPoints, *dst);
+	
+		if ( pixelsThinned == 0 )
+		{
+			l_processComplete = true;
+			break;
+		}
 	} 
-	while( pixelsThinned > 0 );
+
+	if ( l_processComplete == false )
+	{
+		//aborted peeling because we reached max peeling limit.
+		//there are some remaining areas left in image.
+		//we must now convert areas to lines by doing edge detection.
+		dst->DeleteAllBlackPixelsWithoutWhiteNeighbors();
+		//nice up a just little more...
+		deque<CPoint> l_pixelPoints = PeelPixels(dst);
+		(void) DeletePixels(l_pixelPoints, *dst);
+	}
 
 	return dst;
 }
@@ -42,10 +61,8 @@ CSketchImage* CThinner::Process(CSketchImage *i_src) {
 /*Consider all pixels on the boundaries of foreground regions. 
 Delete pixel that has more than one foreground neighbor, as 
 long as doing so does not locally disconnect */
-int CThinner::Thin(CRawImage<bool> *img)
+deque<CPoint> CThinner::PeelPixels(const CRawImage<bool> *img)
 {
-	int thinnedPixels = 0;
-
 	deque<CPoint> pixelsToDelete;
 
 	for(int x=1; x<img->GetWidth()-1; x++) {
@@ -58,22 +75,29 @@ int CThinner::Thin(CRawImage<bool> *img)
 			}
 		}
 	}
+	return pixelsToDelete;
+}
 
-	while(!pixelsToDelete.empty()) {
-		CPoint p = pixelsToDelete.front();
-		pixelsToDelete.pop_front();
+int CThinner::DeletePixels(deque<CPoint> & a_pixelPoints, CRawImage<bool> & a_canvas) 
+{
+	int l_deletedPixelCount = 0;
 
-		if(IsPointThinnable(img,p)) {
-			img->SetPixel(p.x, p.y, 0);
-			thinnedPixels++;
+	while(!a_pixelPoints.empty()) {
+		CPoint p = a_pixelPoints.front();
+		a_pixelPoints.pop_front();
+
+		if(IsPointThinnable(&a_canvas, p)) {
+			a_canvas.SetPixel(p.x, p.y, false);
+			l_deletedPixelCount++;
 		}
 	}
 
-	return thinnedPixels;
+	return l_deletedPixelCount;
 }
 
 /*stantiford method*/
-bool CThinner::IsPointThinnable(CRawImage<bool>* img, CPoint p)
+bool CThinner::IsPointThinnable(const CRawImage<bool>* img, const CPoint & p) 
+const
 {
 	//0 = 0, 1 = 1, 2 = don't care
 	static const char matrix[4][3][3] = 
@@ -137,6 +161,9 @@ bool CThinner::IsPointThinnable(CRawImage<bool>* img, CPoint p)
 											doDelete=false;
 										}
 										break;
+									default:
+										// don't care
+										break;
 				}
 			}
 		}
@@ -149,7 +176,9 @@ bool CThinner::IsPointThinnable(CRawImage<bool>* img, CPoint p)
 }
 
 /* runs in two passes */
-bool CThinner::IsPointThinnableZhangSuen(CRawImage<bool>* img, CPoint p, int pass) {
+bool CThinner::IsPointThinnableZhangSuen(const CRawImage<bool>* img, const CPoint &p, int pass) 
+const
+{
 	int n[9];
 
 	n[1] = img->GetPixel(p.x+1,p.y)?1:0;

@@ -31,3 +31,7 @@ v0.0.5
  
  * improved drawing
  
+ v0.1.0
+ 
+ * implemented simple area -> contour lines conversion
+ 
