@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "layermanager.h"
+#include "LayerManager.h"
 
 using namespace std;
 
@@ -39,11 +39,11 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	void SetInputImageFileName(CString FileName);
-	CString GetInputImageFileName(void);
+	CString GetInputImageFileName(void) const;
 private:
 	CString m_InputBitmapFileName;
 
-	bool LoadImage(Bitmap** bitmap, CString *fileName);
+	bool LoadImage(Bitmap** bitmap, CString *fileName) const;
 
 public:
 	void ProcessLayers(void);
@@ -59,7 +59,7 @@ public:
 	afx_msg void OnZoom100();
 	afx_msg void OnZoom200();
 	void SetZoom(int factor);
-	int GetZoom(void);
+	int GetZoom(void) const;
 private:
 	int m_ZoomFactor;
 public:
@@ -67,7 +67,8 @@ public:
 	afx_msg void OnViewBeziermaker();
 	afx_msg void OnViewThinner();
 	afx_msg void OnParametersCurvedetail();
-	afx_msg void OnToolboxChangeBwthreshold();
+private:
+	static bool FloatsDiffer ( double a_val1, double a_val2 );
 };
 
 

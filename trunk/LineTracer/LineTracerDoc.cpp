@@ -18,6 +18,8 @@
 
 #include "RawImage.h"
 
+#include "Logger.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -42,7 +44,6 @@ BEGIN_MESSAGE_MAP(CLineTracerDoc, CDocument)
 	ON_COMMAND(ID_VIEW_BEZIERMAKER, OnViewBeziermaker)
 	ON_COMMAND(ID_VIEW_THINNER, OnViewThinner)
 	ON_COMMAND(ID_PARAMETERS_CURVEDETAIL, OnParametersCurvedetail)
-	ON_EN_CHANGE(IDC_BWTHRESHOLD, OnToolboxChangeBwthreshold)
 END_MESSAGE_MAP()
 
 
@@ -82,9 +83,9 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 	{
 		// TODO: add storing code here
 		ar << m_InputBitmapFileName;
-		ar << CGaussian::Instance()->GetParam("radius");
-		ar << CBinarizer::Instance()->GetParam("threshold");
-		ar << CTailPruner::Instance()->GetParam("threshold");
+		ar << CGaussian::Instance()->GetParam(CImageProcessor::GAUSSIAN_RADIUS);
+		ar << CBinarizer::Instance()->GetParam(CImageProcessor::BINARIZER_THRESHOLD);
+		ar << CTailPruner::Instance()->GetParam(CImageProcessor::TAILPRUNER_THRESHOLD);
 		ar << m_ZoomFactor;
 		CLayerManager::Instance()->Serialize(ar);
 	}
@@ -100,20 +101,21 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 		SetInputImageFileName(tmpString);
 
 		ar >> tmp;
-		CGaussian::Instance()->SetParam("radius",tmp);
+		CGaussian::Instance()->SetParam(CImageProcessor::GAUSSIAN_RADIUS,tmp);
 		ar >> tmp;
-		CBinarizer::Instance()->SetParam("threshold",tmp);
+		CBinarizer::Instance()->SetParam(CImageProcessor::BINARIZER_THRESHOLD,tmp);
 		ar >> tmp;
-		CTailPruner::Instance()->SetParam("threshold",tmp);
+		CTailPruner::Instance()->SetParam(CImageProcessor::TAILPRUNER_THRESHOLD,tmp);
 		ar >> m_ZoomFactor;
 
 		lm->Serialize(ar);
 
 		if(lm->GetLayer(CLayerManager::DESATURATOR)->IsValid()) {
-			lm->ProcessLayers();
+			ProcessLayers();
 		}
-		TRACE(">> gauss: %f\n",CGaussian::Instance()->GetParam("radius"));
-		TRACE(">> thresh: %f\n",CBinarizer::Instance()->GetParam("threshold"));
+
+		LOG(">> gauss: %f\n", CGaussian::Instance()->GetParam(CImageProcessor::GAUSSIAN_RADIUS));
+		LOG(">> thresh: %f\n", CBinarizer::Instance()->GetParam(CImageProcessor::BINARIZER_THRESHOLD));
 	}
 }
 
@@ -143,7 +145,7 @@ void CLineTracerDoc::SetInputImageFileName(CString FileName)
 	if(FileName!=_T("")) {
 		if(LoadImage(&inputBitmap, &FileName)) {
 			SetModifiedFlag();
-			CBinarizer::Instance()->SetParam("min_threshold",-1);
+			CBinarizer::Instance()->SetParam(CImageProcessor::BINARIZER_THRESHOLD,-1.0);
 
 			CRawImage<ARGB> img(inputBitmap);
 
@@ -157,7 +159,7 @@ void CLineTracerDoc::SetInputImageFileName(CString FileName)
 	}
 }
 
-CString CLineTracerDoc::GetInputImageFileName(void)
+CString CLineTracerDoc::GetInputImageFileName(void) const
 {
 	return m_InputBitmapFileName;
 }
@@ -168,16 +170,19 @@ void CLineTracerDoc::ProcessLayers(void)
 	if(lm->GetLayer(0)->GetSketchImage() == NULL) return;
 
 	CLayerManager::Instance()->ProcessLayers();
+
+	LOG( "UpdateAllViews()\n" );
 	UpdateAllViews(NULL);
 }
 
-bool CLineTracerDoc::LoadImage(Bitmap** image, CString *fileName)
+bool CLineTracerDoc::LoadImage(Bitmap** image, CString *fileName) const
 {	
 	LPWSTR lpszW = new WCHAR[1024];
 
 	LPTSTR lpStr = fileName->GetBuffer(fileName->GetLength() );
 	int nLen = MultiByteToWideChar(CP_ACP, 0,lpStr, -1, NULL, NULL);
-	MultiByteToWideChar(CP_ACP, 0, 	lpStr, -1, lpszW, nLen);
+	int l_status = MultiByteToWideChar(CP_ACP, 0, 	lpStr, -1, lpszW, nLen);
+	ASSERT ( l_status != 0 );
 
 	*image = new Bitmap(lpszW);
 
@@ -197,14 +202,14 @@ void CLineTracerDoc::OnParametersBinarizer()
 	CParamDialog dlg;
 	CBinarizer *binarizer = CBinarizer::Instance();
 
-	double oldVal = binarizer->GetParam("min_threshold");
+	double oldVal = binarizer->GetParam(CImageProcessor::BINARIZER_THRESHOLD);
 	dlg.m_EditValue.Format("%.0f",oldVal);
 
 	if(dlg.DoModal() == IDOK) {
 		double newVal = atof((char*)(const char*)dlg.m_EditValue);
 
-		binarizer->SetParam("min_threshold",newVal);
-		if(newVal!=oldVal) {
+		binarizer->SetParam(CImageProcessor::BINARIZER_THRESHOLD,newVal);
+		if( FloatsDiffer(newVal,oldVal) ) {
 			SetModifiedFlag();
 			CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
 			ProcessLayers();
@@ -217,7 +222,7 @@ void CLineTracerDoc::OnParametersGaussian()
 	CParamDialog dlg;
 	CGaussian *gaussian = CGaussian::Instance();
 
-	double oldVal = gaussian->GetParam("radius");
+	double oldVal = gaussian->GetParam(CImageProcessor::GAUSSIAN_RADIUS);
 	dlg.m_EditValue.Format("%.1f",oldVal);
 
 	if(dlg.DoModal() == IDOK) {
@@ -225,10 +230,10 @@ void CLineTracerDoc::OnParametersGaussian()
 
 		if(newVal<0.0) newVal=0.0;
 
-		gaussian->SetParam("radius",newVal);
-		if(newVal!=oldVal) {
+		gaussian->SetParam(CImageProcessor::GAUSSIAN_RADIUS,newVal);
+		if( FloatsDiffer(newVal,oldVal) ) {
 			SetModifiedFlag();
-			CBinarizer::Instance()->SetParam("min_threshold",-1);
+			CBinarizer::Instance()->SetParam(CImageProcessor::BINARIZER_THRESHOLD,-1.0);
 
 			CLayerManager::Instance()->InvalidateLayers(CLayerManager::GAUSSIAN);
 			ProcessLayers();
@@ -289,14 +294,14 @@ void CLineTracerDoc::OnParametersLineLength()
 	CParamDialog dlg;
 	CTailPruner *pruner = CTailPruner::Instance();
 
-	double oldVal = pruner->GetParam("threshold");
+	double oldVal = pruner->GetParam(CImageProcessor::TAILPRUNER_THRESHOLD);
 	dlg.m_EditValue.Format("%.0f",oldVal);
 
 	if(dlg.DoModal() == IDOK) {
 		double newVal = atof((char*)(const char*)dlg.m_EditValue);
 
-		pruner->SetParam("threshold",newVal);
-		if(newVal!=oldVal) {
+		pruner->SetParam(CImageProcessor::TAILPRUNER_THRESHOLD,newVal);
+		if( FloatsDiffer(newVal,oldVal) ) {
 			SetModifiedFlag();
 			CLayerManager::Instance()->InvalidateLayers(CLayerManager::TAILPRUNER);
 			ProcessLayers();
@@ -320,7 +325,7 @@ void CLineTracerDoc::SetZoom(int factor)
 	UpdateAllViews(NULL);
 }
 
-int CLineTracerDoc::GetZoom(void)
+int CLineTracerDoc::GetZoom(void) const
 {
 	return m_ZoomFactor;
 }
@@ -330,19 +335,28 @@ void CLineTracerDoc::OnParametersNoisesurpression()
 	CParamDialog dlg;
 	CBinarizer *binarizer = CBinarizer::Instance();
 
-	double oldVal = binarizer->GetParam("mean_c");
+	double oldVal = binarizer->GetParam(CImageProcessor::BINARIZER_MEAN_C);
 	dlg.m_EditValue.Format("%.0f",oldVal);
 
 	if(dlg.DoModal() == IDOK) {
 		double newVal = atof((char*)(const char*)dlg.m_EditValue);
 
-		binarizer->SetParam("mean_c",newVal);
-		if(newVal!=oldVal) {
+		binarizer->SetParam(CImageProcessor::BINARIZER_MEAN_C,newVal);
+		if( FloatsDiffer(newVal,oldVal) ) {
 			SetModifiedFlag();
 			CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
 			ProcessLayers();
 		}
 	}
+}
+
+bool CLineTracerDoc::FloatsDiffer ( double a_val1, double a_val2 ) {
+	static const double K_LARGEST_DIFF_FOR_EQUALITY = 0.1;
+	double l_diff = abs ( a_val1 - a_val2 );
+	if ( l_diff > K_LARGEST_DIFF_FOR_EQUALITY ) {
+		return true;
+	}
+	return false;
 }
 
 void CLineTracerDoc::OnViewBeziermaker()
@@ -366,15 +380,15 @@ void CLineTracerDoc::OnParametersCurvedetail()
 	CParamDialog dlg;
 	CBezierMaker *bezierMaker = CBezierMaker::Instance();
 
-	double oldVal = bezierMaker->GetParam("error_threshold");
+	double oldVal = bezierMaker->GetParam(CImageProcessor::BEZIERMAKER_ERROR_THRESHOLD);
 	dlg.m_EditValue.Format("%.1f",oldVal);
 
 	if(dlg.DoModal() == IDOK) {
 		double newVal = atof((char*)(const char*)dlg.m_EditValue);
 
 		if(newVal<10) newVal=10;
-		bezierMaker->SetParam("error_threshold",newVal);
-		if(newVal!=oldVal) {
+		bezierMaker->SetParam(CImageProcessor::BEZIERMAKER_ERROR_THRESHOLD,newVal);
+		if( FloatsDiffer ( newVal, oldVal ) ) {
 			SetModifiedFlag();
 			CLayerManager::Instance()->InvalidateLayers(CLayerManager::BEZIERMAKER);
 			ProcessLayers();
@@ -382,20 +396,3 @@ void CLineTracerDoc::OnParametersCurvedetail()
 	}
 }
 
-void CLineTracerDoc::OnToolboxChangeBwthreshold()
-{
-	CToolBox *tb = CToolBox::Instance();
-	
-	double newVal = tb->GetParam(CToolBox::BINARIZER);
-
-	CBinarizer *binarizer = CBinarizer::Instance();
-
-	double oldVal = binarizer->GetParam("min_threshold");
-
-	binarizer->SetParam("min_threshold",newVal);
-	if(newVal!=oldVal) {
-		SetModifiedFlag();
-		CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
-		ProcessLayers();
-	}
-}
