@@ -4,7 +4,6 @@
 #include "PolyLine.h"
 
 #include <vector>
-#include <map>
 
 CLineImage::CLineImage(int width, int height)
 : CSketchImage()
@@ -146,29 +145,19 @@ void CLineImage::SolderKnots(void)
 	delete tmp;
 }
 
-const int CLineImage::IsKnotInLines(const CFPoint &p) const
-{
-	int counter=0;
-
+map<unsigned int,int> *CLineImage::GetTailPointCounterMap(void) const {
+	map<unsigned int,int> * l_map = new map<unsigned int,int>;
 	for(unsigned int i=0; i<Size(); i++) {
 		CPolyLine *line = At(i);
 
-		CSketchPoint *linePoint = line->GetHeadPoint();
-
-		if(linePoint->Distance(p)<0.8) {
-			counter++;
-		} else {
-			linePoint = line->GetTailPoint();
-			if(linePoint->Distance(p)<0.8) {
-				counter++;
-			}
-		}
+		unsigned int l_headKey = line->GetHeadPoint()->GetCoords().HashValue();
+		unsigned int l_tailKey = line->GetTailPoint()->GetCoords().HashValue();
+		
+		(*l_map)[l_headKey] = (((*l_map)[l_headKey]) + 1);
+		(*l_map)[l_tailKey] = (((*l_map)[l_tailKey]) + 1);
 	}
-
-	return counter;
+	return l_map;
 }
-
-
 
 CLineImage* CLineImage::Clone(void) const
 {
@@ -181,16 +170,21 @@ CLineImage* CLineImage::Clone(void) const
 	return clone;
 }
 
-bool CLineImage::IsTail(CPolyLine* pl) const
+bool CLineImage::IsTail(map<unsigned int,int>* a_tailCounterMap, CPolyLine* pl) const
 {
-	CLogger::Inactivate();
+	//CLogger::Inactivate();
 
 	LOG("IsTail: ");
-	if(IsKnotInLines( pl->GetHeadPoint()->GetCoords() )==1) {
+	unsigned int l_headKey = pl->GetHeadPoint()->GetCoords().HashValue();
+
+	if ( ( (*a_tailCounterMap)[l_headKey] ) == 1 ) {
 		LOG("true\n");
 		return true;
 	}
-	if(IsKnotInLines( pl->GetTailPoint()->GetCoords() )==1) {
+
+	unsigned int l_tailKey = pl->GetTailPoint()->GetCoords().HashValue();
+
+	if ( (*a_tailCounterMap)[l_tailKey] == 1 ) {
 		LOG("true\n");
 		return true;
 	}
@@ -213,8 +207,20 @@ CLineImage* CLineImage::SmoothPositions() const
 // check all lines in image and update their tail status
 void CLineImage::UpdateTailData(void)
 {
-	for(unsigned int i=0; i<m_polyLines.size(); i++) {
+	LOG ( "size: %i", m_polyLines.size() );
+
+	map<unsigned int, int> * l_tailPointCounterMap = GetTailPointCounterMap ();
+
+	for(unsigned int i=0; i < m_polyLines.size(); i++) {
+		LOG ( "i: %i\n", i );
 		CPolyLine *pl = m_polyLines.at(i);
-		pl->SetTail( IsTail( pl ) );
+
+		CFPoint l_tailPoint = pl->GetTailPoint()->GetCoords();
+
+		pl->SetTail( IsTail( l_tailPointCounterMap, pl ) );
+		CFPoint l_headPoint = pl->GetHeadPoint()->GetCoords();
 	}
+	LOG ( "done\n" );
+
+	delete l_tailPointCounterMap;
 }
