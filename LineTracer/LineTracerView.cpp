@@ -13,6 +13,7 @@
 #include "Binarizer.h"
 #include "ToolBox.h"
 #include "Logger.h"
+#include ".\linetracerview.h"
 
 //#define USE_MEMDC 1
 
@@ -42,7 +43,8 @@ IMPLEMENT_DYNCREATE(CLineTracerView, CScrollView)
 
 BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_WM_ERASEBKGND()
-	ON_COMMAND(ID_FILE_OPENIMAGE, OnFileOpenimage)
+	ON_COMMAND(ID_FILE_OPENIMAGE, OnFileOpenImage)
+	ON_COMMAND(ID_FILE_CLOSEIMAGE, OnFileCloseImage)
 	ON_COMMAND(ID_VIEW_ZOOMIN, OnViewZoomIn)
 	ON_COMMAND(ID_VIEW_ZOOMOUT, OnViewZoomOut)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_SKELETONIZER, OnUpdateViewSkeletonizer)
@@ -66,6 +68,10 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_BN_CLICKED(IDC_VIEW_RESULT_BUTTON, OnBnClickedViewVectorLayerButton)
 	ON_BN_CLICKED(IDC_VIEW_ALL_BUTTON, OnBnClickedViewAllLayersButton)
 	ON_COMMAND(ID_VIEW_FITONSCREEN, OnViewFitOnScreen)
+	ON_UPDATE_COMMAND_UI(ID_FILE_CLOSEIMAGE, OnUpdateFileCloseImage)
+	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE, OnUpdateFileSave)
+	ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTEPS, OnUpdateFileExportEps)
+	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE_AS, OnUpdateFileSaveAs)
 END_MESSAGE_MAP()
 
 
@@ -177,7 +183,7 @@ CLineTracerDoc* CLineTracerView::GetDocument() const // non-debug version is inl
 
 void CLineTracerView::OnViewZoomIn()
 {
-	if ( ImageLoaded() == false )
+	if ( ImageIsLoaded() == false )
 	{
 		return;
 	}
@@ -186,19 +192,28 @@ void CLineTracerView::OnViewZoomIn()
 
 void CLineTracerView::OnViewZoomOut()
 {
-	if ( ImageLoaded() == false )
+	if ( ImageIsLoaded() == false )
 	{
 		return;
 	}
 	ZoomOut ( CPoint( GetViewWidth()/2, GetViewHeight()/2 ) );
 }
 
-void CLineTracerView::OnFileOpenimage()
+void CLineTracerView::OnFileCloseImage()
 {
-	TCHAR szFilters[] = _T("Images (*.jpg;*.gif;*.tiff;*.tif)");
+	CLayerManager *lm=CLayerManager::Instance();
+	lm->InvalidateLayers();
+	m_imageHeight = 0;
+	m_imageWidth = 0;
+	Invalidate(FALSE);
+}
 
-	CFileDialog dlg (TRUE,_T("jpg;gif;tiff;tif"),
-		_T("*.jpg;*.gif;*.tiff;*.tif"),OFN_FILEMUSTEXIST,szFilters);
+void CLineTracerView::OnFileOpenImage()
+{
+	TCHAR szFilters[] = _T("Images (*.jpg;*.gif;*.tiff;*.tif;*.ltc)");
+
+	CFileDialog dlg (TRUE,_T("jpg;gif;tiff;tif;ltc"),
+		_T("*.jpg;*.gif;*.tiff;*.tif;*.ltc"),OFN_FILEMUSTEXIST,szFilters);
 
 	if(dlg.DoModal()==IDOK) 
 	{
@@ -748,7 +763,7 @@ void CLineTracerView::ResetView(void)
 	}
 }
 
-bool CLineTracerView::ImageLoaded(void)
+bool CLineTracerView::ImageIsLoaded(void)
 {
 	return (GetImageWidth() > 0);
 }
@@ -779,4 +794,24 @@ void CLineTracerView::OnViewFitOnScreen()
 		ZoomOut( CPoint(0,0) );
 	}
 	Invalidate(FALSE);
+}
+
+void CLineTracerView::OnUpdateFileCloseImage(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable( ImageIsLoaded() );
+}
+
+void CLineTracerView::OnUpdateFileSave(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable( ImageIsLoaded() );
+}
+
+void CLineTracerView::OnUpdateFileExportEps(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable( ImageIsLoaded() );
+}
+
+void CLineTracerView::OnUpdateFileSaveAs(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable( ImageIsLoaded() );
 }

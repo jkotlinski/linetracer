@@ -46,7 +46,8 @@ public:
 	void OnInitialUpdate(void);
 protected:
  	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-	afx_msg void OnFileOpenimage();
+	afx_msg void OnFileOpenImage();
+	afx_msg void OnFileCloseImage();
 	afx_msg void OnViewZoomIn();
 	afx_msg void OnViewZoomOut();
 	afx_msg void OnUpdateViewSkeletonizer(CCmdUI *pCmdUI);
@@ -122,9 +123,13 @@ private:
 	void UpdateLayerVisibilitiesFromToolbox(void);
 	void ResetParameterSettings(void);
 	void ResetView(void);
-	bool ImageLoaded(void);
+	bool ImageIsLoaded(void);
 public:
 	afx_msg void OnViewFitOnScreen();
+	afx_msg void OnUpdateFileCloseImage(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateFileSave(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateFileExportEps(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateFileSaveAs(CCmdUI *pCmdUI);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp
