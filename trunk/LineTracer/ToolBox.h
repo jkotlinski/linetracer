@@ -2,6 +2,7 @@
 
 #include "LayerManager.h"
 #include "InitDialogBar.h"
+#include "LineTracerView.h"
 
 // CToolBox
 
@@ -18,18 +19,30 @@ private:
 	virtual ~CToolBox();
 
 protected:
-	CSpinButtonCtrl c_spinButtonControl;
+	CSpinButtonCtrl c_binarizerThresholdControl;
+	CSliderCtrl c_detailEnchanceControl;
+	CSliderCtrl c_holeFillerControl;
+	CSliderCtrl c_tailPrunerControl;
+	CSliderCtrl c_curveDetailControl;
 
 public:
-	void Init(void);
-
-	enum ParamType { BINARIZER };
-	double GetParam(int type) const;
+	double GetParam(CProjectSettings::ParamName a_name) const;
 
 protected:
 	virtual void DoDataExchange(CDataExchange *pDX);
 	virtual BOOL OnInitDialogBar();
 	afx_msg LRESULT OnUpdateToolboxDataFromLayers ( WPARAM wParam, LPARAM lParam );
+	afx_msg void OnNMReleasedCaptureDetailEnchanceSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnToolboxChangeBwthreshold();
 	
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnDrawHoleFillerSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnLineLengthSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	void SetLineTracerView(CLineTracerView* a_view);
+private:
+	CLineTracerView* m_lineTracerView;
+	bool m_isInitialized;
+public:
+	afx_msg void OnCurveDetailSlider(NMHDR *pNMHDR, LRESULT *pResult);
 };

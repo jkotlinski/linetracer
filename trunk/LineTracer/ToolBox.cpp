@@ -6,11 +6,13 @@
 #include "stdafx.h"
 #include "LineTracer.h"
 #include "ToolBox.h"
+#include "ProjectSettings.h"
 
 #include "LayerManager.h"
+#include "ImageProcessor.h"
 #include "Layer.h"
-
 #include "LineTracerView.h"
+#include ".\toolbox.h"
 
 // CToolBox
 
@@ -18,10 +20,17 @@ IMPLEMENT_DYNAMIC(CToolBox, CInitDialogBar)
 
 BEGIN_MESSAGE_MAP(CToolBox, CInitDialogBar)
 	ON_MESSAGE( (WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS), (OnUpdateToolboxDataFromLayers) )
+	ON_EN_CHANGE(IDC_BWTHRESHOLD, OnToolboxChangeBwthreshold)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_HOLEFILLERSLIDER, OnDrawHoleFillerSlider)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_DETAILENCHANCESLIDER, OnNMReleasedCaptureDetailEnchanceSlider)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_TAILPRUNERSLIDER, OnLineLengthSlider)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_CURVEDETAILSLIDER, OnCurveDetailSlider)
 END_MESSAGE_MAP()
 
 CToolBox::CToolBox()
 : CInitDialogBar()
+, m_lineTracerView(NULL)
+, m_isInitialized(false)
 {
 }
 
@@ -42,9 +51,28 @@ BOOL CToolBox::OnInitDialogBar()
 	// CBitmapButton is one
 	//m_OKButtton.AutoLoad(IDOK, this);
 
-	c_spinButtonControl.SetRange(1,254);
-	(void) c_spinButtonControl.SetPos(1);
+	CProjectSettings *l_settings = CProjectSettings::Instance();
 
+	c_binarizerThresholdControl.SetRange(1,254);
+	(void) c_binarizerThresholdControl.SetPos(1);
+
+	c_detailEnchanceControl.SetRange(1,20);
+	c_detailEnchanceControl.SetPos( 
+		int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C ) ) );
+
+	c_holeFillerControl.SetRange(0,40);
+	c_holeFillerControl.SetPos( 
+		int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MIN_AREA ) ) );
+
+	c_tailPrunerControl.SetRange(0,10);
+	c_tailPrunerControl.SetPos( 
+		int( l_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) ) );
+
+	c_curveDetailControl.SetRange(5,40);
+	c_curveDetailControl.SetPos( 
+		int( l_settings->GetParam( CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD ) ) );
+
+	m_isInitialized = true;
 	return TRUE;
 }
 
@@ -61,7 +89,11 @@ void CToolBox::DoDataExchange(CDataExchange* pDX)
 	// Call UpdateData(FALSE) to set data at any time
 
 	//{{AFX_DATA_MAP(CAboutDlg)
-	DDX_Control(pDX, IDC_SPIN1, c_spinButtonControl);
+	DDX_Control(pDX, IDC_SPIN1, c_binarizerThresholdControl);
+	DDX_Control(pDX, IDC_DETAILENCHANCESLIDER, c_detailEnchanceControl);
+	DDX_Control(pDX, IDC_HOLEFILLERSLIDER, c_holeFillerControl);
+	DDX_Control(pDX, IDC_TAILPRUNERSLIDER, c_tailPrunerControl);
+	DDX_Control(pDX, IDC_CURVEDETAILSLIDER, c_curveDetailControl);
 	//}}AFX_DATA_MAP
 }
 
@@ -71,31 +103,34 @@ CToolBox* CToolBox::Instance(void)
     return &inst;
 }
 
-void CToolBox::Init(void)
+double CToolBox::GetParam(CProjectSettings::ParamName a_name) const
 {
-	//c_spinButtonControl.SetRange(1,254);
-	/*
-	CWnd *l_spinWnd = GetDlgItem(IDC_SPIN1);
-	LOG ( "l_spinWnd: %x", l_spinWnd );
-	ASSERT ( l_spinWnd != NULL );
-	CSpinButtonCtrl *spinPtr = static_cast<CSpinButtonCtrl*>(l_spinWnd);
-	ASSERT ( spinPtr != NULL );
-	spinPtr->SetRange(1,254);*/
-	//c_spinButtonControl.SetRange(1,254);
-}
-
-double CToolBox::GetParam(int type) const
-{
+	if ( m_isInitialized == false ) {
+		return -1.0;
+	}
 	CLogger::Activate();
 
-	LOG ( "CToolBox::GetParam(type) ; type == %i\n", type);
-	LOG ( "CToolBox::BINARIZER == %i\n", BINARIZER);
-	
 	double retVal = -1.0;
 
-	switch(type) {
-		case BINARIZER:
-			retVal = c_spinButtonControl.GetPos();
+	switch( a_name ) {
+		case CProjectSettings::BINARIZER_THRESHOLD:
+			retVal = c_binarizerThresholdControl.GetPos();
+			break;
+
+		case CProjectSettings::BINARIZER_MEAN_C:
+			retVal = c_detailEnchanceControl.GetPos();
+			break;
+
+		case CProjectSettings::HOLEFILLER_MIN_AREA:
+			retVal = c_holeFillerControl.GetPos();
+			break;
+
+		case CProjectSettings::TAILPRUNER_THRESHOLD:
+			retVal = c_tailPrunerControl.GetPos();
+			break;
+
+		case CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD:
+			retVal = c_curveDetailControl.GetPos();
 			break;
 
 		default:
@@ -113,15 +148,65 @@ double CToolBox::GetParam(int type) const
 afx_msg LRESULT CToolBox::OnUpdateToolboxDataFromLayers
 	(WPARAM wParam, LPARAM lParam)
 {
+	CProjectSettings *l_settings = CProjectSettings::Instance();
 	CLogger::Activate();
 	LOG ( "OnUpdateToolboxDataFromLayers\n" );
 
-	CLayerManager *lm = CLayerManager::Instance();
-	CLayer *l = lm->GetLayer(CLayerManager::BINARIZER);
+	int l_binarizerThresholdVal = int( l_settings->GetParam( CProjectSettings::BINARIZER_THRESHOLD ) );
+	(void) c_binarizerThresholdControl.SetPos( l_binarizerThresholdVal );
+	
+	int l_detailEnchanceVal = int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C) );
+	(void) c_detailEnchanceControl.SetPos( l_detailEnchanceVal );
 
-	int l_paramVal = int( l->GetParam( CImageProcessor::BINARIZER_THRESHOLD ) );
-	(void) c_spinButtonControl.SetPos( l_paramVal );
+	int l_holeFillerVal = int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MIN_AREA) );
+	(void) c_holeFillerControl.SetPos( l_holeFillerVal );
+
+	int l_tailPrunerVal = int( l_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) );
+	(void) c_tailPrunerControl.SetPos( l_tailPrunerVal );
+
+	int l_curveDetailVal = int( l_settings->GetParam( CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD ) );
+	(void) c_curveDetailControl.SetPos( l_curveDetailVal );
 
 	return 0;	
+}
+
+
+void CToolBox::OnDrawHoleFillerSlider(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	CLogger::Activate();
+	LOG ( "caught OnDrawHoleFillerSlider()\n" );
+	m_lineTracerView->HandleChangedToolboxParam( CLayerManager::HOLEFILLER,
+		CProjectSettings::HOLEFILLER_MIN_AREA);
+	*pResult = 0;
+}
+
+void CToolBox::SetLineTracerView(CLineTracerView* a_view)
+{
+	m_lineTracerView = a_view;
+}
+
+afx_msg void CToolBox::OnNMReleasedCaptureDetailEnchanceSlider(NMHDR *pNMHDR, LRESULT *pResult) {
+	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::BINARIZER,
+		CProjectSettings::BINARIZER_MEAN_C);
+	*pResult = 0;
+}
+
+afx_msg void CToolBox::OnToolboxChangeBwthreshold() {
+	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::BINARIZER,
+		CProjectSettings::BINARIZER_THRESHOLD);
+}
+
+afx_msg void CToolBox::OnLineLengthSlider(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::TAILPRUNER,
+		CProjectSettings::TAILPRUNER_THRESHOLD);
+	*pResult = 0;
+}
+
+void CToolBox::OnCurveDetailSlider(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::BEZIERMAKER,
+		CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD);
+	*pResult = 0;
 }
 
