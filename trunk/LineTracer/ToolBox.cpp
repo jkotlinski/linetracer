@@ -64,7 +64,7 @@ BOOL CToolBox::OnInitDialogBar()
 
 	c_holeFillerControl.SetRange(0,40);
 	c_holeFillerControl.SetPos( 
-		int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MIN_AREA ) ) );
+		int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL ) ) );
 
 	c_tailPrunerControl.SetRange(0,10);
 	c_tailPrunerControl.SetPos( 
@@ -139,7 +139,7 @@ double CToolBox::GetParam(CProjectSettings::ParamName a_name) const
 			retVal = c_detailEnchanceControl.GetPos();
 			break;
 
-		case CProjectSettings::HOLEFILLER_MIN_AREA:
+		case CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL:
 			retVal = c_holeFillerControl.GetPos();
 			break;
 
@@ -176,7 +176,7 @@ afx_msg LRESULT CToolBox::OnUpdateToolboxDataFromLayers
 	int l_detailEnchanceVal = int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C) );
 	(void) c_detailEnchanceControl.SetPos( l_detailEnchanceVal );
 
-	int l_holeFillerVal = int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MIN_AREA) );
+	int l_holeFillerVal = int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL) );
 	(void) c_holeFillerControl.SetPos( l_holeFillerVal );
 
 	int l_tailPrunerVal = int( l_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) );
@@ -196,7 +196,7 @@ void CToolBox::OnDrawHoleFillerSlider(NMHDR *pNMHDR, LRESULT *pResult)
 
 	ASSERT ( m_lineTracerView );
 	m_lineTracerView->HandleChangedToolboxParam( CLayerManager::HOLEFILLER,
-		CProjectSettings::HOLEFILLER_MIN_AREA);
+		CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL);
 	*pResult = 0;
 }
 
