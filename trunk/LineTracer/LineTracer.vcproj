@@ -292,6 +292,9 @@
 			RelativePath=".\LineTracer.reg">
 		</File>
 		<File
+			RelativePath=".\Notes.txt">
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt">
 		</File>
 	</Files>

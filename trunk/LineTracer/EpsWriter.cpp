@@ -30,7 +30,7 @@ void CEpsWriter::Write(CLineImage* lineImage)
 	for(int i=0; i<lineImage->Size(); i++) {
 		CPolyLine* pl=lineImage->At(i);
 
-		if(1/*pl->Size()>0*/) {
+		if(1/*pl->Size()>3*/) {
 
 			CPoint curr(pl->At(0).x,pl->At(0).y);
 			CPoint prev;
