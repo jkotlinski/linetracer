@@ -106,7 +106,6 @@ void CSkeletonizer::TraceCircles( CRawImage<ARGB> &segmentMap, CLineImage &li )
 			if(segmentMap.GetPixel(x,y)) 
 			{
 				CPolyLine *l_circleLine = new CPolyLine();
-				l_circleLine->SetIsCircle();
 
 				//found the top pixel of a circle!
 
