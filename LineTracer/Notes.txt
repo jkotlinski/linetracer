@@ -1,0 +1,7 @@
+TO DO:
+
+- otsu auto-thresholding
+- floating line detection
+- view individual steps
+- implement layer manager
+- new line prune layer

@@ -43,20 +43,7 @@ CRawImage* CSkeletonizer::Process(CRawImage *src) {
 
 	CLineImage* li= Vectorize(segmentMap, knotImage);
 
-	//paint knots
-	/*for(int i=0; i<segmentMap->GetHeight()*segmentMap->GetWidth(); i++) {
-		if(knotImage->GetPixel(i)) {
-			if(knotImage->GetPixel(i) & 0x80000000) {
-				segmentMap->SetPixel(i,0xff0000);
-			} else {
-				if(segmentMap->GetPixel(i)) {
-					segmentMap->SetPixel(i,0x00ff00);
-				}
-			}
-		}
-	}*/
-
-	segmentMap->Clear();
+	//segmentMap->Clear();
 	CLineImageDrawer::Draw(segmentMap,li);
 
 	li->SetWidth(knotImage->GetWidth());
@@ -361,47 +348,44 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage* segmentImg, CRawImage* knotImg)
 	//trace lines with knot endpoints
 	for(int y=1; y<knotImg->GetHeight()-1; y++) {
 		for(int x=1; x<knotImg->GetWidth()-1; x++) {
-			if(segmentImg->GetPixel(x,y) && (knotImg->GetPixel(x,y)&0x40000000)) {
-				//is a knot neighbor
-				int segment=segmentImg->GetPixel(x,y);
+			if(knotImg->GetPixel(x,y)&0x80000000) {
+				//is a knot
 
-				CPolyLine* line=new CPolyLine();
-
-				CSketchPoint startKnot=FindNeighborKnot(knotImg,CPoint(x,y));
-				assert(startKnot.x!=-1);
-
-				line->Add(startKnot);
-
+				//find forbidden end knots
 				map<int,bool> forbiddenEndKnot;
-		
-				int sx=startKnot.x;
-				int sy=startKnot.y;
-
-				forbiddenEndKnot[knotImg->GetPixel(sx,sy)&0xffffff]=true;
+				forbiddenEndKnot[knotImg->GetPixel(x,y)&0xffffff]=true;
 				int p;
-				p=knotImg->GetPixel(sx+1,sy);
+				p=knotImg->GetPixel(x+1,y);
 				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
-				p=knotImg->GetPixel(sx-1,sy);
+				p=knotImg->GetPixel(x-1,y);
 				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
-				p=knotImg->GetPixel(sx,sy+1);
+				p=knotImg->GetPixel(x,y+1);
 				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
-				p=knotImg->GetPixel(sx,sy-1);
-				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
-
-				p=knotImg->GetPixel(sx-1,sy-1);
-				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
-				p=knotImg->GetPixel(sx-1,sy+1);
-				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
-				p=knotImg->GetPixel(sx+1,sy-1);
-				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
-				p=knotImg->GetPixel(sx+1,sy+1);
+				p=knotImg->GetPixel(x,y-1);
 				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
 
-				TraceLine(segmentImg,knotImg,line,CPoint(x,y),&forbiddenEndKnot);
+				p=knotImg->GetPixel(x-1,y-1);
+				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
+				p=knotImg->GetPixel(x-1,y+1);
+				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
+				p=knotImg->GetPixel(x+1,y-1);
+				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
+				p=knotImg->GetPixel(x+1,y+1);
+				if(p&0x80000000) forbiddenEndKnot[p&0xffffff]=true;
 
-				li->Add(line);
+				CSketchPoint startKnot=FindSegmentNeighbor(segmentImg, CPoint(x,y));
 
-				forbiddenEndKnot.clear();
+				while(startKnot.x!=-1) {
+					CPolyLine* line=new CPolyLine();
+
+					line->Add(CSketchPoint(x,y,true,true));
+
+					TraceLine(segmentImg,knotImg,line,CPoint(startKnot.x,startKnot.y),&forbiddenEndKnot);
+
+					li->Add(line);
+
+					startKnot=FindSegmentNeighbor(segmentImg, CPoint(x,y));
+				}
 			}
 		}
 	}
@@ -460,6 +444,9 @@ void CSkeletonizer::TraceLine(CRawImage* segmentImage, CRawImage* knotImage, CPo
 			//add point as endpoint
 			p.SetIsEndPoint(true);
 			line->Add(p);
+
+			//clear point
+			segmentImage->SetPixel(p.x,p.y,0);
 
 			//reached end of line
 			break;
@@ -544,19 +531,28 @@ CSketchPoint CSkeletonizer::FindNeighborKnot(CRawImage* knotImg, CPoint p)
 
 CPoint CSkeletonizer::FindSegmentNeighbor(CRawImage* segmentImage, CPoint p)
 {
-	//check horizontal+vertical neighbors
+	//check orthogonal neighbors
 	if(segmentImage->GetPixel(p.x-1,p.y)) return CPoint(p.x-1,p.y);
 	if(segmentImage->GetPixel(p.x,p.y-1)) return CPoint(p.x,p.y-1);
 	if(segmentImage->GetPixel(p.x+1,p.y)) return CPoint(p.x+1,p.y);
 	if(segmentImage->GetPixel(p.x,p.y+1)) return CPoint(p.x,p.y+1);
 
+	//check diagonal neighbors
 	int seg = segmentImage->GetPixel(p.x,p.y);
 
-	//check diagonal neighbors
-	if(segmentImage->GetPixel(p.x-1,p.y-1)==seg) return CPoint(p.x-1,p.y-1);
-	if(segmentImage->GetPixel(p.x+1,p.y-1)==seg) return CPoint(p.x+1,p.y-1);
-	if(segmentImage->GetPixel(p.x+1,p.y+1)==seg) return CPoint(p.x+1,p.y+1);
-	if(segmentImage->GetPixel(p.x-1,p.y+1)==seg) return CPoint(p.x-1,p.y+1);
+	if(seg) {
+		//current point is a normal line point
+		if(segmentImage->GetPixel(p.x-1,p.y-1)==seg) return CPoint(p.x-1,p.y-1);
+		if(segmentImage->GetPixel(p.x+1,p.y-1)==seg) return CPoint(p.x+1,p.y-1);
+		if(segmentImage->GetPixel(p.x+1,p.y+1)==seg) return CPoint(p.x+1,p.y+1);
+		if(segmentImage->GetPixel(p.x-1,p.y+1)==seg) return CPoint(p.x-1,p.y+1);
+	} else {
+		//current point is a knot. return any segment
+		if(segmentImage->GetPixel(p.x-1,p.y-1)) return CPoint(p.x-1,p.y-1);
+		if(segmentImage->GetPixel(p.x+1,p.y-1)) return CPoint(p.x+1,p.y-1);
+		if(segmentImage->GetPixel(p.x+1,p.y+1)) return CPoint(p.x+1,p.y+1);
+		if(segmentImage->GetPixel(p.x-1,p.y+1)) return CPoint(p.x-1,p.y+1);
+	}
 
 	return CPoint(-1,-1);
 }
