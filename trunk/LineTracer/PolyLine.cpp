@@ -51,7 +51,8 @@ bool CPolyLine::Contains(const CPoint &p)
 	return false;
 }
 
-unsigned int CPolyLine::Size(void) const
+unsigned int CPolyLine::Size(void)
+const
 {
 	return static_cast<unsigned int> ( m_points.size() );
 }
@@ -86,12 +87,14 @@ const
 	return knotCount;
 }
 
-CSketchPoint *CPolyLine::GetHeadPoint(void) const
+CSketchPoint *CPolyLine::GetHeadPoint(void)
+const
 {
 	return m_points.front();
 }
 
-CSketchPoint *CPolyLine::GetTailPoint(void) const
+CSketchPoint *CPolyLine::GetTailPoint(void)
+const
 {
 	return m_points.back();
 }
@@ -104,9 +107,6 @@ away - but this shouldn't matter if those points are close.
 */
 CPolyLine* CPolyLine::MergeLine(CPolyLine* line) 
 {
-	//ASSERT ( 0 == line->RemoveDuplicatePoints() );
-	//ASSERT ( 0 == RemoveDuplicatePoints() );
-
 	CLogger *l_logger = CLogger::Instance();
 	l_logger->Inactivate();
 	
@@ -290,13 +290,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		ASSERT(false);
 	}
 
-	/*
-	if ( 0 == tmp->RemoveDuplicatePoints() )
-	{
-		tmp->Trace();
-		ASSERT ( false );
-	}
-	*/
+	ASSERT ( 0 == tmp->RemoveDuplicatePoints() );
 
 	return tmp;
 }
@@ -388,7 +382,8 @@ CSketchPoint* CPolyLine::GetMaxDeviationPoint(void)
 	return maxDeviationPoint;
 }
 
-CSketchPoint* CPolyLine::At(unsigned int i) const
+CSketchPoint* CPolyLine::At(unsigned int i) 
+const
 {
 	return m_points.at(i);
 }
@@ -417,14 +412,12 @@ const
 
 CPolyLine* CPolyLine::SmoothPositions(void)
 {
-	ASSERT ( Size() > 1 );
 	CPolyLine* nuLine = new CPolyLine();
 	nuLine->SetTail(IsTail());
 
 	nuLine->Add(GetHeadPoint()->Clone());
 
-	for(unsigned int point=1; point<Size()-1; point++) 
-	{
+	for(unsigned int point=1; point<Size()-1; point++) {
 		double x = 0.5 * At(point)->GetX();
 		double y = 0.5 * At(point)->GetY();
 		x += 0.25 * At(point-1)->GetX();
@@ -442,7 +435,8 @@ CPolyLine* CPolyLine::SmoothPositions(void)
 	return nuLine;
 }
 
-void CPolyLine::Trace(void) const
+void CPolyLine::Trace(void)
+const
 {
 	if ( Size() == 0 ) 
 	{
@@ -454,7 +448,7 @@ void CPolyLine::Trace(void) const
 		l_pointIndex++) 
 	{
 		CSketchPoint *p = At(l_pointIndex);
-		TRACE ("CPolyLine[%i]: ", l_pointIndex);
+		LOG ("CPolyLine[%i]: ", l_pointIndex);
 		p->Trace();
 	}
 }
@@ -631,8 +625,8 @@ const
 	while ( l_index1 < l_endIndex1 &&
 		l_differenceFound == false )
 	{
-		const CSketchPoint *l_point1 = At(l_index1);
-		const CSketchPoint *l_point2 = a_line.At(l_index2);
+		CSketchPoint *l_point1 = At(l_index1);
+		CSketchPoint *l_point2 = a_line.At(l_index2);
 
 		if ( l_point1->Distance(*l_point2) > 0.1 )
 		{
@@ -644,4 +638,17 @@ const
 	}
 
 	return true;
+}
+
+void CPolyLine::Flip(void)
+{
+	vector<CSketchPoint*> l_tmpVector;
+
+	while ( m_points.empty() == false )
+	{
+		CSketchPoint *l_point = m_points.back();
+		m_points.pop_back();
+		l_tmpVector.push_back(l_point);
+	}
+	m_points = l_tmpVector;
 }

@@ -49,4 +49,5 @@ private:
 public:
 	void AssertNotEqualTo(const CPolyLine & a_otherLine);
 	const bool Equals(const CPolyLine& a_line) const;
+	void Flip(void);
 };
