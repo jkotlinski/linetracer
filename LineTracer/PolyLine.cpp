@@ -271,6 +271,8 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line) {
 		assert(false);
 	}
 
+	Assert ( 0 == tmp->RemoveDuplicatePoints() );
+
 	return tmp;
 }
 
