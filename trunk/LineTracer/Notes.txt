@@ -1,6 +1,5 @@
 TO DO:
 
-- utritningen blir fel när man ändrar parametrar via toolboxen
 - fixa linjebredd (min-max)
 - linjebredd vid linjeutritning
 - beziermaker->DoSchneider leaks memory
@@ -14,7 +13,6 @@ idé för yta->linje:
  - kantdetektera arbetsbilden
  - addera arbetsbilden till originalbilden
 
-- zoom
 - new line prune layer
 - stoppa tracing mot gradientens riktning
 
