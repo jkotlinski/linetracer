@@ -1,10 +1,7 @@
 TO DO:
 
 MENYN
-- alternativen view->vector image och view->original funkar inte
-- om man har valt zoom, och går upp i menyn, blir förstoringsglaset en
-pil (bra). När man därefter "fäller ut" en meny så blir pilen ett
-förstoringsglas igen (dåligt).
+- view->vector image och view->original uppdaterar inte toolboxstatus!
 
 ANDRA BUGGAR
 - ibland får man sådana där "streck" som löper in i bilden, som inte
@@ -26,11 +23,6 @@ programmet uppenbarligen håller på att tänka...
 - info på statusbaren för vad de olika menyalternativen innebär funkar
 bara för View->Statusbar. Inte för någon annan.
 
-ÖVRIGT
-- Jag tycker inte att "Load image"-lösningen är något vidare. Jag
-valde Open typ 20 ggr... Men om det bara är jag eller ett generellt
-problem får användartesterna utvisa.
-
 STABILITET
 - programmet hänger sig (en gång hittills)
 - små bilder funkar bra på min dator, stora bilder blir mycket långsamt
@@ -43,7 +35,7 @@ När jag testar på den bilden blir resultatet riktigt konstigt.
 - gick det att fixa att göra musmarkörerna små? (förstoringsglaset och handen)
 - gick det att fixa att ha visa vektorbild/pixelbild som två knappar bara?
 
-
+* visa zoom-nivå, tack!
 * flimmmer när man drar bild
 * laure2.gif blir väldigt fel
 * ta tillbaka scrollbars för för stor bild
