@@ -139,11 +139,11 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
 END
 
-IDD_TOOLBOX DIALOGEX 0, 0, 91, 150
+IDD_TOOLBOX DIALOGEX 0, 0, 91, 185
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "Detail Enchance",IDC_STATIC,7,34,62,8
+    LTEXT           "Noise Surpression",IDC_STATIC,7,34,62,8
     LTEXT           "Black/White Threshold",IDC_STATIC,7,7,77,11
     EDITTEXT        IDC_BWTHRESHOLD,7,18,77,12,ES_AUTOHSCROLL | 
                     ES_WANTRETURN | ES_NUMBER,WS_EX_TRANSPARENT | 
@@ -151,19 +151,22 @@ BEGIN
     CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,73,26,11,13,WS_EX_TRANSPARENT
-    PUSHBUTTON      "Move",IDC_MOVEBUTTON,7,124,34,19
-    PUSHBUTTON      "Zoom",IDC_ZOOMBUTTON,50,124,34,19
+    PUSHBUTTON      "Move",IDC_MOVEBUTTON,7,159,34,19
+    PUSHBUTTON      "Zoom",IDC_ZOOMBUTTON,50,159,34,19
     CONTROL         "",IDC_DETAILENCHANCESLIDER,"msctls_trackbar32",TBS_BOTH | 
                     TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,45,77,10
-    LTEXT           "Line Length Threshold",IDC_STATIC,7,56,77,8
-    CONTROL         "",IDC_LINELENGTHSLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,66,77,10
-    LTEXT           "Curve Simplicity",IDC_STATIC,7,78,77,10
-    CONTROL         "",IDC_SLIDER3,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,88,77,10
-    LTEXT           "Line Width",IDC_STATIC,7,99,77,9
+    LTEXT           "Line Length Threshold",IDC_STATIC,7,84,77,8
+    CONTROL         "",IDC_TAILPRUNERSLIDER,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,94,77,10
+    LTEXT           "Curve Simplicity",IDC_STATIC,7,106,77,10
+    CONTROL         "",IDC_CURVEDETAILSLIDER,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,116,77,10
+    LTEXT           "Line Width",IDC_STATIC,7,127,77,9
     CONTROL         "",IDC_SLIDER1,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | WS_DISABLED | WS_TABSTOP,7,109,77,10
+                    TBS_NOTICKS | WS_DISABLED | WS_TABSTOP,7,137,77,10
+    CONTROL         "",IDC_HOLEFILLERSLIDER,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,71,77,10
+    LTEXT           "Hole Filler",IDC_STATIC,7,60,64,9
 END
 
 
@@ -227,7 +230,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 84
         TOPMARGIN, 7
-        BOTTOMMARGIN, 143
+        BOTTOMMARGIN, 178
     END
 END
 #endif    // APSTUDIO_INVOKED
