@@ -40,7 +40,7 @@ namespace Gdiplus
 {
     namespace DllExports
     {
-        #include "GdiplusMem.h"
+        #include <GdiplusMem.h>
     };
 
     class GdiplusBase

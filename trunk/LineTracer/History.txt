@@ -11,5 +11,14 @@
 
 v0.0.3
 
- * added floating line detection
+ * added doubleing line detection
  * added view original menu toggle
+
+v0.0.4 
+
+ * ?
+
+v0.0.5
+
+ * now multithreaded
+ * fixed get/set param bug that occured because of incorrect char* usage
