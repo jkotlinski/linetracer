@@ -19,6 +19,7 @@
 #define IDI_ORIGINAL_LAYER              150
 #define IDI_VECTOR_LAYER                151
 #define IDI_ALL_LAYERS                  152
+#define IDI_VECTOR_LAYER1               154
 #define IDC_EDIT                        1000
 #define IDC_SPIN1                       1001
 #define IDC_BWTHRESHOLD                 1002
@@ -38,7 +39,6 @@
 #define IDC_EDIT1                       1016
 #define IDC_VIEW_RESULT_BUTTON          1017
 #define IDC_VIEW_ALL_BUTTON             1020
-#define IDC_BUTTON1                     1021
 #define IDC_EXPORT_TO_EPS_BUTTON        1021
 #define ID_OPERATIONS_BINARIZE          32771
 #define ID_OPERATION_BINARIZE           32772
@@ -60,13 +60,27 @@
 #define ID_BUTTON32796                  32796
 #define ID_BUTTON32797                  32797
 #define ID_VIEW_                        32798
+#define ID_VIEW_TOOLBOX                 32799
+#define ID_EDIT_STEPFORWARD             32800
+#define ID_EDIT_STEPBACKWARD            32801
+#define ID_VIEW_TOOLBOX32802            32802
+#define ID_VIEW_ZOOMIN                  32803
+#define ID_VIEW_ZOOMOUT                 32804
+#define ID_VIEW_FITONSCREEN             32805
+#define ID_IMAGE_ROTATE                 32806
+#define ID_Menu                         32807
+#define ID_ROTATE_32808                 32808
+#define ID_ROTATE_91                    32809
+#define ID_ROTATE_92                    32810
+#define ID_FILE_CLOSE32811              32811
+#define ID_FILE_OPENRECENT              32812
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        153
-#define _APS_NEXT_COMMAND_VALUE         32799
+#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_COMMAND_VALUE         32813
 #define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -38,52 +38,54 @@ IDR_LineTracerTYPE      ICON                    "res\\LineTracerDoc.ico"
 
 IDR_MAINFRAME MENU 
 BEGIN
-    POPUP "Project"
+    POPUP "File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
-        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
+        MENUITEM "Close\tCtrl+W",               ID_FILE_CLOSE32811
         MENUITEM SEPARATOR
-        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save &As...\tShift+Ctrl+S",   ID_FILE_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "Load Image...\tCtrl+L",       ID_FILE_OPENIMAGE
+        MENUITEM SEPARATOR
+        MENUITEM "Export EPS...\tCtrl+E",       ID_FILE_EXPORTEPS
+        MENUITEM SEPARATOR
+        MENUITEM "Recent Files",                ID_FILE_MRU_FILE1, GRAYED
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
     END
-    POPUP "File"
-    BEGIN
-        MENUITEM "Open Image...",               ID_FILE_OPENIMAGE
-        MENUITEM SEPARATOR
-        MENUITEM "Export EPS...",               ID_FILE_EXPORTEPS
-    END
-    POPUP "Parameters"
-    BEGIN
-        MENUITEM "Gaussian Blur...",            ID_PARAMETERS_GAUSSIANBLUR
-        MENUITEM "Black Threshold...",          ID_PARAMETERS_BINARIZE
-        MENUITEM "Noise Surpression...",        ID_PARAMETERS_NOISESURPRESSION
-
-        MENUITEM "Line Length Threshold...",    ID_PARAMETERS_LINESIZETHRESHOLD
-
-        MENUITEM "Curve Detail...",             ID_PARAMETERS_CURVEDETAIL
-    END
     POPUP "&Edit"
     BEGIN
-        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "Can't &Undo\tCtrl+Z",         ID_EDIT_UNDO, INACTIVE
+        MENUITEM "Can't Redo\tCtrl+Y",          ID_EDIT_STEPFORWARD
+        , INACTIVE
         MENUITEM SEPARATOR
-        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
-        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
-        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM "&Copy Settings\tCtrl+C",      ID_EDIT_COPY, INACTIVE
+        MENUITEM "&Paste Settings\tCtrl+V",     ID_EDIT_PASTE, INACTIVE
+    END
+    POPUP "Image"
+    BEGIN
+        POPUP "Rotate..."
+        BEGIN
+            MENUITEM "180°",                        ID_ROTATE_32808
+            , INACTIVE
+            MENUITEM "90° CW",                      ID_ROTATE_91, INACTIVE
+            MENUITEM "90° CCW",                     ID_ROTATE_92, INACTIVE
+        END
     END
     POPUP "&View"
     BEGIN
-        MENUITEM "Original",                    ID_VIEW_ORIGINAL, CHECKED
-        MENUITEM "Gaussian Blur",               ID_VIEW_GAUSSIAN
-        MENUITEM "Binarizer",                   ID_VIEW_BINARIZER
-        MENUITEM "Thinner",                     ID_VIEW_THINNER
-        MENUITEM "Skeletonizer",                ID_VIEW_SKELETONIZER
-        , CHECKED
-        MENUITEM "BezierMaker",                 ID_VIEW_BEZIERMAKER, CHECKED
+        MENUITEM "Zoom In\tCtrl++",             ID_VIEW_ZOOMIN
+        MENUITEM "Zoom Out\tCtrl+-",            ID_VIEW_ZOOMOUT
+        MENUITEM "Fit On Screen\tCtrl+0",       ID_VIEW_FITONSCREEN
         MENUITEM SEPARATOR
-        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+        MENUITEM "Original",                    ID_VIEW_ORIGINAL, CHECKED
+        MENUITEM "Vector Image",                ID_VIEW_BEZIERMAKER, CHECKED
+        MENUITEM SEPARATOR
+        MENUITEM "Toolbox",                     ID_VIEW_TOOLBOX32802
+        , CHECKED
+        MENUITEM SEPARATOR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR, CHECKED
     END
     POPUP "&Help"
     BEGIN
@@ -369,6 +371,7 @@ IDI_ZOOM                ICON                    "res\\zoom.ico"
 IDI_ORIGINAL_LAYER      ICON                    "res\\show_pixel.ico"
 IDI_VECTOR_LAYER        ICON                    "res\\show_vector_red.ico"
 IDI_ALL_LAYERS          ICON                    "res\\icon2.ico"
+IDI_VECTOR_LAYER1       ICON                    "res\\vector_l.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
