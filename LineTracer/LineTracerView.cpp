@@ -10,9 +10,9 @@
 #include "LineTracerView.h"
 #include "EpsWriter.h"
 
+#include "Binarizer.h"
 #include "ToolBox.h"
 #include "Logger.h"
-#include ".\linetracerview.h"
 
 //#define USE_MEMDC 1
 
@@ -43,6 +43,8 @@ IMPLEMENT_DYNCREATE(CLineTracerView, CScrollView)
 BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_WM_ERASEBKGND()
 	ON_COMMAND(ID_FILE_OPENIMAGE, OnFileOpenimage)
+	ON_COMMAND(ID_VIEW_ZOOMIN, OnViewZoomIn)
+	ON_COMMAND(ID_VIEW_ZOOMOUT, OnViewZoomOut)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_SKELETONIZER, OnUpdateViewSkeletonizer)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BINARIZER, OnUpdateViewBinarizer)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_GAUSSIAN, OnUpdateViewGaussian)
@@ -63,6 +65,7 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_BN_CLICKED(IDC_VIEW_ORIGINAL_BUTTON, OnBnClickedViewOriginalLayerButton)
 	ON_BN_CLICKED(IDC_VIEW_RESULT_BUTTON, OnBnClickedViewVectorLayerButton)
 	ON_BN_CLICKED(IDC_VIEW_ALL_BUTTON, OnBnClickedViewAllLayersButton)
+	ON_COMMAND(ID_VIEW_FITONSCREEN, OnViewFitOnScreen)
 END_MESSAGE_MAP()
 
 
@@ -171,6 +174,24 @@ CLineTracerDoc* CLineTracerView::GetDocument() const // non-debug version is inl
 
 
 // CLineTracerView message handlers
+
+void CLineTracerView::OnViewZoomIn()
+{
+	if ( ImageLoaded() == false )
+	{
+		return;
+	}
+	ZoomIn ( CPoint( GetViewWidth()/2, GetViewHeight()/2 ) );
+}
+
+void CLineTracerView::OnViewZoomOut()
+{
+	if ( ImageLoaded() == false )
+	{
+		return;
+	}
+	ZoomOut ( CPoint( GetViewWidth()/2, GetViewHeight()/2 ) );
+}
 
 void CLineTracerView::OnFileOpenimage()
 {
@@ -702,6 +723,7 @@ void CLineTracerView::UpdateLayerVisibilitiesFromToolbox(void)
 void CLineTracerView::ResetParameterSettings(void)
 {
 	CProjectSettings::Instance()->Reset();
+	CBinarizer::Instance()->Reset();
 	BOOL l_result = ::PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 0, 0 );
 	ASSERT ( l_result != 0 );
 }
@@ -724,4 +746,37 @@ void CLineTracerView::ResetView(void)
 
 		m_magnification.Decrease();
 	}
+}
+
+bool CLineTracerView::ImageLoaded(void)
+{
+	return (GetImageWidth() > 0);
+}
+
+void CLineTracerView::OnViewFitOnScreen()
+{	
+	//set maximum magnification
+	for ( int l_increaseStep = 0; 
+		l_increaseStep < 20; 
+		l_increaseStep++ )
+	{
+		ZoomIn( CPoint(0,0) );
+	}
+
+	int l_iterations = 0;
+	while ( true )
+	{
+		//safety check
+		if ( l_iterations++ == 100 )
+		{
+			break;
+		}
+		if ( GetImageWidth() * GetScale() < GetViewWidth() &&
+			GetImageHeight() * GetScale() < GetViewHeight() )
+		{
+			break;
+		}
+		ZoomOut( CPoint(0,0) );
+	}
+	Invalidate(FALSE);
 }
