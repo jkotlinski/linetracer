@@ -36,8 +36,7 @@ BOOL CParamDialog::OnInitDialog(void)
 {
 	CDialog::OnInitDialog();
 	CEdit *editBox;
-	editBox = dynamic_cast<CEdit*> (GetDlgItem(IDC_EDIT));
-	ASSERT ( editBox != NULL );
+	editBox = static_cast<CEdit*> (GetDlgItem(IDC_EDIT));
 	(void) editBox->SetFocus();
 	editBox->SetSel(0,m_EditValue.GetLength());
 	return false;
