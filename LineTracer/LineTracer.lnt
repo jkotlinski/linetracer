@@ -17,7 +17,6 @@
 .\Layer.cpp                    // 180: RelativePath = ".\Layer.cpp" 
 .\LayerManager.cpp             // 183: RelativePath = ".\LayerManager.cpp" 
 .\LineImage.cpp                // 186: RelativePath = ".\LineImage.cpp" 
-.\LineImagePainter.cpp         // 189: RelativePath = ".\LineImagePainter.cpp" 
 .\LineSegmentor.cpp            // 192: RelativePath = ".\LineSegmentor.cpp" 
 .\LineTracer.cpp               // 195: RelativePath = ".\LineTracer.cpp" 
 .\LineTracerDoc.cpp            // 198: RelativePath = ".\LineTracerDoc.cpp" 
