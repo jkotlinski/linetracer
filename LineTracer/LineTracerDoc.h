@@ -67,8 +67,6 @@ public:
 	afx_msg void OnViewBeziermaker();
 	afx_msg void OnViewThinner();
 	afx_msg void OnParametersCurvedetail();
-private:
-	static bool FloatsDiffer ( double a_val1, double a_val2 );
 };
 
 
