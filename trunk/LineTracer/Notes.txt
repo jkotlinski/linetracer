@@ -3,6 +3,16 @@ TO DO:
 - utritningen blir fel när man ändrar parametrar via toolboxen
 - fixa linjebredd (min-max)
 - linjebredd vid linjeutritning
+- beziermaker->DoSchneider leaks memory
+
+idé för yta->linje: 
+ - kopiera original till arbetsbild
+ - thinna arbetsbilden N gånger
+ - för de ytor som är kvar - kapa bort små ytor
+ - expandera arbetsbilden N gånger, AND:a varje gång med original
+ - ta bort alla ytor på arbetsbilden i originalbilden
+ - kantdetektera arbetsbilden
+ - addera arbetsbilden till originalbilden
 
 - zoom
 - new line prune layer
