@@ -45,12 +45,34 @@ CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 
 	delete knotImage;
 
-	//segmentMap->Clear();
-	/*for(int i=0; i<segmentMap->GetPixels(); i++) {
-		if(segmentMap->GetPixel(i)) segmentMap->SetPixel(i,0xff);
-	}*/
-
 	li->SetSize(segmentMap->GetWidth(),segmentMap->GetHeight());
+
+	//trace endpoints
+	for(int x=1; x<segmentMap->GetWidth()-1; x++) {
+		for(int y=1; y<segmentMap->GetHeight()-1; y++) {
+			if(segmentMap->GetPixel(x,y) && IsEndPoint(segmentMap, CPoint(x,y))) {
+				CPoint p,p_prev;
+				CPolyLine *line = new CPolyLine();
+				//add first point
+				line->Add(CSketchPoint(x,y,true));
+				segmentMap->SetPixel(x,y,0);
+				p_prev=FindSegmentNeighbor(segmentMap,CPoint(x,y));
+				while(1) {
+					p=FindSegmentNeighbor(segmentMap,p_prev);
+					if(p.x==-1) {
+						//add last point
+						line->Add(CSketchPoint(p_prev,true));
+						segmentMap->SetPixel(p_prev.x,p_prev.y,0);
+						break;
+					}
+					line->Add(CSketchPoint(p_prev));
+					segmentMap->SetPixel(p_prev.x,p_prev.y,0);
+					p_prev=p;
+				}
+				li->Add(line);
+			}
+		}
+	}
 
 	delete segmentMap;
 
@@ -559,4 +581,46 @@ bool CSkeletonizer::NoOrthogonalNeighbors(CRawImage* segmentImage, CPoint p)
 	if(segmentImage->GetPixel(p.x+1,p.y)) return false;
 	if(segmentImage->GetPixel(p.x,p.y+1)) return false;
 	return true;
+}
+
+bool CSkeletonizer::IsEndPoint(CRawImage* image, CPoint p)
+{
+	int x=p.x;
+	int y=p.y;
+	int matrix[8];
+
+	int neighbors=0;
+
+	matrix[0]=image->GetPixel(x-1,y)?1:0;
+	matrix[1]=image->GetPixel(x-1,y-1)?2:0;
+	matrix[2]=image->GetPixel(x,y-1)?3:0;
+	matrix[3]=image->GetPixel(x+1,y-1)?4:0;
+	matrix[4]=image->GetPixel(x+1,y)?5:0;
+	matrix[5]=image->GetPixel(x+1,y+1)?6:0;
+	matrix[6]=image->GetPixel(x,y+1)?7:0;
+	matrix[7]=image->GetPixel(x-1,y+1)?8:0;
+
+	if(matrix[7]&&matrix[0]) {
+		matrix[0]=matrix[7];
+	}
+	for(int i=0; i<7; i++) {
+		if(matrix[i+1] && matrix[i]) {
+			matrix[i+1]=matrix[i];
+		}
+	}
+
+	bool isUsed[8];
+	for(int i=0; i<8; i++) {
+		isUsed[i]=false;
+	}
+	for(int i=0; i<8; i++) {
+		if(matrix[i]) {
+			isUsed[matrix[i]-1]=true;
+		}
+	}
+	for(int i=0; i<8; i++) {
+		if(isUsed[i]) neighbors++;
+	}
+
+	return (neighbors==1)?true:false;
 }
