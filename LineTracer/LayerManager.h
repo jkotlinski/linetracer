@@ -29,10 +29,9 @@ public:
 	void InvalidateLayers(unsigned int startLayer=0);
 	void ProcessLayers();
 	CLayer* GetLayer(int layer);
-	unsigned int LayerCount(void);
+	unsigned int LayerCount(void) const;
 	void Serialize(CArchive &ar);
 	CLayer* GetLastLayer(void);
-	void ChangedLayerVisibleState(void);
 	//void SetLineTracerView();
 
 private:
@@ -59,5 +58,5 @@ private:
 public:
 	void SetOriginalLayerVisibility(bool a_isVisible);
 	void SetVectorLayerVisibility(bool a_isVisible);
-	bool IsProcessing(void);
+	bool IsProcessing(void) const;
 };
