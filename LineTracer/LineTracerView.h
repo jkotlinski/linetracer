@@ -9,6 +9,7 @@
 
 #include "Magnification.h"
 #include "AffineTransform.h"
+#include "atltypes.h"
 
 #define WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS (WM_USER+0x100)
 
@@ -56,7 +57,7 @@ protected:
 	
 	DECLARE_MESSAGE_MAP()
 private:
-	void ProcessLayers(void) const;
+	void ProcessLayers(void);
 public:
 	void HandleChangedToolboxParam(CLayerManager::LayerTypes a_layerId, 
 		CProjectSettings::ParamName a_paramName);
@@ -75,12 +76,6 @@ private:
 	Magnification m_magnification;
 private:
 	int m_activeToolType;
-	enum ToolTypes 
-	{ 
-		ToolTypeNone,
-		ToolTypeZoom,
-		ToolTypeMove
-	};
 public:
 	void OnLButtonDown(UINT nFlags, CPoint point);
 	void OnRButtonDown(UINT nFlags, CPoint point);
@@ -101,6 +96,19 @@ private:
 	void SetXTranslation(float a_Translation);
 	void SetYTranslation(float a_Translation);
 	AffineTransform GetTransform(void);
+	bool m_mouseIsBeingDragged;
+	CPoint m_previousDragPoint;
+	void FillBackground(
+		CDC *a_dc, 
+		AffineTransform & l_transform, 
+		int a_imageWidth, 
+		int a_imageHeight);
+public:
+	BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
+private:
+	enum CursorTypes m_cursorType;
+	void SetCursorType(enum CursorTypes a_cursorType);
+	enum CursorTypes GetCursorType(void);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp

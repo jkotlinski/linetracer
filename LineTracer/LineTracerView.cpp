@@ -12,11 +12,24 @@
 
 #include "ToolBox.h"
 #include "Logger.h"
+#include ".\linetracerview.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+enum ToolTypes 
+{ 
+	ToolTypeNone,
+	ToolTypeZoom,
+	ToolTypeMove
+};
+enum CursorTypes 
+{ 
+	CursorTypeNone,
+	CursorTypeCross,
+	CursorTypeWait
+};
 
 // CLineTracerView
 
@@ -36,9 +49,12 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_MOUSEMOVE()
+	ON_WM_SETCURSOR()
 	ON_BN_CLICKED(IDC_MOVEBUTTON, OnBnClickedMovebutton)
 	ON_BN_CLICKED(IDC_ZOOMBUTTON, OnBnClickedZoombutton)
 END_MESSAGE_MAP()
+
+//#define USE_MEMDC
 
 // CLineTracerView construction/destruction
 
@@ -46,6 +62,9 @@ CLineTracerView::CLineTracerView()
 : m_activeToolType(ToolTypeZoom)
 , m_translationX(0)
 , m_translationY(0)
+, m_mouseIsBeingDragged(false)
+, m_previousDragPoint(0)
+, m_cursorType(CursorTypeCross)
 {
 	CLayerManager::Instance()->SetLineTracerView( this );
 	CToolBox::Instance()->SetLineTracerView( this );
@@ -71,10 +90,11 @@ void CLineTracerView::OnDraw(CDC* dc)
 {
 	/*SetScrollSizes(MM_TEXT, CSize( static_cast<int>(GetImageWidth()*GetScale()), 
 		static_cast<int>(GetImageHeight()*GetScale())) );*/
-
 	LOG ( "caught OnDraw\n" );
 
+#ifdef	USE_MDC
     CMemDC pDC(dc);
+#endif
 	CLineTracerDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
 	if (!pDoc)
@@ -90,16 +110,23 @@ void CLineTracerView::OnDraw(CDC* dc)
 		CSize ( GetImageWidth(), GetImageHeight() ),
 		CSize ( GetViewWidth(), GetViewHeight() )
 		);
-	m_translationX = l_transform.m_translationX;
-	m_translationY = l_transform.m_translationY;
+	m_translationX = l_transform.GetTranslationX();
+	m_translationY = l_transform.GetTranslationY();
 
+#ifdef	USE_MEMDC
 	Graphics gr(pDC);
+#else
+	FillBackground(dc, l_transform, GetImageWidth(), GetImageHeight());
+	Graphics gr(*dc);
+#endif
 	Matrix *l_matrix = l_transform.GetMatrix();
 	(void) gr.SetTransform ( l_matrix );
 	(void) gr.SetSmoothingMode ( SmoothingModeAntiAlias );
 	(void) gr.SetInterpolationMode( InterpolationModeNearestNeighbor );
 
-	CLayerManager::Instance()->DrawAllLayers ( gr );
+	CLayerManager *l_layerManager = CLayerManager::Instance();
+	l_layerManager->DrawAllLayers ( gr );
+
 	delete l_matrix;
 }
 
@@ -205,16 +232,21 @@ void CLineTracerView::OnUpdateViewThinner(CCmdUI *pCmdUI)
 afx_msg BOOL CLineTracerView::OnEraseBkgnd(CDC* pDC)
 {
 	LOG ( "OnEraseBkgnd()\n" );
+#ifdef USE_MEMDC
 	return FALSE;
+#else
+	return CView::OnEraseBkgnd(pDC);
+#endif
 }
 
 
-void CLineTracerView::ProcessLayers(void) const
+void CLineTracerView::ProcessLayers(void)
 {
 	CLayerManager *lm = CLayerManager::Instance();
 	if(lm->GetLayer(0)->GetSketchImage() == NULL) return;
-
+	SetCursorType(CursorTypeWait);
 	CLayerManager::Instance()->ProcessLayers();
+	SetCursorType(CursorTypeCross);
 }
 
 void CLineTracerView::HandleChangedToolboxParam(CLayerManager::LayerTypes a_layerId,
@@ -315,8 +347,19 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 	case ToolTypeZoom:
 		ZoomIn(point);
 		break;
+	case ToolTypeMove:
+		m_mouseIsBeingDragged = true;
+		m_previousDragPoint = point;
+		break;
 	}
 }
+
+void CLineTracerView::OnLButtonUp(UINT nFlags, CPoint point) {
+	if ( m_activeToolType == ToolTypeMove ) {
+		m_mouseIsBeingDragged = false;
+	}
+}
+
 void CLineTracerView::OnRButtonDown(UINT nFlags, CPoint point)
 {
 	switch ( m_activeToolType )
@@ -326,11 +369,19 @@ void CLineTracerView::OnRButtonDown(UINT nFlags, CPoint point)
 		break;
 	}
 }
-void CLineTracerView::OnLButtonUp(UINT nFlags, CPoint point)
+void CLineTracerView::OnMouseMove(UINT nFlags, CPoint point) 
 {
-}
-void CLineTracerView::OnMouseMove(UINT nFlags, CPoint point)
-{
+	if ( m_activeToolType == ToolTypeMove ) 
+	{
+		if ( m_mouseIsBeingDragged ) 
+		{
+			CPoint l_difference = point - m_previousDragPoint;
+			SetXTranslation ( l_difference.x * GetScale() + GetXTranslation() );
+			SetYTranslation ( l_difference.y * GetScale() + GetYTranslation() );
+			m_previousDragPoint = point;
+			Invalidate();
+		}
+	}
 }
 
 void CLineTracerView::OnBnClickedMovebutton()
@@ -418,4 +469,79 @@ AffineTransform CLineTracerView::GetTransform(void)
 	l_transform.TranslateBy(GetXTranslation(), GetYTranslation());
 	l_transform.ScaleBy(GetScale());
 	return l_transform;
+}
+
+void CLineTracerView::FillBackground(
+	CDC *a_dc, 
+	AffineTransform & a_transform, 
+	int a_imageWidth, 
+	int a_imageHeight)
+{
+	static const unsigned int l_BGCOLOR = 0x808080;
+	CRect l_rect;
+	a_dc->GetClipBox(l_rect);
+
+	PointF l_bottomRightImagePoint((float)a_imageWidth, (float)a_imageHeight);
+	PointF l_topLeftImagePoint(0.0f, 0.0f);
+	a_transform.TransformPoint(l_bottomRightImagePoint);
+	a_transform.TransformPoint(l_topLeftImagePoint);
+
+	/* areas
+     _________________
+	|    |  T    |    |
+	|    |_______|    |
+	|    |       |    |
+	|    |image  |    |
+	| L  |       | R  |
+	|    |_______|    |
+	|    |  B    |    |
+	|____|_______|____|
+	*/
+
+	//L
+    a_dc->FillSolidRect ( 
+		CRect(0,0,int(l_topLeftImagePoint.X)+1,l_rect.bottom), 
+		l_BGCOLOR );
+	//R
+    a_dc->FillSolidRect ( 
+		CRect(int(l_bottomRightImagePoint.X),
+			0,
+			l_rect.right,
+			l_rect.bottom), 
+		l_BGCOLOR );
+
+	//T
+    a_dc->FillSolidRect ( 
+		CRect(int(l_topLeftImagePoint.X),0,
+			int(l_bottomRightImagePoint.X)+1,int(l_topLeftImagePoint.Y)+1), 
+		l_BGCOLOR );
+	//B
+    a_dc->FillSolidRect ( 
+		CRect(int(l_topLeftImagePoint.X),int(l_bottomRightImagePoint.Y),
+			int(l_bottomRightImagePoint.X)+1,l_rect.bottom), 
+		l_BGCOLOR );
+}
+
+BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
+{
+	switch ( GetCursorType() )
+	{
+	case CursorTypeCross:
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_CROSS));
+		return TRUE;
+	case CursorTypeWait:
+		::SetCursor(AfxGetApp()->LoadStandardCursor(IDC_WAIT));
+		return TRUE;
+	}
+	return CView::OnSetCursor(pWnd, nHitTest, message);
+}
+
+void CLineTracerView::SetCursorType(enum CursorTypes a_cursorType)
+{
+	m_cursorType = a_cursorType;
+}
+
+enum CursorTypes CLineTracerView::GetCursorType(void)
+{
+	return m_cursorType;
 }
