@@ -15,7 +15,7 @@
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
-			UseOfMFC="2"
+			UseOfMFC="1"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
@@ -23,7 +23,7 @@
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				BufferSecurityCheck="TRUE"
 				TreatWChar_tAsBuiltInType="TRUE"
 				RuntimeTypeInfo="TRUE"
@@ -204,6 +204,9 @@
 				RelativePath=".\Logger.cpp">
 			</File>
 			<File
+				RelativePath=".\Magnification.cpp">
+			</File>
+			<File
 				RelativePath=".\MainFrm.cpp">
 			</File>
 			<File
@@ -247,6 +250,9 @@
 			</File>
 			<File
 				RelativePath=".\ToolBox.cpp">
+			</File>
+			<File
+				RelativePath=".\TransformValidator.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -320,6 +326,9 @@
 				RelativePath=".\Logger.h">
 			</File>
 			<File
+				RelativePath=".\Magnification.h">
+			</File>
+			<File
 				RelativePath=".\MainFrm.h">
 			</File>
 			<File
@@ -378,6 +387,9 @@
 			</File>
 			<File
 				RelativePath=".\ToolBox.h">
+			</File>
+			<File
+				RelativePath=".\TransformValidator.h">
 			</File>
 		</Filter>
 		<Filter
