@@ -9,9 +9,6 @@ CBinarizer::CBinarizer(void)
 , m_distanceMap()
 {
 	LOG("init binarizer\n");
-	CProjectSettings *l_settings = CProjectSettings::Instance();
-	l_settings->SetParam(CProjectSettings::BINARIZER_THRESHOLD, -1.0);
-	l_settings->SetParam(CProjectSettings::BINARIZER_MEAN_C, 5.0);
 	SetName(CString("binarizer"));
 	SetType ( BINARIZER );
 }

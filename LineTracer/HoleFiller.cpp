@@ -10,8 +10,6 @@ CHoleFiller::CHoleFiller(void)
 	LOG("init holefiller\n");
 	SetName ( CString ( "HoleFiller" ) );
 	SetType ( HOLEFILLER );
-	CProjectSettings::Instance()->SetParam( 
-		CProjectSettings::HOLEFILLER_MIN_AREA, 20.0 );
 }
 
 CHoleFiller::~CHoleFiller(void)

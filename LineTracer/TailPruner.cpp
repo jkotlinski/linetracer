@@ -9,9 +9,6 @@ CTailPruner::CTailPruner(void)
 {
 	SetName ( CString ( "TailPruner" ) );
 	SetType ( TAILPRUNER );
-	CProjectSettings::Instance()->SetParam(
-		CProjectSettings::TAILPRUNER_THRESHOLD, 
-		5.0);
 }
 
 CTailPruner::~CTailPruner(void)

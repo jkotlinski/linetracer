@@ -11,9 +11,6 @@ CKneeSplitter::CKneeSplitter(void)
 : CImageProcessor()
 {
 	SetName ( CString ( "KneeSplitter" ) );
-	CProjectSettings::Instance()->SetParam(
-		CProjectSettings::KNEESPLITTER_THRESHOLD,
-		-0.3);
 }
 
 CKneeSplitter::~CKneeSplitter(void)
