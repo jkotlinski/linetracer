@@ -210,15 +210,18 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 			LOG("process layer: %i\n",l_activeLayerIndex);
 			layer = l_lm->GetLayer (l_activeLayerIndex);
 
-			char l_messageStrBuf[100];
-			const CString *l_string = layer->GetName();
-			const char *l_layerName = (LPCTSTR)(*l_string);
-			sprintf(l_messageStrBuf, "Processing %s...", l_layerName);
-			l_lm->m_lineTracerView->PostMessage(
-				WM_UPDATE_STATUSBAR_WITH_STRING, 
-				reinterpret_cast<WPARAM>(l_messageStrBuf), 0);
+			if ( layer->IsValid() == false )
+			{
+				char *l_messageStrBuf = new char[100];
+				const CString *l_string = layer->GetName();
+				const char *l_layerName = (LPCTSTR)(*l_string);
+				sprintf(l_messageStrBuf, "Processing %s...", l_layerName);
+				l_lm->m_lineTracerView->PostMessage(
+					WM_UPDATE_STATUSBAR_WITH_STRING, 
+					reinterpret_cast<WPARAM>(l_messageStrBuf), 0);
 
-			layer->Process(img);
+				layer->Process(img);
+			}
 
 #ifdef _DEBUG
 			CMemoryState l_postProcessLayerMemState;
@@ -263,9 +266,11 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 	
 	K_ACTIVE_PROCESSES--;
 
+	char *l_message = new char[100];
+	strcpy(l_message, "Ready");
 	l_lm->m_lineTracerView->PostMessage(
 			WM_UPDATE_STATUSBAR_WITH_STRING, 
-			reinterpret_cast<WPARAM>(_T("Ready")), 0);
+			reinterpret_cast<WPARAM>(l_message), 0);
 
 	//redraw!
 	l_lm->GetLineTracerView()->Invalidate( FALSE );

@@ -410,8 +410,9 @@ afx_msg LRESULT CLineTracerView::OnUpdateStatusbarWithString
 		CStatusBar *pStatusBar = static_cast<CStatusBar *>(pMainFrame->GetMessageBar());
 		if (pStatusBar)
 		{
-			LPCTSTR l_message = reinterpret_cast<const TCHAR*>(wParam);
+			LPCTSTR l_message = reinterpret_cast<LPCTSTR>(wParam);
 			pStatusBar->SetPaneText(0, l_message);
+			delete[] l_message;
 		}
 	}
 	return 0;	
