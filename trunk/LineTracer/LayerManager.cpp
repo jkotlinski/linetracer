@@ -183,7 +183,6 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 
 	int l_loopCount = 0;
 
-
 	do {
 		ASSERT ( l_loopCount++ < 1000 );
 
@@ -204,6 +203,14 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 			CLogger::Instance()->Activate();
 			LOG("process layer: %i\n",l_activeLayerIndex);
 			layer = l_lm->GetLayer (l_activeLayerIndex);
+
+			char l_messageStrBuf[100];
+			const CString *l_string = layer->GetName();
+			const char *l_layerName = (LPCTSTR)(*l_string);
+			sprintf(l_messageStrBuf, "Processing %s...", l_layerName);
+			l_lm->m_lineTracerView->PostMessage(
+				WM_UPDATE_STATUSBAR_WITH_STRING, 
+				reinterpret_cast<WPARAM>(l_messageStrBuf), 0);
 
 			layer->Process(img);
 
@@ -249,6 +256,10 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 	l_lm->m_isProcessing = false; 
 	
 	K_ACTIVE_PROCESSES--;
+
+	l_lm->m_lineTracerView->PostMessage(
+			WM_UPDATE_STATUSBAR_WITH_STRING, 
+			reinterpret_cast<WPARAM>(_T("Ready")), 0);
 
 	//redraw!
 	l_lm->GetLineTracerView()->Invalidate( FALSE );

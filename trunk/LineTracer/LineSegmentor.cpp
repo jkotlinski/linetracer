@@ -10,7 +10,7 @@ using namespace std;
 CLineSegmentor::CLineSegmentor(void)
 : CImageProcessor()
 {
-	SetName ( CString ( "LineSegmentor" ) );
+	SetName ( CString ( "Line Segmentor" ) );
 	LOG("init linesegmentor\n");
 }
 

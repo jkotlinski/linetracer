@@ -72,6 +72,7 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE, OnUpdateFileSave)
 	ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTEPS, OnUpdateFileExportEps)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE_AS, OnUpdateFileSaveAs)
+	ON_MESSAGE( (WM_UPDATE_STATUSBAR_WITH_STRING), (OnUpdateStatusbarWithString) )
 END_MESSAGE_MAP()
 
 
@@ -285,6 +286,7 @@ void CLineTracerView::OnUpdateViewThinner(CCmdUI *pCmdUI)
 	pCmdUI->SetCheck(l->IsVisible());
 }
 
+
 //lint -e{715}
 afx_msg BOOL CLineTracerView::OnEraseBkgnd(CDC* pDC)
 {
@@ -397,8 +399,28 @@ bool CLineTracerView::LoadImage(Bitmap** image, CString *fileName)
 	}
 }
 
+//------------------------------------
+
+afx_msg LRESULT CLineTracerView::OnUpdateStatusbarWithString
+	(WPARAM wParam, LPARAM lParam)
+{
+	CFrameWnd *pMainFrame = static_cast<CFrameWnd *>(AfxGetMainWnd());
+	if (pMainFrame)
+	{
+		CStatusBar *pStatusBar = static_cast<CStatusBar *>(pMainFrame->GetMessageBar());
+		if (pStatusBar)
+		{
+			LPCTSTR l_message = reinterpret_cast<const TCHAR*>(wParam);
+			pStatusBar->SetPaneText(0, l_message);
+		}
+	}
+	return 0;	
+}
+
+
 void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 {
+	TRACE ( "OnLButtonDown\n" );
 	switch ( m_activeToolType )
 	{
 	case ToolTypeZoom:

@@ -16,7 +16,7 @@ CForkHandler::CForkHandler(void)
 , TForks(NULL)
 , YForks(NULL)
 {
-	SetName(CString("forkhandler"));
+	SetName(CString("Fork Handler"));
 	ThreeForks = new vector<CFPoint>;
 	TForks = new vector<CFPoint>;
 	YForks = new vector<CFPoint>;
