@@ -40,13 +40,11 @@ IDR_MAINFRAME MENU
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN, INACTIVE
-        MENUITEM "Close\tCtrl+W",               ID_FILE_CLOSE32811, INACTIVE
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPENIMAGE, INACTIVE
+        MENUITEM "Close\tCtrl+W",               ID_FILE_CLOSEIMAGE, INACTIVE
         MENUITEM SEPARATOR
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE, INACTIVE
         MENUITEM "Save &As...\tShift+Ctrl+S",   ID_FILE_SAVE_AS, INACTIVE
-        MENUITEM SEPARATOR
-        MENUITEM "Load Image...\tCtrl+L",       ID_FILE_OPENIMAGE
         MENUITEM SEPARATOR
         MENUITEM "Export EPS...\tCtrl+E",       ID_FILE_EXPORTEPS
         MENUITEM SEPARATOR
@@ -109,16 +107,16 @@ BEGIN
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
     VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    "E",            ID_FILE_EXPORTEPS,      VIRTKEY, CONTROL, NOINVERT
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
-    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPENIMAGE,      VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    "0",            ID_VIEW_FITONSCREEN,    VIRTKEY, CONTROL, NOINVERT
     VK_OEM_PLUS,    ID_VIEW_ZOOMIN,         VIRTKEY, CONTROL, NOINVERT
     VK_OEM_MINUS,   ID_VIEW_ZOOMOUT,        VIRTKEY, CONTROL, NOINVERT
-    "0",            ID_VIEW_FITONSCREEN,    VIRTKEY, CONTROL, NOINVERT
-    "L",            ID_FILE_OPENIMAGE,      VIRTKEY, CONTROL, NOINVERT
-    "E",            ID_FILE_EXPORTEPS,      VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_FILE_CLOSEIMAGE,     VIRTKEY, CONTROL, NOINVERT
 END
 
 

@@ -2,7 +2,6 @@ TO DO:
 
 MENYN
 - alternativen view->vector image och view->original funkar inte
-- varför är inte close implementerat?
 - om man har valt zoom, och går upp i menyn, blir förstoringsglaset en
 pil (bra). När man därefter "fäller ut" en meny så blir pilen ett
 förstoringsglas igen (dåligt).
