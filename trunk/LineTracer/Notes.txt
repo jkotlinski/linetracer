@@ -1,5 +1,14 @@
 TO DO:
 
+* ctrl+'+', ctrl+'-' zoom in/ut
+* flimmmer när man drar bild
+* laure2.gif blir väldigt fel
+* för över meny + shortcuts
+* ta tillbaka scrollbars för för stor bild
+
+* framtiden: kolla minnesanvändning
+* framtiden: x-korsning
+
 - fixa linjebredd (min-max)
 - linjebredd vid linjeutritning
 - beziermaker->DoSchneider leaks memory
