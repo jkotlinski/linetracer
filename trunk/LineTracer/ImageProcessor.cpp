@@ -2,23 +2,12 @@
 #include ".\imageprocessor.h"
 
 CImageProcessor::CImageProcessor(void)
-: m_IsActive(false)
-, m_IsValid(false)
+: m_IsValid(false)
 {
 }
 
 CImageProcessor::~CImageProcessor(void)
 {
-}
-
-void CImageProcessor::SetActive(bool state)
-{
-	m_IsActive=state;
-}
-
-bool CImageProcessor::IsActive(void)
-{
-	return m_IsActive;
 }
 
 void CImageProcessor::SetParam(char* name, double value)
