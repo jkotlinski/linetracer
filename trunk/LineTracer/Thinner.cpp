@@ -3,7 +3,6 @@
 
 CThinner::CThinner(void)
 : CImageProcessor()
-, m_maxPeelIterationsUntilAreaIsDetected(3)
 {
 	SetName ( CString ( "Thinner" ) );
 	SetType ( THINNER );
@@ -28,32 +27,16 @@ CSketchImage* CThinner::Process(CSketchImage *i_src) {
 		dst->SetPixel(i,!src->GetPixel(i));
 	}
 
-	bool l_processComplete = false;
-
-	for ( int l_peelIteration=1; 
-		l_peelIteration < m_maxPeelIterationsUntilAreaIsDetected;
-		l_peelIteration++ )
+	while(true)
 	{
 		deque<CPoint> l_pixelPoints = PeelPixels(dst);
 		int pixelsThinned = DeletePixels(l_pixelPoints, *dst);
 	
 		if ( pixelsThinned == 0 )
 		{
-			l_processComplete = true;
 			break;
 		}
 	} 
-
-	if ( l_processComplete == false )
-	{
-		//aborted peeling because we reached max peeling limit.
-		//there are some remaining areas left in image.
-		//we must now convert areas to lines by doing edge detection.
-		dst->DeleteAllBlackPixelsWithoutWhiteNeighbors();
-		//nice up a just little more...
-		deque<CPoint> l_pixelPoints = PeelPixels(dst);
-		(void) DeletePixels(l_pixelPoints, *dst);
-	}
 
 	return dst;
 }
