@@ -32,7 +32,7 @@ CSketchImage* CDeSaturator::Process(CSketchImage* i_src)
 		brightness+=(c&0xff00)>>8;
 		brightness+=c&0xff;
 
-		dst->SetPixel(i,0xff&(brightness/3));
+		dst->SetPixel(i,(unsigned char)(brightness/3));
 	}
 	return dst;
 }
