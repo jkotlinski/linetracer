@@ -14,7 +14,7 @@
 #include "Logger.h"
 #include ".\linetracerview.h"
 
-//#define USE_MEMDC
+//#define USE_MEMDC 1
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -416,8 +416,8 @@ void CLineTracerView::OnMouseMove(UINT nFlags, CPoint point)
 		if ( m_mouseIsBeingDragged ) 
 		{
 			CPoint l_difference = point - m_previousDragPoint;
-			SetXTranslation ( l_difference.x * GetScale() + GetXTranslation() );
-			SetYTranslation ( l_difference.y * GetScale() + GetYTranslation() );
+			SetXTranslation ( l_difference.x + GetXTranslation() );
+			SetYTranslation ( l_difference.y + GetYTranslation() );
 			m_previousDragPoint = point;
 			Invalidate(FALSE);
 		}
