@@ -94,6 +94,8 @@ void CToolBox::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_HOLEFILLERSLIDER, c_holeFillerControl);
 	DDX_Control(pDX, IDC_TAILPRUNERSLIDER, c_tailPrunerControl);
 	DDX_Control(pDX, IDC_CURVEDETAILSLIDER, c_curveDetailControl);
+	DDX_Control(pDX, IDC_MOVEBUTTON, c_moveButton);
+	DDX_Control(pDX, IDC_ZOOMBUTTON, c_zoomButton);
 	//}}AFX_DATA_MAP
 }
 
@@ -210,3 +212,14 @@ void CToolBox::OnCurveDetailSlider(NMHDR *pNMHDR, LRESULT *pResult)
 	*pResult = 0;
 }
 
+void CToolBox::MoveButtonClicked()
+{
+	c_moveButton.SetState( true );
+	c_zoomButton.SetState( false );
+}
+
+void CToolBox::ZoomButtonClicked()
+{
+	c_moveButton.SetState( false );
+	c_zoomButton.SetState( true );
+}
