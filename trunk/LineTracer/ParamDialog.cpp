@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include "LineTracer.h"
 #include "ParamDialog.h"
-#include ".\paramdialog.h"
 
 
 // CParamDialog dialog
@@ -37,8 +36,9 @@ BOOL CParamDialog::OnInitDialog(void)
 {
 	CDialog::OnInitDialog();
 	CEdit *editBox;
-	editBox = (CEdit*) GetDlgItem(IDC_EDIT);
-	editBox->SetFocus();
+	editBox = dynamic_cast<CEdit*> (GetDlgItem(IDC_EDIT));
+	ASSERT ( editBox != NULL );
+	(void) editBox->SetFocus();
 	editBox->SetSel(0,m_EditValue.GetLength());
 	return false;
 }
