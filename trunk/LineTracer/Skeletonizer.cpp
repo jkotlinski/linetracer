@@ -958,6 +958,7 @@ void CSkeletonizer::TrackBoundary(int x, int y, char* f, double* U,double &val, 
 	}
 }
 
+/*
 CRawImage<bool>* CSkeletonizer::MagnifyImage(CRawImage<bool>* img)
 {
 	int SCALE = int( CProjectSettings::Instance()->GetParam(
@@ -983,12 +984,13 @@ CRawImage<bool>* CSkeletonizer::MagnifyImage(CRawImage<bool>* img)
 
 	//dilate tmp image to ensure connectivity in diagonal single-pixel lines
 	
-	/*if(SCALE>1) {
-		tmp->Dilate();
-	}*/
+	//if(SCALE>1) {
+	//	tmp->Dilate();
+	//}
 
 	return tmp;
 }
+*/
 
 void CSkeletonizer::PaintImage(CSketchImage *a_image, CRawImage<ARGB> *a_canvas) const
 {
