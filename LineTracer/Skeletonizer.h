@@ -24,6 +24,6 @@ private:
 	CPoint IsKnotNeighbor(CRawImage* knotImage, CPoint point, map<int,bool> *forbiddenEndKnotIds);
 	CSketchPoint FindNeighborKnot(CRawImage* knotImg, CPoint p);
 	CPoint FindSegmentNeighbor(CRawImage* segmentImage, CPoint p);
-protected:
 	bool NoOrthogonalNeighbors(CRawImage* segmentImage, CPoint p);
+	bool IsEndPoint(CRawImage* image,CPoint p);
 };
