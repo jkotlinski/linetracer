@@ -1,11 +1,12 @@
 #include "StdAfx.h"
-#include ".\fpoint.h"
+#include "fpoint.h"
 
 #include <math.h>
+#include "fpoint.h"
 
 CFPoint::CFPoint(double ix,double iy)
-: x(ix)
-, y(iy)
+: m_x(ix)
+, m_y(iy)
 {
 }
 
@@ -13,68 +14,84 @@ CFPoint::~CFPoint(void)
 {
 }
 
-bool CFPoint::operator==(const CFPoint & point)
-{
-	if(point.x == x && point.y == y) return true;
-	return false;
+const CFPoint CFPoint::operator-(void) const
+{	
+	return CFPoint(-m_x,-m_y);
 }
 
-bool CFPoint::operator!=(const CFPoint& point)
+const CFPoint CFPoint::Unit(void) const
 {
-	if(point.x != x || point.y != y) return true;
-	return false;
+	double scale = sqrt(m_x*m_x + m_y*m_y);
+	return CFPoint(m_x/scale, m_y/scale);
 }
 
-CFPoint CFPoint::operator*(const double val)
+const CFPoint CFPoint::operator+=(const CFPoint & point)
 {
-	return CFPoint(x*val,y*val);
+	m_x += point.GetX();
+	m_y += point.GetY();
+	return CFPoint(m_x,m_y);
 }
 
-CFPoint CFPoint::operator-(void)
+const double CFPoint::Distance(const CFPoint &point) const
 {
-	return CFPoint(-x,-y);
+	const double xdiff = point.GetX() - m_x;
+	const double ydiff = point.GetY() - m_y;
+
+	return sqrt(xdiff*xdiff+ydiff*ydiff);
 }
 
-CFPoint CFPoint::operator+(const CFPoint& point)
+// -----------------------------------------------------
+// non-member variables
+
+const CFPoint operator*(const CFPoint& point, const double val)
 {
-	return CFPoint(x+point.x,y+point.y);
+	return CFPoint(point.GetX()*val,point.GetY()*val);
+}
+double operator*(const CFPoint& point1, const CFPoint& point2)
+{
+	return point1.GetX() * point2.GetX() + point1.GetY() * point2.GetY();
 }
 
-CFPoint CFPoint::operator-(const CFPoint& point)
+const CFPoint operator-(const CFPoint& original, const CFPoint& subtractor)
 {
-	return CFPoint(x-point.x,y-point.y);
-}
-
-double CFPoint::operator*(const CFPoint& point)
-{
-	return x*point.x+y*point.y;
+	return CFPoint( original.GetX() - subtractor.GetX(),
+		original.GetY() - subtractor.GetY() );
 }
 
 bool operator<(const CFPoint& p1,const CFPoint& p2)
 {
-	if(p1.x < p2.x) return true;
-	if(p1.x > p2.x) return false;
-	if(p1.y < p2.y) return true;
+	if(p1.GetX() < p2.GetX()) return true;
+	if(p1.GetX() > p2.GetX()) return false;
+	if(p1.GetY() < p2.GetY()) return true;
 	return false;
 }
 
-CFPoint CFPoint::Unit(void)
+const bool operator==(const CFPoint& a_p1, const CFPoint& a_p2)
 {
-	double scale = sqrt(x*x+y*y);
-	return CFPoint(x/scale,y/scale);
+	static const double MAX_DIFF_FOR_EQUALITY = 0.1;
+	if ( abs ( a_p1.GetX() - a_p2.GetX() ) > MAX_DIFF_FOR_EQUALITY ) {
+		return false;
+	}
+	if ( abs ( a_p1.GetY() - a_p2.GetY() ) > MAX_DIFF_FOR_EQUALITY ) {
+		return false;
+	}
+	return true;
 }
 
-CFPoint CFPoint::operator+=(const CFPoint & point)
+const bool operator!=(const CFPoint& a_p1, const CFPoint& a_p2)
 {
-	x += point.x;
-	y += point.y;
-	return CFPoint(x,y);
+	return ( a_p1 == a_p2 ) ? false : true;
 }
 
-double CFPoint::Distance(const CFPoint point)
+const CFPoint operator+(const CFPoint& a_p1, const CFPoint& a_p2)
 {
-	double xdiff = point.x - x;
-	double ydiff = point.y - y;
+	return CFPoint(a_p1.GetX() + a_p2.GetX(), a_p1.GetY() + a_p2.GetY());
+}
 
-	return sqrt(xdiff*xdiff+ydiff*ydiff);
+void CFPoint::SetX(const double a_val) {
+	m_x = a_val;
+}
+
+void CFPoint::SetY(const double a_val) {
+	m_y = a_val;
 }
