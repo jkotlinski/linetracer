@@ -8,6 +8,7 @@
 
 #include "Binarizer.h"
 #include "polyline.h"
+#include ".\polyline.h"
 
 CPolyLine::CPolyLine(void)
 : m_isTail(false)
@@ -515,4 +516,36 @@ void CPolyLine::SmoothPoint(int a_pointIndex)
 
 	At(a_pointIndex)->SetX( p.GetX() );
 	At(a_pointIndex)->SetY( p.GetY() );
+}
+
+void CPolyLine::DrawUsingGraphics(Graphics & a_graphics, Pen &a_pen)
+{
+	vector<CSketchPoint*>::iterator p_iter;
+
+	CSketchPoint *p_prev = 0;
+
+	for(p_iter=Begin(); p_iter!=End(); ++p_iter) 
+	{
+		CSketchPoint *p=*p_iter;
+
+		if(p_prev) {
+			//ARGB paintcolor = 0xff000000;
+			//if(color&4) paintcolor |= 0xff0000;
+			//if(color&2) paintcolor |= 0xff00;
+			//if(color&1) paintcolor |= 0xff;
+			//DrawCurve(canvas,p_prev,p,paintcolor);
+			DrawCurve(a_graphics, a_pen, p_prev, p);
+		}
+		p_prev = p;
+	}
+}
+
+void CPolyLine::DrawCurve(Graphics& a_graphics, Pen &a_pen, CSketchPoint* a_startPoint, CSketchPoint* a_endPoint)
+{
+	a_graphics.DrawBezier ( &a_pen,
+		a_startPoint->GetPointF(),
+		a_startPoint->GetControlPointForward().GetPointF(),
+		a_endPoint->GetControlPointBack().GetPointF(),
+		a_endPoint->GetPointF()
+		);
 }
