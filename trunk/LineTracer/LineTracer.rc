@@ -70,6 +70,7 @@ BEGIN
     END
     POPUP "&View"
     BEGIN
+        MENUITEM "Original",                    ID_VIEW_ORIGINAL, CHECKED
         MENUITEM "Gaussian Blur",               ID_VIEW_GAUSSIAN
         MENUITEM "Binarizer",                   ID_VIEW_BINARIZER
         MENUITEM "Skeletonizer",                ID_VIEW_SKELETONIZER
@@ -306,42 +307,6 @@ LANGUAGE LANG_SWEDISH, SUBLANG_DEFAULT
 #pragma code_page(1252)
 #endif //_WIN32
 
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE 
-BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE 
-BEGIN
-    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
-    "#define _AFX_NO_OLE_RESOURCES\r\n"
-    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
-    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
-    "\r\n"
-    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
-    "LANGUAGE 9, 1\r\n"
-    "#pragma code_page(1252)\r\n"
-    "#include ""res\\LineTracer.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
-    "#include ""afxres.rc""         // Standard components\r\n"
-    "#endif\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
@@ -375,6 +340,42 @@ BEGIN
         BOTTOMMARGIN, 40
     END
 END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\LineTracer.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
 #endif    // APSTUDIO_INVOKED
 
 #endif    // Swedish resources
