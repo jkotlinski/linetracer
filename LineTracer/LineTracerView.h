@@ -119,6 +119,7 @@ public:
 private:
 	void UpdateLayerVisibilitiesFromToolbox(void);
 	void ResetParameterSettings(void);
+	void ResetView(void);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp

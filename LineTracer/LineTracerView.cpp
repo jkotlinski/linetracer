@@ -182,6 +182,7 @@ void CLineTracerView::OnFileOpenimage()
 	{
 		ResetParameterSettings();
 		SetInputImageFileName(dlg.GetPathName());
+		ResetView();
 		ProcessLayers();
 	}
 }
@@ -702,4 +703,24 @@ void CLineTracerView::ResetParameterSettings(void)
 	CProjectSettings::Instance()->Reset();
 	BOOL l_result = ::PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 0, 0 );
 	ASSERT ( l_result != 0 );
+}
+
+void CLineTracerView::ResetView(void)
+{
+	m_translationX = 0;
+	m_translationY = 0;
+	m_magnification.Reset();
+
+	for (;;) 
+	{
+		bool l_viewWiderThanImage = ( GetViewWidth() > ( GetImageWidth() * GetScale() ) );
+		bool l_viewHigherThanImage = ( GetViewHeight() > ( GetImageHeight() * GetScale() ) );
+
+		if ( l_viewWiderThanImage && l_viewHigherThanImage )
+		{
+			break;
+		}
+
+		m_magnification.Decrease();
+	}
 }
