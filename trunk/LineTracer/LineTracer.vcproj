@@ -15,7 +15,7 @@
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
-			UseOfMFC="1"
+			UseOfMFC="2"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
@@ -23,10 +23,13 @@
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
 				TreatWChar_tAsBuiltInType="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
+				WarnAsError="TRUE"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
 			<Tool
@@ -73,20 +76,26 @@
 			WholeProgramOptimization="FALSE">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
 				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="TRUE"
-				FavorSizeOrSpeed="0"
+				FavorSizeOrSpeed="1"
 				OptimizeForWindowsApplication="TRUE"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
+				StringPooling="FALSE"
 				MinimalRebuild="TRUE"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="FALSE"
+				EnableFunctionLevelLinking="FALSE"
 				TreatWChar_tAsBuiltInType="TRUE"
+				RuntimeTypeInfo="TRUE"
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
+				WarnAsError="TRUE"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				CallingConvention="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -159,6 +168,9 @@
 				RelativePath=".\ImageProcessor.cpp">
 			</File>
 			<File
+				RelativePath=".\InitDialogBar.cpp">
+			</File>
+			<File
 				RelativePath=".\KneeSplitter.cpp">
 			</File>
 			<File
@@ -186,7 +198,7 @@
 				RelativePath=".\LineTracerView.cpp">
 			</File>
 			<File
-				RelativePath=".\LineTreeNode.cpp">
+				RelativePath=".\Logger.cpp">
 			</File>
 			<File
 				RelativePath=".\MainFrm.cpp">
@@ -196,12 +208,6 @@
 			</File>
 			<File
 				RelativePath=".\PolyLine.cpp">
-			</File>
-			<File
-				RelativePath=".\ProcessControl.cpp">
-			</File>
-			<File
-				RelativePath=".\RawImage.cpp">
 			</File>
 			<File
 				RelativePath=".\Skeletonizer.cpp">
@@ -272,6 +278,9 @@
 				RelativePath=".\ImageProcessor.h">
 			</File>
 			<File
+				RelativePath=".\InitDialogBar.h">
+			</File>
+			<File
 				RelativePath=".\KneeSplitter.h">
 			</File>
 			<File
@@ -299,10 +308,13 @@
 				RelativePath=".\LineTracerView.h">
 			</File>
 			<File
-				RelativePath=".\LineTreeNode.h">
+				RelativePath=".\Logger.h">
 			</File>
 			<File
 				RelativePath=".\MainFrm.h">
+			</File>
+			<File
+				RelativePath=".\memdc.h">
 			</File>
 			<File
 				RelativePath=".\pool\object_pool.hpp">
@@ -321,9 +333,6 @@
 			</File>
 			<File
 				RelativePath=".\pool\poolfwd.hpp">
-			</File>
-			<File
-				RelativePath=".\ProcessControl.h">
 			</File>
 			<File
 				RelativePath=".\RawImage.h">
@@ -381,6 +390,9 @@
 		</Filter>
 		<File
 			RelativePath=".\History.txt">
+		</File>
+		<File
+			RelativePath=".\LineTracer.lnt">
 		</File>
 		<File
 			RelativePath=".\res\LineTracer.manifest">
