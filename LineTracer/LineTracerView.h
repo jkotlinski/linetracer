@@ -5,7 +5,7 @@
 #pragma once
 
 
-class CLineTracerView : public CView
+class CLineTracerView : public CScrollView
 {
 protected: // create from serialization only
 	CLineTracerView();
@@ -39,6 +39,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnFileOpenimage();
+	void OnInitialUpdate(void);
 };
 
 #ifndef _DEBUG  // debug version in LineTracerView.cpp

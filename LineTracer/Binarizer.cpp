@@ -10,6 +10,7 @@ CBinarizer::CBinarizer(void)
 
 CBinarizer::~CBinarizer(void)
 {
+	if(_instance!=0) delete _instance;
 }
 
 CBinarizer *CBinarizer::Instance() {
@@ -21,27 +22,16 @@ CBinarizer *CBinarizer::Instance() {
 
 CRawImage* CBinarizer::Process(CRawImage* src)
 {
-	TRACE("start processing\n");
 	CRawImage *dst=new CRawImage(src->GetWidth(), src->GetHeight());
 
-	int threshold=(int)GetParam("threshold")*3;
+	ARGB threshold=(ARGB)GetParam("threshold");
 
-	for(int x=0; x<src->GetWidth(); x++) {
-		TRACE("x: %i\n",x);
-		for(int y=0; y<src->GetHeight(); y++) {
-			ARGB c=src->GetPixel(x,y);
-			
-			int brightness=(c&0xff0000)>>16;
-			brightness+=(c&0xff00)>>8;
-			brightness+=c&0xff;
-
-			if(brightness<threshold) {
-				dst->SetPixel(x,y,0);
-			} else {
-				dst->SetPixel(x,y,0xffffff);
-			}
+	for(int i=0; i<src->GetWidth()*src->GetHeight(); i++) {
+		if(src->GetPixel(i)<threshold) {
+			dst->SetPixel(i,0);
+		} else {
+			dst->SetPixel(i,0xffffff);
 		}
 	}
-	TRACE("stop processing\n");
 	return dst;
 }

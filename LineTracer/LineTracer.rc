@@ -55,6 +55,7 @@ BEGIN
     END
     POPUP "Parameters"
     BEGIN
+        MENUITEM "Gaussian Blur...",            ID_PARAMETERS_GAUSSIANBLUR
         MENUITEM "Binarizer...",                ID_PARAMETERS_BINARIZE
     END
     POPUP "&Edit"

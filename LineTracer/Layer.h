@@ -21,4 +21,9 @@ public:
 	void SetVisible(bool state);
 	bool IsVisible(void);
 	void Process(CRawImage *src);
+private:
+	bool m_IsValid;
+public:
+	bool IsValid(void);
+	void SetValid(bool isValid);
 };

@@ -1,0 +1,52 @@
+#include "StdAfx.h"
+#include ".\epswriter.h"
+
+CEpsWriter::CEpsWriter(void)
+{
+}
+
+CEpsWriter::~CEpsWriter(void)
+{
+}
+
+void CEpsWriter::Write(CLineImage* lineImage)
+{
+	CStdioFile out("c:\\tmp\\out.eps",CFile::modeCreate|CFile::typeText|CFile::modeWrite);
+	CString str;
+
+	int width=lineImage->GetWidth();
+	int height=lineImage->GetHeight();
+
+	out.WriteString("%%!PS-Adobe-3.0 EPSF-3.0\n");
+	out.WriteString("%%BoundingBox: ");
+	str.Format("%i %i %i %i\n",0,0,width,height);
+	out.WriteString(str);
+	//use round pen
+	out.WriteString("1 setlinecap\n");
+	out.WriteString("1 setlinejoin\n");
+
+	out.WriteString("0.5 setlinewidth\n");
+
+	for(int i=0; i<lineImage->Size(); i++) {
+		CPolyLine* pl=lineImage->At(i);
+
+		if(1/*pl->Size()>0*/) {
+
+			CPoint curr(pl->At(0).x,pl->At(0).y);
+			CPoint prev;
+
+			str.Format("%i %i moveto\n",curr.x,height-curr.y);
+			out.WriteString(str);
+
+			for(int j=1; j<pl->Size(); j++) {
+				prev=curr;
+				curr=pl->At(j);
+
+				str.Format("%i %i rlineto ",curr.x-prev.x, prev.y-curr.y);
+				out.WriteString(str);
+			}
+			out.WriteString("stroke\n");
+		}
+	}
+	out.Close();
+}

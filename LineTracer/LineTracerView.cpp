@@ -17,9 +17,9 @@
 
 // CLineTracerView
 
-IMPLEMENT_DYNCREATE(CLineTracerView, CView)
+IMPLEMENT_DYNCREATE(CLineTracerView, CScrollView)
 
-BEGIN_MESSAGE_MAP(CLineTracerView, CView)
+BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_COMMAND(ID_FILE_OPENIMAGE, OnFileOpenimage)
 END_MESSAGE_MAP()
 
@@ -39,7 +39,7 @@ BOOL CLineTracerView::PreCreateWindow(CREATESTRUCT& cs)
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
 
-	return CView::PreCreateWindow(cs);
+	return CScrollView::PreCreateWindow(cs);
 }
 
 // CLineTracerView drawing
@@ -64,9 +64,12 @@ void CLineTracerView::OnDraw(CDC* pDC)
 		Graphics gr(*pDC);
 		//gr.DrawImage(pDoc->GetInputBitmap(),0,0);
 		
-		CLayer *layer=pDoc->GetLayer(0);
+		CLayer *layer=pDoc->GetLayer(3);
 
 		Bitmap *b=layer->GetRawImage()->MakeBitmap();
+
+		SetScrollSizes(MM_TEXT, CSize(b->GetWidth(), b->GetHeight()));
+
 		gr.DrawImage(b,0,0);
 		delete b;
 	}
@@ -83,12 +86,12 @@ void CLineTracerView::OnDraw(CDC* pDC)
 #ifdef _DEBUG
 void CLineTracerView::AssertValid() const
 {
-	CView::AssertValid();
+	CScrollView::AssertValid();
 }
 
 void CLineTracerView::Dump(CDumpContext& dc) const
 {
-	CView::Dump(dc);
+	CScrollView::Dump(dc);
 }
 
 CLineTracerDoc* CLineTracerView::GetDocument() const // non-debug version is inline
@@ -114,3 +117,10 @@ void CLineTracerView::OnFileOpenimage()
 	}
 }
 
+
+void CLineTracerView::OnInitialUpdate(void)
+{
+	CScrollView::OnInitialUpdate();
+
+	SetScrollSizes(MM_TEXT, CSize(0, 0));
+}

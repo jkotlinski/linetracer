@@ -5,6 +5,7 @@ CLayer::CLayer(void)
 : m_ImageProcessor(NULL)
 , m_IsVisible(false)
 , m_RawImage(NULL)
+, m_IsValid(false)
 {
 }
 
@@ -36,7 +37,21 @@ bool CLayer::IsVisible(void)
 
 void CLayer::Process(CRawImage *src)
 {
+	if(IsValid()) return;
+
 	if(m_RawImage!=NULL) delete m_RawImage;
 
 	m_RawImage=m_ImageProcessor->Process(src);
+
+	SetValid(true);
+}
+
+bool CLayer::IsValid(void)
+{
+	return m_IsValid;
+}
+
+void CLayer::SetValid(bool isValid)
+{
+	m_IsValid=isValid;
 }
