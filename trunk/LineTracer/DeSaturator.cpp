@@ -5,6 +5,7 @@ CDeSaturator::CDeSaturator(void)
 : CImageProcessor()
 {
 	LOG("init desaturator\n");
+	SetName(CString("desaturator"));
 }
 
 CDeSaturator::~CDeSaturator(void)
@@ -32,7 +33,7 @@ CSketchImage* CDeSaturator::Process(CSketchImage* i_src)
 		brightness+=(c&0xff00)>>8;
 		brightness+=c&0xff;
 
-		dst->SetPixel(i,(unsigned char)(brightness/3));
+		dst->SetPixel(i, static_cast<unsigned char>(brightness/3));
 	}
 	return dst;
 }
