@@ -47,13 +47,7 @@ CSketchImage * CLayer::GetSketchImage(void)
 
 void CLayer::SetVisible(bool state)
 {
-	if ( state != m_IsVisible )
-	{
-		//visibility state changed! tell layer manager
-		CLayerManager *l_lm = CLayerManager::Instance();
-		l_lm->ChangedLayerVisibleState();
-	}
-	m_IsVisible=state;
+	m_IsVisible = state;
 }
 
 bool CLayer::IsVisible(void) const
