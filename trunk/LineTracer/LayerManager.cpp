@@ -40,7 +40,7 @@ CLayerManager::CLayerManager(void)
 
 	layer=new CLayer( );
 	layer->SetImageProcessor(CBinarizer::Instance());
-	layer->SetVisible(true);
+	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
 	layer=new CLayer( );
@@ -55,7 +55,7 @@ CLayerManager::CLayerManager(void)
 
 	layer=new CLayer( );
 	layer->SetImageProcessor(CSkeletonizer::Instance());
-	layer->SetVisible(true);
+	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 	
 	layer=new CLayer( );
@@ -337,4 +337,14 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 			}
 		}
 	}
+}
+
+void CLayerManager::SetOriginalLayerVisibility(bool a_isVisible)
+{
+	GetLayer(HOLEFILLER)->SetVisible(a_isVisible);
+}
+
+void CLayerManager::SetVectorLayerVisibility(bool a_isVisible)
+{
+	GetLastLayer()->SetVisible(a_isVisible);
 }
