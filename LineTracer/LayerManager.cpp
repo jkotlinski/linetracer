@@ -26,39 +26,40 @@ CLayerManager::CLayerManager(void)
 : m_processThread(NULL)
 , m_cachedBitmap(NULL)
 , m_restartProcess(false)
+, m_lineTracerView(NULL)
 {
 	LOG("init layermanager\n");
 
-	CLayer *layer=new CLayer();
+	CLayer *layer=new CLayer( );
 	layer->SetImageProcessor(CDeSaturator::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=new CLayer(  );
 	layer->SetImageProcessor(CGaussian::Instance());
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=new CLayer( );
 	layer->SetImageProcessor(CBinarizer::Instance());
 	layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=new CLayer( );
 	layer->SetImageProcessor(CHoleFiller::Instance());
 	layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=new CLayer( );
 	layer->SetImageProcessor(CThinner::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=new CLayer( );
 	layer->SetImageProcessor(CSkeletonizer::Instance());
 	layer->SetVisible(true);
 	m_Layers.push_back(layer);
 	
-	layer=new CLayer();
+	layer=new CLayer( );
 	layer->SetImageProcessor(CTailPruner::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
@@ -68,7 +69,7 @@ CLayerManager::CLayerManager(void)
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer = new CLayer();
+	layer = new CLayer( );
 	layer->SetImageProcessor(CForkHandler::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
@@ -78,7 +79,7 @@ CLayerManager::CLayerManager(void)
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=new CLayer( );
 	layer->SetImageProcessor(CBezierMaker::Instance());
 	layer->SetVisible(true);
 	m_Layers.push_back(layer);
@@ -145,17 +146,15 @@ CLayer* CLayerManager::GetLayer(int layer)
 Bitmap* CLayerManager::GetBitmap(void)
 {
 	LOG ( "layermanager->getCachedBitmap(): %x\n", GetCachedBitmap() );
-	/*
-	if ( GetCachedBitmap() != NULL ) 
-	{
-		return GetCachedBitmap();
-	}
-*/
+
 	CLayer* l_firstLayer = GetLayer(0);
 	ASSERT ( l_firstLayer != NULL );
 
 	CSketchImage *l_image = l_firstLayer->GetSketchImage();
-	ASSERT ( l_image != NULL );
+	
+	if ( l_image == NULL ) {
+		return NULL;
+	}
 
 	int width = l_image->GetWidth();
 	int height = l_image->GetHeight();
@@ -166,6 +165,8 @@ Bitmap* CLayerManager::GetBitmap(void)
 	CRawImage<ARGB> dst(width*SCALE,height*SCALE);
 	dst.Clear();
 
+	bool l_noLayersVisible = true;
+
 	// paint all visible layers
 	for ( unsigned int l_layerIndex = 1; 
 		l_layerIndex < LayerCount(); 
@@ -175,13 +176,19 @@ Bitmap* CLayerManager::GetBitmap(void)
 
 		if ( l_layer->IsVisible() && l_layer->IsValid() )
 		{
+			CLogger::Activate();
+			LOG ( "painted: " );
+			LOG ( (LPCSTR)l_layer->GetName() );	
+			LOG ( "\n" );
 			l_layer->PaintImage ( &dst );
+			l_noLayersVisible = false;
 		}
 	}
 
-	// DoCacheBitmap( dst.GetBitmap() );
-
-	return dst.GetBitmap() ; // GetCachedBitmap();
+	if ( ( l_noLayersVisible == false ) ) {
+		DoCacheBitmap( dst.GetBitmap() );
+	}
+	return GetCachedBitmap();
 }
 
 unsigned int CLayerManager::LayerCount(void)
