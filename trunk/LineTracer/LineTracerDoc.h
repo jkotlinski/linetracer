@@ -54,6 +54,7 @@ public:
 	Bitmap* GetInputBitmap(void);
 	CLayer* GetLayer(int layer);
 	afx_msg void OnParametersBinarizer();
+	afx_msg void OnParametersGaussian();
 };
 
 

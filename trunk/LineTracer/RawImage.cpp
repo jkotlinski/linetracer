@@ -4,6 +4,7 @@
 CRawImage::CRawImage(int width, int height)
 : m_buffer(NULL)
 {
+	CSketchImage::CSketchImage();
 	m_Width=width;
 	m_Height=height;
 
@@ -69,7 +70,7 @@ CRawImage::CRawImage(Bitmap * b)
 Bitmap * CRawImage::MakeBitmap(void)
 {
 	// create a temporary Bitmap
-	Bitmap bit(m_Width, m_Height, PixelFormat32bppARGB);
+	Bitmap bit(GetWidth(), GetHeight(), PixelFormat32bppARGB);
 
 	// create its clone for returning
 	Bitmap *b = bit.Clone(0, 0, bit.GetWidth(), bit.GetHeight(),
@@ -106,13 +107,24 @@ Bitmap * CRawImage::MakeBitmap(void)
 	return b;
 }
 
-
-int CRawImage::GetWidth(void)
+ARGB CRawImage::GetPixel(int offset)
 {
-	return m_Width;
+	return m_buffer[offset];
 }
 
-int CRawImage::GetHeight(void)
+void CRawImage::SetPixel(int offset, ARGB val)
 {
-	return m_Height;
+	m_buffer[offset]=val;
+}
+
+void CRawImage::Clear(void)
+{
+	for(int i=0; i<GetWidth()*GetHeight(); i++) {
+		SetPixel(i,0);
+	}
+}
+
+void CRawImage::OrPixel(int x, int y, ARGB val)
+{
+	m_buffer[y*m_Width+x]|=val;
 }

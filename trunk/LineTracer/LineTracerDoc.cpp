@@ -10,6 +10,9 @@
 #include ".\linetracerdoc.h"
 
 #include "Binarizer.h"
+#include "DeColorizer.h"
+#include "Gaussian.h"
+#include "Skeletonizer.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -24,6 +27,7 @@ IMPLEMENT_DYNCREATE(CLineTracerDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CLineTracerDoc, CDocument)
 	ON_COMMAND(ID_PARAMETERS_BINARIZE, OnParametersBinarizer)
+	ON_COMMAND(ID_PARAMETERS_GAUSSIANBLUR, OnParametersGaussian)
 END_MESSAGE_MAP()
 
 
@@ -33,9 +37,20 @@ CLineTracerDoc::CLineTracerDoc()
 : m_InputBitmapFileName(_T(""))
 , m_InputBitmap(NULL)
 {
-	// TODO: add one-time construction code here
 	CLayer *layer=new CLayer();
+	layer->SetImageProcessor(CDeColorizer::Instance());
+	m_Layers.push_back(layer);
+
+	layer=new CLayer();
+	layer->SetImageProcessor(CGaussian::Instance());
+	m_Layers.push_back(layer);
+
+	layer=new CLayer();
 	layer->SetImageProcessor(CBinarizer::Instance());
+	m_Layers.push_back(layer);
+
+	layer=new CLayer();
+	layer->SetImageProcessor(CSkeletonizer::Instance());
 	m_Layers.push_back(layer);
 }
 
@@ -43,9 +58,10 @@ CLineTracerDoc::~CLineTracerDoc()
 {
 	if(m_InputBitmap!=NULL) delete m_InputBitmap;
 
-	CLayer *layer=m_Layers.at(0);
-	m_Layers.pop_back();
-	delete layer;
+	delete m_Layers.at(0);
+	delete m_Layers.at(1);
+	delete m_Layers.at(2);
+	delete m_Layers.at(3);
 }
 
 BOOL CLineTracerDoc::OnNewDocument()
@@ -71,6 +87,7 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 	{
 		// TODO: add storing code here
 		ar << m_InputBitmapFileName;
+		ar << CGaussian::Instance()->GetParam("radius");
 		ar << CBinarizer::Instance()->GetParam("threshold");
 	}
 	else
@@ -79,6 +96,8 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 		CString tmpString;
 		double tmp;
 		ar >> tmpString;
+		ar >> tmp;
+		CGaussian::Instance()->SetParam("radius",tmp);
 		ar >> tmp;
 		CBinarizer::Instance()->SetParam("threshold",tmp);
 		this->SetInputImageFileName(tmpString);
@@ -112,6 +131,9 @@ void CLineTracerDoc::SetInputImageFileName(CString FileName)
 	if(FileName!=_T("")) {
 		if(LoadImage(&m_InputBitmap, &FileName)) {
 			SetModifiedFlag();
+			for(unsigned int i=0; i<m_Layers.size(); i++) {
+				m_Layers.at(i)->SetValid(false);
+			}
 			ProcessLayers();
 		}
 	}
@@ -126,14 +148,16 @@ void CLineTracerDoc::ProcessLayers(void)
 {
 	if(m_InputBitmap==NULL) return;
 
-	CRawImage *currBmp = new CRawImage(m_InputBitmap);
+	CRawImage *inputBmp = new CRawImage(m_InputBitmap);
+	CRawImage *newBmp = inputBmp;
 
 	for(UINT i=0; i<m_Layers.size(); i++) {
 		CLayer *layer = m_Layers.at(i);
 
-		layer->Process(currBmp);
+		layer->Process(newBmp);
+		newBmp = layer->GetRawImage();
 	}
-	delete currBmp;
+	delete inputBmp;
 	UpdateAllViews(NULL);
 }
 
@@ -173,17 +197,41 @@ void CLineTracerDoc::OnParametersBinarizer()
 	CBinarizer *binarizer = CBinarizer::Instance();
 
 	double oldVal = binarizer->GetParam("threshold");
-	dlg.m_EditValue.Format("%.1f",oldVal);
+	dlg.m_EditValue.Format("%.0f",oldVal);
 
 	if(dlg.DoModal() == IDOK) {
 		double newVal = atof((char*)(const char*)dlg.m_EditValue);
 
 		binarizer->SetParam("threshold",newVal);
 		if(newVal!=oldVal) {
+			m_Layers.at(2)->SetValid(false);
+			m_Layers.at(3)->SetValid(false);
 			SetModifiedFlag();
 			ProcessLayers();
 		}
 	}
+}
 
-	//binarizer->SetParam("threshold"
+void CLineTracerDoc::OnParametersGaussian()
+{
+	CParamDialog dlg;
+	CGaussian *gaussian = CGaussian::Instance();
+
+	double oldVal = gaussian->GetParam("radius");
+	dlg.m_EditValue.Format("%.1f",oldVal);
+
+	if(dlg.DoModal() == IDOK) {
+		double newVal = atof((char*)(const char*)dlg.m_EditValue);
+
+		if(newVal<0.0) newVal=0.0;
+
+		gaussian->SetParam("radius",newVal);
+		if(newVal!=oldVal) {
+			m_Layers.at(1)->SetValid(false);
+			m_Layers.at(2)->SetValid(false);
+			m_Layers.at(3)->SetValid(false);
+			SetModifiedFlag();
+			ProcessLayers();
+		}
+	}
 }
