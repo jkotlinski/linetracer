@@ -11,12 +11,15 @@
 #include <vector>
 
 //#define MEM_DEBUG
+#include "ProjectSettings.h"
 
 CBezierMaker::CBezierMaker(void)
 : CImageProcessor()
 {
-	SetParam(BEZIERMAKER_ERROR_THRESHOLD, 20.0);
-	SetName( new CString("Bezier Maker") );
+	CProjectSettings::Instance()->SetParam(
+		CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD, 20.0);
+	SetName(CString("Bezier Maker"));
+	SetType(CImageProcessor::BEZIERMAKER);
 }
 
 CBezierMaker::~CBezierMaker(void)
@@ -168,15 +171,17 @@ double CBezierMaker::FindError(CPolyLine* polyLine, CPolyLine* curve, vector<dou
 	return totalError;
 }
 
-CLineImage* CBezierMaker::DoSchneider(const CLineImage* src)
+CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
 {
 	ASSERT ( src != NULL );
 #define REUSE_TANGENTS
 
 	static const double REPARAM_THRESHOLD = 30.0;
 
-	double ERROR_THRESHOLD = GetParam(BEZIERMAKER_ERROR_THRESHOLD);
+	double ERROR_THRESHOLD = CProjectSettings::Instance()->GetParam(
+		CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD);
 
+	LOG ( "BezierMaker->ERROR_THRESHOLD: %f\n", ERROR_THRESHOLD );
 	//LOG( "DoSchneider()\n" );
 
 	CLineImage *l_workImage = new CLineImage(src->GetWidth(),src->GetHeight());

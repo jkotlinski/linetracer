@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "binarizer.h"
 
-//#include <math.h>
+#include "ProjectSettings.h"
 
 CBinarizer::CBinarizer(void)
 : CImageProcessor()
@@ -9,8 +9,11 @@ CBinarizer::CBinarizer(void)
 , m_distanceMap()
 {
 	LOG("init binarizer\n");
-	SetParam(BINARIZER_THRESHOLD, -1.0);
-	SetParam(BINARIZER_MEAN_C, 5.0);
+	CProjectSettings *l_settings = CProjectSettings::Instance();
+	l_settings->SetParam(CProjectSettings::BINARIZER_THRESHOLD, -1.0);
+	l_settings->SetParam(CProjectSettings::BINARIZER_MEAN_C, 5.0);
+	SetName(CString("binarizer"));
+	SetType ( BINARIZER );
 }
 
 CBinarizer::~CBinarizer(void)
@@ -32,12 +35,13 @@ CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 	static const int WINDOW_SIZE = 3;
 	//static const int WINDOW_SIZE = 0;
 
-	int C = int(GetParam(BINARIZER_MEAN_C));
-	double MIN_THRESHOLD = GetParam(BINARIZER_THRESHOLD);
+	CProjectSettings *l_settings = CProjectSettings::Instance();
+	int C = int(l_settings->GetParam(CProjectSettings::BINARIZER_MEAN_C));
+	double MIN_THRESHOLD = l_settings->GetParam(CProjectSettings::BINARIZER_THRESHOLD);
 
 	if(int(MIN_THRESHOLD) == -1) {
 		MIN_THRESHOLD = CalculateOtsuThreshold(src);
-		SetParam(BINARIZER_THRESHOLD, MIN_THRESHOLD);
+		l_settings->SetParam(CProjectSettings::BINARIZER_THRESHOLD, MIN_THRESHOLD);
 	}
 
 	ASSERT ( src!=NULL );
