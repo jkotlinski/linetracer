@@ -20,11 +20,11 @@ IMPLEMENT_DYNAMIC(CToolBox, CInitDialogBar)
 
 BEGIN_MESSAGE_MAP(CToolBox, CInitDialogBar)
 	ON_MESSAGE( (WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS), (OnUpdateToolboxDataFromLayers) )
-	ON_EN_CHANGE(IDC_BWTHRESHOLD, OnToolboxChangeBwthreshold)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_HOLEFILLERSLIDER, OnDrawHoleFillerSlider)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_DETAILENCHANCESLIDER, OnNMReleasedCaptureDetailEnchanceSlider)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_TAILPRUNERSLIDER, OnLineLengthSlider)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_CURVEDETAILSLIDER, OnCurveDetailSlider)
+	ON_NOTIFY(NM_CUSTOMDRAW, IDC_BWTHRESHOLD, OnToolboxChangeBwthreshold)
 END_MESSAGE_MAP()
 
 CToolBox::CToolBox()
@@ -56,7 +56,7 @@ BOOL CToolBox::OnInitDialogBar()
 	CProjectSettings *l_settings = CProjectSettings::Instance();
 
 	c_binarizerThresholdControl.SetRange(1,254);
-	(void) c_binarizerThresholdControl.SetPos(1);
+	//(void) c_binarizerThresholdControl.SetPos(1);
 
 	c_detailEnchanceControl.SetRange(1,20);
 	c_detailEnchanceControl.SetPos( 
@@ -102,7 +102,7 @@ void CToolBox::DoDataExchange(CDataExchange* pDX)
 	// Call UpdateData(FALSE) to set data at any time
 
 	//{{AFX_DATA_MAP(CAboutDlg)
-	DDX_Control(pDX, IDC_SPIN1, c_binarizerThresholdControl);
+	DDX_Control(pDX, IDC_BWTHRESHOLD, c_binarizerThresholdControl);
 	DDX_Control(pDX, IDC_DETAILENCHANCESLIDER, c_detailEnchanceControl);
 	DDX_Control(pDX, IDC_HOLEFILLERSLIDER, c_holeFillerControl);
 	DDX_Control(pDX, IDC_TAILPRUNERSLIDER, c_tailPrunerControl);
@@ -132,7 +132,7 @@ double CToolBox::GetParam(CProjectSettings::ParamName a_name) const
 
 	switch( a_name ) {
 		case CProjectSettings::BINARIZER_THRESHOLD:
-			retVal = c_binarizerThresholdControl.GetPos();
+			retVal = 255 - c_binarizerThresholdControl.GetPos();
 			break;
 
 		case CProjectSettings::BINARIZER_MEAN_C:
@@ -171,7 +171,7 @@ afx_msg LRESULT CToolBox::OnUpdateToolboxDataFromLayers
 	LOG ( "OnUpdateToolboxDataFromLayers\n" );
 
 	int l_binarizerThresholdVal = int( l_settings->GetParam( CProjectSettings::BINARIZER_THRESHOLD ) );
-	(void) c_binarizerThresholdControl.SetPos( l_binarizerThresholdVal );
+	(void) c_binarizerThresholdControl.SetPos( 255 - l_binarizerThresholdVal );
 	
 	int l_detailEnchanceVal = int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C) );
 	(void) c_detailEnchanceControl.SetPos( l_detailEnchanceVal );
@@ -212,7 +212,7 @@ afx_msg void CToolBox::OnNMReleasedCaptureDetailEnchanceSlider(NMHDR *pNMHDR, LR
 	*pResult = 0;
 }
 
-afx_msg void CToolBox::OnToolboxChangeBwthreshold() {
+afx_msg void CToolBox::OnToolboxChangeBwthreshold(NMHDR *pNMHDR, LRESULT *pResult) {
 	ASSERT ( m_lineTracerView );
 	m_lineTracerView->HandleChangedToolboxParam(CLayerManager::BINARIZER,
 		CProjectSettings::BINARIZER_THRESHOLD);
