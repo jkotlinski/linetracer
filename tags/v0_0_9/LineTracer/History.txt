@@ -1,0 +1,33 @@
+** HISTORY
+
+2004-04-04: v0.0.1
+
+ * implemented gaussian blur, binarization, skeletonization, simple EPS export
+
+2004-04-05: v0.0.2
+
+ * restructured things (most notably layer manager + base class CSketchImage)
+ * added EPS export
+
+v0.0.3
+
+ * added doubleing line detection
+ * added view original menu toggle
+
+v0.0.4 
+
+ * ?
+
+v0.0.5
+
+ * now multithreaded
+ * fixed get/set param bug that occured because of incorrect char* usage
+ 
+ v0.0.8
+ 
+ *added zoom OK
+ 
+ v0.0.9
+ 
+ * improved drawing
+ 
