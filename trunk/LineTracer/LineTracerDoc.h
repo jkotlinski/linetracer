@@ -38,17 +38,12 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	void SetInputImageFileName(CString FileName);
 	CString GetInputImageFileName(void) const;
 private:
 	CString m_InputBitmapFileName;
-
-	bool LoadImage(Bitmap** bitmap, CString *fileName) const;
-
 public:
 	void ProcessLayers(void);
 	//Bitmap* GetInputBitmap(void);
-	afx_msg void OnParametersBinarizer();
 	afx_msg void OnParametersGaussian();
 
 	afx_msg void OnViewSkeletonizer();
@@ -63,10 +58,9 @@ public:
 private:
 	int m_ZoomFactor;
 public:
-	afx_msg void OnParametersNoisesurpression();
 	afx_msg void OnViewBeziermaker();
 	afx_msg void OnViewThinner();
-	afx_msg void OnParametersCurvedetail();
+	void SetInputImageFileName(CString & a_fileName);
 };
 
 
