@@ -26,4 +26,5 @@ private:
 public:
 	bool IsValid(void);
 	void SetValid(bool isValid);
+	double GetParam(char* name);
 };

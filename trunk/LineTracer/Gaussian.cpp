@@ -6,6 +6,7 @@
 CGaussian::CGaussian(void)
 {
 	SetParam("radius",0.5);
+	TRACE("init gaussian\n");
 }
 
 CGaussian::~CGaussian(void)
@@ -19,11 +20,11 @@ CGaussian* CGaussian::Instance() {
 
 CSketchImage* CGaussian::Process(CSketchImage* i_src)
 {
-	CRawImage *src=static_cast<CRawImage*>(i_src);
+	CRawImage<unsigned char> *src=static_cast<CRawImage<unsigned char>*>(i_src);
 
 	double radius=GetParam("radius");
 
-	CRawImage *dst=new CRawImage(src->GetWidth(), src->GetHeight());
+	CRawImage<unsigned char> *dst=new CRawImage<unsigned char>(src->GetWidth(), src->GetHeight());
 
 	if(radius>0.0) {
 		//smooth
@@ -37,7 +38,7 @@ CSketchImage* CGaussian::Process(CSketchImage* i_src)
 	return dst;
 }
 
-void CGaussian::GaussianSmooth(CRawImage *src, CRawImage *dst, float sigma)
+void CGaussian::GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned char> *dst, float sigma)
 {
 	int r, c, rr, cc,     /* Counter variables. */
 		windowsize,        /* Dimension of the gaussian kernel. */
@@ -85,7 +86,7 @@ void CGaussian::GaussianSmooth(CRawImage *src, CRawImage *dst, float sigma)
 					sum += kernel[center+rr];
 				}
 			}
-			dst->SetPixel(c,r,(ARGB)(dot/sum));
+			dst->SetPixel(c,r,(unsigned char)(dot/sum));
 		}
 	}
 

@@ -76,11 +76,12 @@
 				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="TRUE"
-				FavorSizeOrSpeed="1"
+				FavorSizeOrSpeed="0"
 				OptimizeForWindowsApplication="TRUE"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				MinimalRebuild="TRUE"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="FALSE"
 				TreatWChar_tAsBuiltInType="TRUE"
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
@@ -131,6 +132,9 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath=".\BezierMaker.cpp">
+			</File>
+			<File
 				RelativePath=".\Binarizer.cpp">
 			</File>
 			<File
@@ -140,10 +144,22 @@
 				RelativePath=".\EpsWriter.cpp">
 			</File>
 			<File
+				RelativePath=".\ForkHandler.cpp">
+			</File>
+			<File
+				RelativePath=".\FPoint.cpp">
+			</File>
+			<File
 				RelativePath=".\Gaussian.cpp">
 			</File>
 			<File
+				RelativePath=".\HoleFiller.cpp">
+			</File>
+			<File
 				RelativePath=".\ImageProcessor.cpp">
+			</File>
+			<File
+				RelativePath=".\KneeSplitter.cpp">
 			</File>
 			<File
 				RelativePath=".\Layer.cpp">
@@ -158,6 +174,9 @@
 				RelativePath=".\LineImagePainter.cpp">
 			</File>
 			<File
+				RelativePath=".\LineSegmentor.cpp">
+			</File>
+			<File
 				RelativePath=".\LineTracer.cpp">
 			</File>
 			<File
@@ -167,6 +186,9 @@
 				RelativePath=".\LineTracerView.cpp">
 			</File>
 			<File
+				RelativePath=".\LineTreeNode.cpp">
+			</File>
+			<File
 				RelativePath=".\MainFrm.cpp">
 			</File>
 			<File
@@ -174,6 +196,9 @@
 			</File>
 			<File
 				RelativePath=".\PolyLine.cpp">
+			</File>
+			<File
+				RelativePath=".\ProcessControl.cpp">
 			</File>
 			<File
 				RelativePath=".\RawImage.cpp">
@@ -202,11 +227,23 @@
 						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\TailPruner.cpp">
+			</File>
+			<File
+				RelativePath=".\Thinner.cpp">
+			</File>
+			<File
+				RelativePath=".\ToolBox.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			<File
+				RelativePath=".\BezierMaker.h">
+			</File>
 			<File
 				RelativePath=".\Binarizer.h">
 			</File>
@@ -217,13 +254,25 @@
 				RelativePath=".\EpsWriter.h">
 			</File>
 			<File
+				RelativePath=".\ForkHandler.h">
+			</File>
+			<File
+				RelativePath=".\FPoint.h">
+			</File>
+			<File
 				RelativePath=".\Gaussian.h">
 			</File>
 			<File
 				RelativePath=".\GdiplusH.h">
 			</File>
 			<File
+				RelativePath=".\HoleFiller.h">
+			</File>
+			<File
 				RelativePath=".\ImageProcessor.h">
+			</File>
+			<File
+				RelativePath=".\KneeSplitter.h">
 			</File>
 			<File
 				RelativePath=".\Layer.h">
@@ -238,6 +287,9 @@
 				RelativePath=".\LineImagePainter.h">
 			</File>
 			<File
+				RelativePath=".\LineSegmentor.h">
+			</File>
+			<File
 				RelativePath=".\LineTracer.h">
 			</File>
 			<File
@@ -247,7 +299,13 @@
 				RelativePath=".\LineTracerView.h">
 			</File>
 			<File
+				RelativePath=".\LineTreeNode.h">
+			</File>
+			<File
 				RelativePath=".\MainFrm.h">
+			</File>
+			<File
+				RelativePath=".\pool\object_pool.hpp">
 			</File>
 			<File
 				RelativePath=".\ParamDialog.h">
@@ -256,10 +314,28 @@
 				RelativePath=".\PolyLine.h">
 			</File>
 			<File
+				RelativePath=".\pool\pool.hpp">
+			</File>
+			<File
+				RelativePath=".\pool\pool_alloc.hpp">
+			</File>
+			<File
+				RelativePath=".\pool\poolfwd.hpp">
+			</File>
+			<File
+				RelativePath=".\ProcessControl.h">
+			</File>
+			<File
 				RelativePath=".\RawImage.h">
 			</File>
 			<File
 				RelativePath=".\Resource.h">
+			</File>
+			<File
+				RelativePath=".\pool\simple_segregated_storage.hpp">
+			</File>
+			<File
+				RelativePath=".\pool\singleton_pool.hpp">
 			</File>
 			<File
 				RelativePath=".\Skeletonizer.h">
@@ -272,6 +348,15 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h">
+			</File>
+			<File
+				RelativePath=".\TailPruner.h">
+			</File>
+			<File
+				RelativePath=".\Thinner.h">
+			</File>
+			<File
+				RelativePath=".\ToolBox.h">
 			</File>
 		</Filter>
 		<Filter
@@ -289,6 +374,9 @@
 			</File>
 			<File
 				RelativePath=".\res\LineTracerDoc.ico">
+			</File>
+			<File
+				RelativePath=".\res\toolbar1.bmp">
 			</File>
 		</Filter>
 		<File

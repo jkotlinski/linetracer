@@ -58,7 +58,12 @@ BEGIN
     POPUP "Parameters"
     BEGIN
         MENUITEM "Gaussian Blur...",            ID_PARAMETERS_GAUSSIANBLUR
-        MENUITEM "Binarizer...",                ID_PARAMETERS_BINARIZE
+        MENUITEM "Black Threshold...",          ID_PARAMETERS_BINARIZE
+        MENUITEM "Noise Surpression...",        ID_PARAMETERS_NOISESURPRESSION
+
+        MENUITEM "Line Length Threshold...",    ID_PARAMETERS_LINESIZETHRESHOLD
+
+        MENUITEM "Curve Detail...",             ID_PARAMETERS_CURVEDETAIL
     END
     POPUP "&Edit"
     BEGIN
@@ -73,8 +78,16 @@ BEGIN
         MENUITEM "Original",                    ID_VIEW_ORIGINAL, CHECKED
         MENUITEM "Gaussian Blur",               ID_VIEW_GAUSSIAN
         MENUITEM "Binarizer",                   ID_VIEW_BINARIZER
+        MENUITEM "Thinner",                     ID_VIEW_THINNER
         MENUITEM "Skeletonizer",                ID_VIEW_SKELETONIZER
         , CHECKED
+        MENUITEM "BezierMaker",                 ID_VIEW_BEZIERMAKER, CHECKED
+        MENUITEM SEPARATOR
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "100%",                        ID_ZOOM_100
+            MENUITEM "200%",                        ID_ZOOM_200
+        END
         MENUITEM SEPARATOR
         MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
     END
@@ -124,6 +137,33 @@ BEGIN
                     SS_NOPREFIX
     LTEXT           "Copyright (C) 2004",IDC_STATIC,40,25,119,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+IDD_TOOLBOX DIALOGEX 0, 0, 91, 150
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "Detail Enchance",IDC_STATIC,7,34,62,8
+    LTEXT           "Black/White Threshold",IDC_STATIC,7,7,77,11
+    EDITTEXT        IDC_BWTHRESHOLD,7,18,77,12,ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | ES_NUMBER,WS_EX_TRANSPARENT | 
+                    WS_EX_RIGHT
+    CONTROL         "",IDC_SPIN1,"msctls_updown32",UDS_SETBUDDYINT | 
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS,73,26,11,13,WS_EX_TRANSPARENT
+    PUSHBUTTON      "Move",IDC_MOVEBUTTON,7,124,34,19
+    PUSHBUTTON      "Zoom",IDC_ZOOMBUTTON,50,124,34,19
+    CONTROL         "",IDC_DETAILENCHANCESLIDER,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,45,77,10
+    LTEXT           "Line Length Threshold",IDC_STATIC,7,56,77,8
+    CONTROL         "",IDC_LINELENGTHSLIDER,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,66,77,10
+    LTEXT           "Curve Simplicity",IDC_STATIC,7,78,77,10
+    CONTROL         "",IDC_SLIDER3,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,7,88,77,10
+    LTEXT           "Line Width",IDC_STATIC,7,99,77,9
+    CONTROL         "",IDC_SLIDER1,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_DISABLED | WS_TABSTOP,7,109,77,10
 END
 
 
@@ -180,6 +220,14 @@ BEGIN
         RIGHTMARGIN, 228
         TOPMARGIN, 7
         BOTTOMMARGIN, 48
+    END
+
+    IDD_TOOLBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 84
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 143
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -378,6 +426,26 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_TOOLBAR1 TOOLBAR  16, 15
+BEGIN
+    SEPARATOR
+    SEPARATOR
+    SEPARATOR
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
 #endif    // Swedish resources
 /////////////////////////////////////////////////////////////////////////////
 

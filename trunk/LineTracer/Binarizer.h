@@ -12,5 +12,12 @@ public:
 	CSketchImage* Process(CSketchImage* src);
 
 protected:
-	int CalculateOtsuThreshold(CRawImage *src);
+	int CalculateOtsuThreshold(CRawImage<unsigned char> *src);
+private:
+	int* m_sketchBoard;
+public:
+	void Init(void);
+	CRawImage<int>* m_distanceMap;
+private:
+	void CalcDistanceMap(CRawImage<bool>* img);
 };

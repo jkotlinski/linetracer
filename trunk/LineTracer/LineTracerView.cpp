@@ -27,13 +27,16 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_GAUSSIAN, OnUpdateViewGaussian)
 	ON_COMMAND(ID_FILE_EXPORTEPS, OnFileExporteps)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ORIGINAL, OnUpdateViewOriginal)
+	ON_UPDATE_COMMAND_UI(ID_ZOOM_200, OnUpdateZoom200)
+	ON_UPDATE_COMMAND_UI(ID_ZOOM_100, OnUpdateZoom100)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_BEZIERMAKER, OnUpdateViewBeziermaker)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_THINNER, OnUpdateViewThinner)
 END_MESSAGE_MAP()
 
 // CLineTracerView construction/destruction
 
 CLineTracerView::CLineTracerView()
 {
-	// TODO: add construction code here
 }
 
 CLineTracerView::~CLineTracerView()
@@ -65,16 +68,16 @@ void CLineTracerView::OnDraw(CDC* pDC)
 
 	CLayerManager *lm = CLayerManager::Instance();
 
-	if(lm->GetLayer(CLayerManager::DESATURATOR)->IsValid()) {
+	TRACE("last layer valid: %x\n",lm->GetLastLayer()->IsValid());
+	if(lm->GetLastLayer()->IsValid()) {
 		Bitmap *b=lm->MakeBitmap();
 
 		Graphics gr(*pDC);
-		//Bitmap *original=pDoc->GetInputBitmap();
-		//gr.DrawImage(original,0,0,original->GetWidth(),original->GetHeight());
+		gr.SetInterpolationMode(InterpolationModeNearestNeighbor);
 
-		SetScrollSizes(MM_TEXT, CSize(b->GetWidth(), b->GetHeight()));
+		SetScrollSizes(MM_TEXT, CSize(b->GetWidth()*pDoc->GetZoom()/100, b->GetHeight()*pDoc->GetZoom()/100));
 
-		gr.DrawImage(b,0,0);
+		gr.DrawImage(b,0,0,b->GetWidth()*pDoc->GetZoom()/100,b->GetHeight()*pDoc->GetZoom()/100);
 		delete b;
 	}
 
@@ -133,8 +136,10 @@ void CLineTracerView::OnInitialUpdate(void)
 
 void CLineTracerView::OnUpdateViewSkeletonizer(CCmdUI *pCmdUI)
 {
-	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::SKELETONIZER);
-	pCmdUI->SetCheck(l->IsVisible());
+	if(CLayerManager::Instance()->Layers()>CLayerManager::SKELETONIZER) {
+		CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::SKELETONIZER);
+		pCmdUI->SetCheck(l->IsVisible());
+	}
 }
 
 void CLineTracerView::OnUpdateViewBinarizer(CCmdUI *pCmdUI)
@@ -166,5 +171,29 @@ void CLineTracerView::OnUpdateViewOriginal(CCmdUI *pCmdUI)
 {
 	CLayerManager *lm = CLayerManager::Instance();
 	CLayer* l = lm->GetLayer(CLayerManager::DESATURATOR);
+	pCmdUI->SetCheck(l->IsVisible());
+}
+
+void CLineTracerView::OnUpdateZoom200(CCmdUI *pCmdUI)
+{
+	CLineTracerDoc *pDoc = GetDocument();
+	pCmdUI->SetCheck(pDoc->GetZoom()==200);
+}
+
+void CLineTracerView::OnUpdateZoom100(CCmdUI *pCmdUI)
+{
+	CLineTracerDoc *pDoc = GetDocument();
+	pCmdUI->SetCheck(pDoc->GetZoom()==100);
+}
+
+void CLineTracerView::OnUpdateViewBeziermaker(CCmdUI *pCmdUI)
+{
+	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::BEZIERMAKER);
+	pCmdUI->SetCheck(l->IsVisible());
+}
+
+void CLineTracerView::OnUpdateViewThinner(CCmdUI *pCmdUI)
+{
+	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::THINNER);
 	pCmdUI->SetCheck(l->IsVisible());
 }

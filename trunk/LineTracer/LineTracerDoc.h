@@ -55,6 +55,19 @@ public:
 	afx_msg void OnViewBinarizer();
 	afx_msg void OnViewGaussian();
 	afx_msg void OnViewOriginal();
+	afx_msg void OnParametersLineLength();
+	afx_msg void OnZoom100();
+	afx_msg void OnZoom200();
+	void SetZoom(int factor);
+	int GetZoom(void);
+private:
+	int m_ZoomFactor;
+public:
+	afx_msg void OnParametersNoisesurpression();
+	afx_msg void OnViewBeziermaker();
+	afx_msg void OnViewThinner();
+	afx_msg void OnParametersCurvedetail();
+	afx_msg void OnToolboxChangeBwthreshold();
 };
 
 
