@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "Skeletonizer.h"
 
-#include "LineImagePainter.h"
-
 #include "EpsWriter.h"
 #include "ProjectSettings.h"
 
@@ -991,25 +989,3 @@ CRawImage<bool>* CSkeletonizer::MagnifyImage(CRawImage<bool>* img)
 	return tmp;
 }
 */
-
-void CSkeletonizer::PaintImage(CSketchImage *a_image, CRawImage<ARGB> *a_canvas) const
-{
- 	static const int SCALE = 1;
- 	int width = a_canvas->GetWidth();
- 	int height = a_canvas->GetHeight();
- 
- 	CRawImage<ARGB> *tmp = new CRawImage<ARGB>(width*SCALE,height*SCALE);
- 	tmp->Clear();
- 	CLineImage *src = dynamic_cast<CLineImage*>(a_image);
-	ASSERT ( src != NULL );
- 	CLineImagePainter::Paint(tmp,src);
- 	for(int i=0; i<width*height; i++) {
- 		static const ARGB COLOR_WHITE = 0xffffffff;
- 		ARGB p=tmp->GetPixel(i);
- 		if ( p != 0 ) 
- 		{
- 			a_canvas->SetPixel(i, p);
- 		}
- 	}
-	delete tmp;
-}
