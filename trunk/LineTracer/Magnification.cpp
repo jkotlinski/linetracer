@@ -2,7 +2,8 @@
 #include ".\magnification.h"
 
 Magnification::Magnification(void)
-: m_level(3)
+: m_defaultLevel(3)
+, m_level(m_defaultLevel)
 , m_levelSteps()
 {
 	m_levelSteps.push_back(0.3);
@@ -45,4 +46,9 @@ double Magnification::GetValue(void)
 { 
 	ASSERT ( m_level < m_levelSteps.size() );
 	return m_levelSteps[m_level];
+}
+
+void Magnification::Reset(void)
+{
+	m_level = m_defaultLevel;
 }
