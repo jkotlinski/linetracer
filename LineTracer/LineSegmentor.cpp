@@ -30,6 +30,7 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 	static const bool useMaxErrors = false;
 
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
+
 	ASSERT ( src != NULL );
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
@@ -46,6 +47,8 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 	} else {
 		//USE EVERY FOURTH POINT
 		for(unsigned int i=0; i<src->Size(); i++) {
+			ASSERT ( src->GetLine(i)->Size() > 1 );
+
 			CPolyLine *newLine = new CPolyLine();
 
 			newLine->SetTail(src->GetLine(i)->IsTail());
@@ -58,9 +61,13 @@ CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
 			}
 			newLine->Add(src->GetLine(i)->GetTailPoint()->Clone());
 
+			ASSERT ( newLine->Size() > 1 );
 			dst->Add(newLine);
 		}	
 	}
+	//clean up any mess i did...
+	dst->DiscardDuplicateLines();
+	dst->AssertNoEmptyLines();
 	return dst;
 }
 
