@@ -49,5 +49,5 @@ bool CPolyLine::IsTail(void)
 		}
 	}
 
-	return (knotCount<2)?false:true;
+	return (knotCount==2)?true:false;
 }
