@@ -378,7 +378,7 @@ void CLineTracerView::OnMouseMove(UINT nFlags, CPoint point)
 			SetXTranslation ( l_difference.x * GetScale() + GetXTranslation() );
 			SetYTranslation ( l_difference.y * GetScale() + GetYTranslation() );
 			m_previousDragPoint = point;
-			Invalidate();
+			Invalidate(FALSE);
 		}
 	}
 }
@@ -420,7 +420,7 @@ void CLineTracerView::ZoomIn(CPoint a_point)
 
 	m_magnification.Increase();
 	SetImageCenter(l_clickPoint);
-	Invalidate();
+	Invalidate(FALSE);
 }
 
 void CLineTracerView::ZoomOut(CPoint a_point)
@@ -433,7 +433,7 @@ void CLineTracerView::ZoomOut(CPoint a_point)
 
 	m_magnification.Decrease();
 	SetImageCenter(l_clickPoint);
-	Invalidate();
+	Invalidate(FALSE);
 }
 
 void CLineTracerView::SetImageCenter(PointF a_clickPoint)
