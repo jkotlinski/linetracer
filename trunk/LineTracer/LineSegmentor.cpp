@@ -11,9 +11,6 @@ CLineSegmentor::CLineSegmentor(void)
 : CImageProcessor()
 {
 	SetName ( CString ( "LineSegmentor" ) );
-	CProjectSettings::Instance()->SetParam(
-		CProjectSettings::LINESEGMENTOR_THRESHOLD,
-		1.5);
 	LOG("init linesegmentor\n");
 }
 

@@ -20,7 +20,6 @@ CSkeletonizer::CSkeletonizer(void)
 : CImageProcessor()
 {
 	SetName ( CString ( "Skeletonizer" ) );
-	CProjectSettings::Instance()->SetParam( CProjectSettings::SKELETONIZER_SCALE, 1.0 );
 	LOG("init skeletonizer\n");
 }
 

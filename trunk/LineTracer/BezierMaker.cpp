@@ -15,8 +15,6 @@
 CBezierMaker::CBezierMaker(void)
 : CImageProcessor()
 {
-	CProjectSettings::Instance()->SetParam(
-		CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD, 20.0);
 	SetName(CString("Bezier Maker"));
 	SetType(CImageProcessor::BEZIERMAKER);
 }

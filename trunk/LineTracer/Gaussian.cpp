@@ -9,9 +9,6 @@ CGaussian::CGaussian(void)
 {
 	LOG("init gaussian\n");
 	SetName( CString ( "Gaussian" ) );
-	CProjectSettings::Instance()->SetParam(
-		CProjectSettings::GAUSSIAN_RADIUS,
-		0.5);
 }
 
 CGaussian::~CGaussian(void)
