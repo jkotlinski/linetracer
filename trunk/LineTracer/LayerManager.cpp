@@ -183,6 +183,7 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 
 	int l_loopCount = 0;
 
+
 	do {
 		ASSERT ( l_loopCount++ < 1000 );
 
@@ -190,6 +191,11 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 
 		CLayer *layer = l_lm->GetLayer(0);
 		CSketchImage *img = layer->GetSketchImage();
+
+#ifdef _DEBUG
+	CMemoryState l_oldMemState;
+	l_oldMemState.Checkpoint();
+#endif
 
 		for(UINT l_activeLayerIndex = 1; 
 			(l_activeLayerIndex < l_lm->LayerCount()); 
@@ -200,7 +206,18 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 			layer = l_lm->GetLayer (l_activeLayerIndex);
 
 			layer->Process(img);
-		
+
+#ifdef _DEBUG
+			CMemoryState l_postProcessLayerMemState;
+			l_postProcessLayerMemState.Checkpoint();
+
+			TRACE ( "--- statistics - memory gain after processsing layer %i\n", l_activeLayerIndex );
+			CMemoryState l_diffMemState;
+			l_diffMemState.Difference(l_oldMemState, l_postProcessLayerMemState);
+			l_diffMemState.DumpStatistics();
+			l_oldMemState = l_postProcessLayerMemState;
+#endif
+
 			CLogger::Instance()->Activate();
 			LOG( "process done: %i\n", l_activeLayerIndex );
 
