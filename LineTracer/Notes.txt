@@ -1,10 +1,57 @@
 TO DO:
 
+MENYN
+- alternativen view->vector image och view->original funkar inte
+- varför är inte close implementerat?
+- om man har valt zoom, och går upp i menyn, blir förstoringsglaset en
+pil (bra). När man därefter "fäller ut" en meny så blir pilen ett
+förstoringsglas igen (dåligt).
+
+ANDRA BUGGAR
+- ibland får man sådana där "streck" som löper in i bilden, som inte
+kommer från någon detalj i bilden. Försvinner om man ändrar
+inställningarna litegranna.
+- om jag väljer "load image", jobbar lite i den bilden, och därefter
+väljer "load image" igen för att välja en ny bild, så får jag ingen
+fråga om jag vill spara det jag höll på med.
+- länkarna till nyss använda filer funkar inte. Den byter namn på
+vilken fil jag har öppen uppe i listen, men inte bilden. Först blir
+det helt vitt, men när man ändrar någon inställning kommer den gamla
+bilden fram.
+- om man inte har någon bild öppen, och väljer exit (eller att stänga
+ned programmet genom att klicka på krysset övre högra hörnet) så får
+man frågan om man vill spara "Untitled". Men det finns alltså inget
+att spara.
+- det är lite störigt att det står "Ready" i statusbaren när
+programmet uppenbarligen håller på att tänka...
+- info på statusbaren för vad de olika menyalternativen innebär funkar
+bara för View->Statusbar. Inte för någon annan.
+
+ÖVRIGT
+- Jag tycker inte att "Load image"-lösningen är något vidare. Jag
+valde Open typ 20 ggr... Men om det bara är jag eller ett generellt
+problem får användartesterna utvisa.
+
+STABILITET
+- programmet hänger sig (en gång hittills)
+- små bilder funkar bra på min dator, stora bilder blir mycket långsamt
+- ibland blir bilden svart (med vita streck istället, dvs inverterad)
+för mig. Har hänt typ tiotal gånger. Aning om varför?
+
+FRÅGOR
+- har du testat på Olas bild "blyerts-smutsig" med den galna fågeln?
+När jag testar på den bilden blir resultatet riktigt konstigt.
+- gick det att fixa att göra musmarkörerna små? (förstoringsglaset och handen)
+- gick det att fixa att ha visa vektorbild/pixelbild som två knappar bara?
+
+
 * flimmmer när man drar bild
 * laure2.gif blir väldigt fel
 * ta tillbaka scrollbars för för stor bild
 * framtiden: kolla minnesanvändning (double->float?)
 * framtiden: x-korsning
+
+* bug - eller?: sliders slutar funka när man ändrar dom med höger/vänster tgb? nej??
 
 - fixa linjebredd (min-max)
 - linjebredd vid linjeutritning
@@ -12,10 +59,6 @@ TO DO:
 
 idé för korsningar:
  - kolla EFTER man gjort schneider. limma ihop de ändar som ligger ihop
- och har control points som är ganska så motsatta varandra.
-
-idé för linjer:
- - linjer har någon sorts ackumulerad energi... långa linjer som går ganska rakt har större energi, små och krokiga linjer lägre. fundera på implikationer
 
 idé för yta->linje: 
  - kopiera original till arbetsbild
