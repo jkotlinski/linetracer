@@ -19,7 +19,7 @@ private:
 	virtual ~CToolBox();
 
 protected:
-	CSpinButtonCtrl c_binarizerThresholdControl;
+	CSliderCtrl c_binarizerThresholdControl;
 	CSliderCtrl c_detailEnchanceControl;
 	CSliderCtrl c_holeFillerControl;
 	CSliderCtrl c_tailPrunerControl;
@@ -38,11 +38,11 @@ protected:
 	virtual void DoDataExchange(CDataExchange *pDX);
 	virtual BOOL OnInitDialogBar();
 	afx_msg LRESULT OnUpdateToolboxDataFromLayers ( WPARAM wParam, LPARAM lParam );
-	afx_msg void OnNMReleasedCaptureDetailEnchanceSlider(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnToolboxChangeBwthreshold();
 	
 	DECLARE_MESSAGE_MAP()
 public:
+	afx_msg void OnNMReleasedCaptureDetailEnchanceSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnToolboxChangeBwthreshold(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnDrawHoleFillerSlider(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLineLengthSlider(NMHDR *pNMHDR, LRESULT *pResult);
 	void SetLineTracerView(CLineTracerView* a_view);
