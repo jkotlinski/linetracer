@@ -349,14 +349,18 @@ void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 		ZoomIn(point);
 		break;
 	case ToolTypeMove:
+		SetCapture();
 		m_mouseIsBeingDragged = true;
 		m_previousDragPoint = point;
 		break;
 	}
 }
 
-void CLineTracerView::OnLButtonUp(UINT nFlags, CPoint point) {
-	if ( m_activeToolType == ToolTypeMove ) {
+void CLineTracerView::OnLButtonUp(UINT nFlags, CPoint point) 
+{
+	if ( m_activeToolType == ToolTypeMove ) 
+	{
+		::ReleaseCapture();
 		m_mouseIsBeingDragged = false;
 	}
 }
