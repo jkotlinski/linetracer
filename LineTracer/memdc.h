@@ -25,6 +25,8 @@
 //
 // This class implements a memory Device Context which allows
 // flicker free drawing.
+
+#define BACKGROUND_COLOR	0x00808080
  
 class CMemDC : public CDC {
 private:       
@@ -76,7 +78,7 @@ public:
         }
  
         // Fill background 
-        FillSolidRect(m_rect, pDC->GetBkColor());
+        FillSolidRect(m_rect, BACKGROUND_COLOR);
     }
     
     ~CMemDC()      
