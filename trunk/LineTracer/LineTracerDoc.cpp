@@ -38,7 +38,7 @@ END_MESSAGE_MAP()
 
 CLineTracerDoc::CLineTracerDoc()
 : m_InputBitmapFileName(_T(""))
-, m_InputBitmap(NULL)
+, m_InputBitmap(0)
 {
 }
 
@@ -56,6 +56,11 @@ BOOL CLineTracerDoc::OnNewDocument()
 	// (SDI documents will reuse this document)
 	SetInputImageFileName(CString(_T("")));
 
+	if(m_InputBitmap) {
+		delete m_InputBitmap;
+		m_InputBitmap=0;
+	}
+
 	return TRUE;
 }
 
@@ -71,7 +76,9 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 		// TODO: add storing code here
 		ar << m_InputBitmapFileName;
 		ar << CGaussian::Instance()->GetParam("radius");
+		TRACE("<< %f\n",CGaussian::Instance()->GetParam("radius"));
 		ar << CBinarizer::Instance()->GetParam("threshold");
+		CLayerManager::Instance()->Serialize(ar);
 	}
 	else
 	{
@@ -79,11 +86,22 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 		CString tmpString;
 		double tmp;
 		ar >> tmpString;
+		SetInputImageFileName(tmpString);
+
 		ar >> tmp;
+
 		CGaussian::Instance()->SetParam("radius",tmp);
+
 		ar >> tmp;
 		CBinarizer::Instance()->SetParam("threshold",tmp);
-		this->SetInputImageFileName(tmpString);
+
+		CLayerManager::Instance()->Serialize(ar);
+
+		if(m_InputBitmap) {
+			CLayerManager::Instance()->ProcessLayers(m_InputBitmap);
+		}
+		TRACE(">> gauss: %f\n",CGaussian::Instance()->GetParam("radius"));
+		TRACE(">> thresh: %f\n",CBinarizer::Instance()->GetParam("threshold"));
 	}
 }
 
@@ -107,8 +125,6 @@ void CLineTracerDoc::Dump(CDumpContext& dc) const
 
 void CLineTracerDoc::SetInputImageFileName(CString FileName)
 {
-	TRACE("m_InputBitmap: %x\n",m_InputBitmap);
-
 	m_InputBitmapFileName=FileName;
 
 	if(FileName!=_T("")) {
@@ -117,7 +133,6 @@ void CLineTracerDoc::SetInputImageFileName(CString FileName)
 			CBinarizer::Instance()->SetParam("threshold",-1);
 
 			CLayerManager::Instance()->InvalidateLayers();
-			ProcessLayers();
 		}
 	}
 }
@@ -176,7 +191,7 @@ void CLineTracerDoc::OnParametersBinarizer()
 		if(newVal!=oldVal) {
 			SetModifiedFlag();
 			CLayerManager::Instance()->InvalidateLayers(CLayerManager::BINARIZER);
-			CLayerManager::Instance()->ProcessLayers(m_InputBitmap);
+			ProcessLayers();
 		}
 	}
 }
@@ -211,6 +226,7 @@ void CLineTracerDoc::OnViewSkeletonizer()
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::SKELETONIZER);
 	l->SetVisible(!l->IsVisible());
 	UpdateAllViews(NULL);
+	SetModifiedFlag();
 }
 
 void CLineTracerDoc::OnViewBinarizer()
@@ -218,6 +234,7 @@ void CLineTracerDoc::OnViewBinarizer()
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::BINARIZER);
 	l->SetVisible(!l->IsVisible());
 	UpdateAllViews(NULL);
+	SetModifiedFlag();
 }
 
 void CLineTracerDoc::OnViewGaussian()
@@ -225,4 +242,5 @@ void CLineTracerDoc::OnViewGaussian()
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::GAUSSIAN);
 	l->SetVisible(!l->IsVisible());
 	UpdateAllViews(NULL);
+	SetModifiedFlag();
 }

@@ -12,9 +12,8 @@ public:
 	static CSkeletonizer* Instance(void);
 protected:
 	CSkeletonizer(void);
-	static CSkeletonizer* _instance;
 public:
-	CRawImage* Process(CRawImage* src);
+	CSketchImage* Process(CSketchImage* src);
 private:
 	void DistanceTransform(CRawImage *src, CRawImage *dst, int DirectDistance, int IndirectDistance);
 	CRawImage* DeleteNonMaximums(CRawImage* dst);

@@ -155,7 +155,7 @@
 				RelativePath=".\LineImage.cpp">
 			</File>
 			<File
-				RelativePath=".\LineImageDrawer.cpp">
+				RelativePath=".\LineImagePainter.cpp">
 			</File>
 			<File
 				RelativePath=".\LineTracer.cpp">
@@ -235,7 +235,7 @@
 				RelativePath=".\LineImage.h">
 			</File>
 			<File
-				RelativePath=".\LineImageDrawer.h">
+				RelativePath=".\LineImagePainter.h">
 			</File>
 			<File
 				RelativePath=".\LineTracer.h">

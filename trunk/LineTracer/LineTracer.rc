@@ -52,6 +52,8 @@ BEGIN
     POPUP "File"
     BEGIN
         MENUITEM "Open Image...",               ID_FILE_OPENIMAGE
+        MENUITEM SEPARATOR
+        MENUITEM "Export EPS...",               ID_FILE_EXPORTEPS
     END
     POPUP "Parameters"
     BEGIN

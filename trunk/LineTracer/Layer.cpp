@@ -4,15 +4,17 @@
 CLayer::CLayer(void)
 : m_ImageProcessor(NULL)
 , m_IsVisible(false)
-, m_RawImage(NULL)
+, m_SketchImage(NULL)
 , m_IsValid(false)
 {
 }
 
 CLayer::~CLayer(void)
 {
-	if(m_ImageProcessor!=NULL) delete m_ImageProcessor;
-	if(m_RawImage!=NULL) delete m_RawImage;
+	if(m_SketchImage!=NULL) {
+		delete m_SketchImage;
+		m_SketchImage=NULL;
+	}
 }
 
 void CLayer::SetImageProcessor(CImageProcessor* ImageProcessor)
@@ -20,9 +22,9 @@ void CLayer::SetImageProcessor(CImageProcessor* ImageProcessor)
 	m_ImageProcessor=ImageProcessor;
 }
 
-CRawImage * CLayer::GetRawImage(void)
+CSketchImage * CLayer::GetSketchImage(void)
 {
-	return m_RawImage;
+	return m_SketchImage;
 }
 
 void CLayer::SetVisible(bool state)
@@ -35,13 +37,16 @@ bool CLayer::IsVisible(void)
 	return m_IsVisible;
 }
 
-void CLayer::Process(CRawImage *src)
+void CLayer::Process(CSketchImage *src)
 {
 	if(IsValid()) return;
 
-	if(m_RawImage!=NULL) delete m_RawImage;
+	if(m_SketchImage!=NULL) {
+		delete m_SketchImage;
+		m_SketchImage=NULL;
+	}
 
-	m_RawImage=m_ImageProcessor->Process(src);
+	m_SketchImage=m_ImageProcessor->Process(src);
 
 	SetValid(true);
 }

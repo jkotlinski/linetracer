@@ -9,6 +9,7 @@
 #include "LineTracerDoc.h"
 #include "LineTracerView.h"
 #include ".\linetracerview.h"
+#include "EpsWriter.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -24,6 +25,7 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_SKELETONIZER, OnUpdateViewSkeletonizer)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BINARIZER, OnUpdateViewBinarizer)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_GAUSSIAN, OnUpdateViewGaussian)
+	ON_COMMAND(ID_FILE_EXPORTEPS, OnFileExporteps)
 END_MESSAGE_MAP()
 
 // CLineTracerView construction/destruction
@@ -58,10 +60,7 @@ void CLineTracerView::OnDraw(CDC* pDC)
 
 	CString inputFileName=pDoc->GetInputImageFileName();
 
-	TRACE("inputFileName: %s\n",inputFileName.GetBuffer(50));
 	inputFileName.ReleaseBuffer();
-
-	TRACE("m_InputBitmap: %x\n",pDoc->GetInputBitmap());
 
 	if(pDoc->GetInputBitmap()!=NULL) {
 		Bitmap *b=CLayerManager::Instance()->MakeBitmap();
@@ -111,11 +110,12 @@ void CLineTracerView::OnFileOpenimage()
 	TCHAR szFilters[] = _T("Images (*.jpg;*.gif;*.tiff)");
 
 	CFileDialog dlg (TRUE,_T("jpg;gif;tiff"),
-		_T("*.jpg;*.gif;*.tiff"),0,szFilters);
-	
+		_T("*.jpg;*.gif;*.tiff"),OFN_FILEMUSTEXIST,szFilters);
+
 	if(dlg.DoModal()==IDOK) {
 		CLineTracerDoc *pDoc = GetDocument();
 		pDoc->SetInputImageFileName(dlg.GetPathName());
+		pDoc->ProcessLayers();
 	}
 }
 
@@ -143,4 +143,16 @@ void CLineTracerView::OnUpdateViewBinarizer(CCmdUI *pCmdUI)
 void CLineTracerView::OnUpdateViewGaussian(CCmdUI *pCmdUI)
 {
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::GAUSSIAN);
-	pCmdUI->SetCheck(l->IsVisible());}
+	pCmdUI->SetCheck(l->IsVisible());
+}
+
+void CLineTracerView::OnFileExporteps() {
+	TCHAR szFilters[] = _T("Encapsulated PostScript (*.eps)");
+
+	CFileDialog dlg (FALSE,_T("eps"),
+		_T("*.eps"),OFN_OVERWRITEPROMPT | OFN_HIDEREADONLY,szFilters);
+
+	if(dlg.DoModal()==IDOK) {
+		CEpsWriter::Write(&dlg.GetPathName());
+	}
+}

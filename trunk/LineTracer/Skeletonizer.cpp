@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include ".\skeletonizer.h"
 
-#include "LineImageDrawer.h"
 #include "EpsWriter.h"
 
 #include <math.h>
@@ -9,8 +8,6 @@
 #include <assert.h>
 
 using namespace std;
-
-CSkeletonizer* CSkeletonizer::_instance = 0;
 
 CSkeletonizer::CSkeletonizer(void)
 {
@@ -22,13 +19,12 @@ CSkeletonizer::~CSkeletonizer(void)
 }
 
 CSkeletonizer* CSkeletonizer::Instance() {
-	if(_instance == 0) {
-		_instance = new CSkeletonizer();
-	}
-	return _instance;
+    static CSkeletonizer inst;
+    return &inst;
 }
 
-CRawImage* CSkeletonizer::Process(CRawImage *src) {
+CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
+	CRawImage *src=static_cast<CRawImage*>(i_src);
 	CRawImage *distMap=new CRawImage(src->GetWidth(), src->GetHeight());
 	distMap->Clear();
 
@@ -36,34 +32,29 @@ CRawImage* CSkeletonizer::Process(CRawImage *src) {
 	
 	CRawImage* maxMap = DeleteNonMaximums(distMap);
 
+	delete distMap;
+
 	CRawImage* knotImage=new CRawImage(src->GetWidth(),src->GetHeight());
 	knotImage->Clear();
 
 	CRawImage* segmentMap=CreateSegmentMap(maxMap,knotImage);
 
+	delete maxMap;
+
 	CLineImage* li= Vectorize(segmentMap, knotImage);
 
-	//segmentMap->Clear();
-	for(int i=0; i<segmentMap->GetHeight()*segmentMap->GetHeight(); i++) {
-		if(segmentMap->GetPixel(i)) segmentMap->SetPixel(i,0xff);
-	}
-	CLineImageDrawer::Draw(segmentMap,li);
-
-	li->SetWidth(knotImage->GetWidth());
-	li->SetHeight(knotImage->GetHeight());
-
-	CEpsWriter::Write(li);
-
-	delete li;
-
 	delete knotImage;
-	delete distMap;
 
-	delete maxMap;
-	return segmentMap;
+	//segmentMap->Clear();
+	/*for(int i=0; i<segmentMap->GetPixels(); i++) {
+		if(segmentMap->GetPixel(i)) segmentMap->SetPixel(i,0xff);
+	}*/
 
-	//return maxMap;
-	
+	li->SetSize(segmentMap->GetWidth(),segmentMap->GetHeight());
+
+	delete segmentMap;
+
+	return li;	
 }
 
 

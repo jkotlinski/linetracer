@@ -3,8 +3,6 @@
 
 #include <math.h>
 
-CGaussian* CGaussian::_instance = 0;
-
 CGaussian::CGaussian(void)
 {
 	SetParam("radius",0.5);
@@ -15,21 +13,21 @@ CGaussian::~CGaussian(void)
 }
 
 CGaussian* CGaussian::Instance() {
-	if(_instance == 0) {
-		_instance = new CGaussian();
-	}
-	return _instance;
+    static CGaussian inst;
+    return &inst;
 }
 
-CRawImage* CGaussian::Process(CRawImage* src)
+CSketchImage* CGaussian::Process(CSketchImage* i_src)
 {
+	CRawImage *src=static_cast<CRawImage*>(i_src);
+
 	double radius=GetParam("radius");
 
 	CRawImage *dst=new CRawImage(src->GetWidth(), src->GetHeight());
 
 	if(radius>0.0) {
 		//smooth
-		GaussianSmooth(src, dst, radius);
+		GaussianSmooth(src, dst, (float)radius);
 	} else {
 		for(int i=0; i<src->GetHeight()*src->GetWidth(); i++) {
 			dst->SetPixel(i,src->GetPixel(i));
@@ -39,12 +37,12 @@ CRawImage* CGaussian::Process(CRawImage* src)
 	return dst;
 }
 
-void CGaussian::GaussianSmooth(CRawImage *src, CRawImage *dst, double sigma)
+void CGaussian::GaussianSmooth(CRawImage *src, CRawImage *dst, float sigma)
 {
 	int r, c, rr, cc,     /* Counter variables. */
 		windowsize,        /* Dimension of the gaussian kernel. */
 		center;            /* Half of the windowsize. */
-	double *tempim,        /* Buffer for separable filter gaussian smoothing. */
+	float *tempim,        /* Buffer for separable filter gaussian smoothing. */
 		*kernel,        /* A one dimensional gaussian kernel. */
 		dot,            /* Dot product summing variable. */
 		sum;            /* Sum of the kernel weights variable. */
@@ -59,7 +57,7 @@ void CGaussian::GaussianSmooth(CRawImage *src, CRawImage *dst, double sigma)
 	int rows = src->GetHeight();
 	int cols = src->GetWidth();
 
-	tempim = new double[rows*cols];
+	tempim = new float[rows*cols];
 
 	// Blur in the x - direction.
 	for(r=0;r<rows;r++){
@@ -96,19 +94,19 @@ void CGaussian::GaussianSmooth(CRawImage *src, CRawImage *dst, double sigma)
 }
 
 
-void CGaussian::MakeGaussianKernel(double sigma, double **kernel, int *windowsize)
+void CGaussian::MakeGaussianKernel(float sigma, float **kernel, int *windowsize)
 {
 	int i, center;
-	double x, fx, sum=0.0;
+	float x, fx, sum=0.0;
 
 	*windowsize = 1 + 2 * (int)ceil(2.5 * sigma);
 	center = (*windowsize) / 2;
 
-	*kernel = new double[*windowsize];
+	*kernel = new float[*windowsize];
 
 	for(i=0; i<(*windowsize); i++){
-		x = i - center;
-		fx = pow(2.71828, -0.5*x*x/(sigma*sigma)) / (sigma * sqrt(6.2831853));
+		x = float(i - center);
+		fx = float(pow(2.71828, -0.5*x*x/(sigma*sigma)) / (sigma * sqrt(6.2831853)));
 		(*kernel)[i] = fx;
 		sum += fx;
 	}

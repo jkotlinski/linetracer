@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include ".\binarizer.h"
 
-CBinarizer *CBinarizer::_instance = 0;
-
 CBinarizer::CBinarizer(void)
 {
 	SetParam("threshold",-1);
@@ -10,18 +8,16 @@ CBinarizer::CBinarizer(void)
 
 CBinarizer::~CBinarizer(void)
 {
-	if(_instance!=0) delete _instance;
 }
 
 CBinarizer *CBinarizer::Instance() {
-	if(_instance == 0) {
-		_instance = new CBinarizer();
-	}
-	return _instance;
+    static CBinarizer inst;
+    return &inst;
 }
 
-CRawImage* CBinarizer::Process(CRawImage* src)
+CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 {
+	CRawImage *src=static_cast<CRawImage*>(i_src);
 	CRawImage *dst=new CRawImage(src->GetWidth(), src->GetHeight());
 
 	ARGB threshold=(ARGB)GetParam("threshold");
@@ -31,7 +27,7 @@ CRawImage* CBinarizer::Process(CRawImage* src)
 		SetParam("threshold", threshold);
 	}
 
-	for(int i=0; i<src->GetWidth()*src->GetHeight(); i++) {
+	for(int i=0; i<src->GetPixels(); i++) {
 		if(src->GetPixel(i)<threshold) {
 			dst->SetPixel(i,0);
 		} else {
@@ -98,6 +94,8 @@ int CBinarizer::CalculateOtsuThreshold(CRawImage *img)
 			}
 		}
 	}
+
+	TRACE("find otsu: %i\n", bestThreshold);
 
 	return bestThreshold;
 }

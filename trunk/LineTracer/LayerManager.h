@@ -15,7 +15,6 @@ public:
 
 protected:
 	CLayerManager(void);
-	static CLayerManager* _instance;
 
 	vector<CLayer*> m_Layers;
 
@@ -25,4 +24,5 @@ public:
 	CLayer* GetLayer(int layer);
 	Bitmap* MakeBitmap(void);
 	int Layers(void);
+	void Serialize(CArchive &ar);
 };

@@ -15,7 +15,7 @@ private:
 public:
 	void SetActive(bool state);
 	bool IsActive(void);
-	virtual CRawImage* Process(CRawImage* src) = 0;
+	virtual CSketchImage* Process(CSketchImage* src) = 0;
 private:
 	bool m_IsValid;
 	hash_map<const char*,double> m_Params;

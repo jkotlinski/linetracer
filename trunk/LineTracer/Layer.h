@@ -14,13 +14,13 @@ private:
 public:
 	void SetImageProcessor(CImageProcessor* ImageProcessor);
 private:
-	CRawImage *m_RawImage;
+	CSketchImage *m_SketchImage;
 	bool m_IsVisible;
 public:
-	CRawImage *GetRawImage(void);
+	CSketchImage* GetSketchImage(void);
 	void SetVisible(bool state);
 	bool IsVisible(void);
-	void Process(CRawImage *src);
+	void Process(CSketchImage *src);
 private:
 	bool m_IsValid;
 public:
