@@ -3,7 +3,7 @@
 
 #include "FPoint.h"
 #include "LineImage.h"
-
+#include "SketchImage.h"
 #include <vector>
 
 class CForkHandler :
@@ -16,18 +16,15 @@ public:
 	static CForkHandler* Instance();
 	CSketchImage* Process(CSketchImage *src);
 private:
-	vector<CFPoint>* Find3Forks(CLineImage *li);
-public:
-	vector<CFPoint> *ThreeForks;
+	vector<CFPoint>* Find3Forks(const CLineImage *li) const;
+	vector<CFPoint>* ThreeForks;
 	vector<CFPoint>* TForks;
 	vector<CFPoint>* YForks;
-private:
-	CLineImage* HandleTForks(CLineImage* li);
+	CLineImage* HandleTForks(const CLineImage* li);
+	void SetEndPoint(CPolyLine* pl, const CFPoint &p) const;
+	CLineImage* HandleYForks(const CLineImage* li);
+	void MarkYFork(CPolyLine* line, const CFPoint &p, int median) const;
+	void HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* line1, CPolyLine* line2, const CFPoint &p);
 public:
-	CFPoint SmoothLine(CPolyLine* line, int index);
-private:
-	void SetEndPoint(CPolyLine* pl, CFPoint p);
-	CLineImage* HandleYForks(CLineImage* li);
-	void MarkYFork(CPolyLine* line, CFPoint p, int median);
-	void HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* line1, CPolyLine* line2, CFPoint p);
+	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };

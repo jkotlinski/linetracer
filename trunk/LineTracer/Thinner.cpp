@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include ".\thinner.h"
+#include "thinner.h"
 
 CThinner::CThinner(void)
 {
@@ -16,21 +16,22 @@ CThinner* CThinner::Instance(void)
 }
 
 CSketchImage* CThinner::Process(CSketchImage *i_src) {
-	CRawImage<bool> *src=static_cast<CRawImage<bool>*>(i_src);
+	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
+	ASSERT ( src != NULL );
 	CRawImage<bool> *dst = new CRawImage<bool>(src->GetWidth(),src->GetHeight());
 
 	for(int i=0; i<src->GetPixels(); i++) {
 		dst->SetPixel(i,!src->GetPixel(i));
 	}
 
-	int thinned;
-	//int times=1;
-	do {
-		thinned = Thin(dst);
-		//thinned += Thin(dst,1);
-		TRACE("thinned: %i\n",thinned);
-		//times++;
-	} while(thinned);
+	int pixelsThinned = 0;
+	
+	do 
+	{
+		pixelsThinned = Thin(dst);
+		//LOG("thinned: %i\n",thinned);
+	} 
+	while( pixelsThinned > 0 );
 
 	return dst;
 }
@@ -93,7 +94,10 @@ bool CThinner::IsPointThinnable(CRawImage<bool>* img, CPoint p)
 
 	int frontPixels = 0;
 
-	for(int i=1; i<9; i++) frontPixels += n[i];
+	for(int l_pixelIndex=1; l_pixelIndex<9; l_pixelIndex++) 
+		{
+		frontPixels += n[l_pixelIndex];
+		}
 
 	bool isEndPixel = frontPixels == 1;
 
@@ -109,7 +113,7 @@ bool CThinner::IsPointThinnable(CRawImage<bool>* img, CPoint p)
 	if(!n[7] && n[8]) connectivityNumber++;
 	if(!n[8] && n[1]) connectivityNumber++;
 
-	//TRACE("connectivityNumber: %i\n",connectivityNumber);
+	//LOG("connectivityNumber: %i\n",connectivityNumber);
 
 	if(connectivityNumber!=1) return false;
 
@@ -181,4 +185,28 @@ bool CThinner::IsPointThinnableZhangSuen(CRawImage<bool>* img, CPoint p, int pas
 		if(n[3] && n[5] && n[7]) return false;
 	}
 	return true;
+}
+
+void CThinner::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
+{
+	static const int SCALE = 1;
+	int width = a_canvas->GetWidth();
+	int height = a_canvas->GetHeight();
+	CRawImage<bool> *l_src = dynamic_cast<CRawImage<bool>*>(a_image);
+	ASSERT ( l_src != NULL );
+
+	for(int x=0; x<width*SCALE; x+=SCALE) {
+		for(int y=0; y<height*SCALE; y+=SCALE) {
+			ARGB p = l_src->GetPixel(x/SCALE,y/SCALE);
+
+			if( p != 0 ) 
+			{
+				for(int i=0; i<SCALE; i++) {
+					for(int j=0; j<SCALE; j++) {
+						a_canvas->SetPixel(x+i, y+j, 0xff00ff00);
+					}
+				}
+			}
+		}
+	}
 }

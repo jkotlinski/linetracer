@@ -23,9 +23,9 @@ public:
 	CSketchImage* Process(CSketchImage* src);
 private:
 	void DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst, int DirectDistance, int IndirectDistance);
-	CRawImage<ARGB>* DeleteNonMaximums(CRawImage<ARGB>* dst);
+	//CRawImage<ARGB>* DeleteNonMaximums(CRawImage<ARGB>* dst);
 	CRawImage<ARGB>* DeleteNonMaximumsSimple(CRawImage<ARGB>* dst);
-	MaximumMapType* DoAFMM(CRawImage<bool>* dst,bool direction);
+	//MaximumMapType* DoAFMM(CRawImage<bool>* dst,bool direction);
 	int IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
 	CRawImage<ARGB>* CreateSegmentMap(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
 	CLineImage* Vectorize(CRawImage<ARGB>* segmentMap, CRawImage<ARGB>* knotMap);
@@ -35,12 +35,14 @@ private:
 	CFPoint FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, CFPoint p);
 	bool NoOrthogonalNeighbors(CRawImage<ARGB>* segmentImage, CFPoint p);
 	bool IsEndPoint(CRawImage<ARGB>* image,CPoint p);
-	float AFMMSolve(int i1, int j1, int i2, int j2, float sol, char *f, float* T, int width);
+	double AFMMSolve(int i1, int j1, int i2, int j2, double sol, char *f, double* T, int width);
 	
-	static const char CSkeletonizer::BAND=0;
-	static const char CSkeletonizer::INSIDE=1;
-	static const char CSkeletonizer::KNOWN=2;
-	void TrackBoundary(int x, int y, char* f, float* U, float &val, int width);
+	static const char BAND=0;
+	static const char INSIDE=1;
+	static const char KNOWN=2;
+	void TrackBoundary(int x, int y, char* f, double* U, double &val, int width);
 	CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
-	CLineImage* SmoothPositions(CLineImage* lineImage);
+	//CLineImage* SmoothPositions(CLineImage* lineImage);
+public:
+	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };

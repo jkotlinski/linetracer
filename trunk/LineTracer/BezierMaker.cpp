@@ -1,23 +1,22 @@
 #include "StdAfx.h"
-#include ".\beziermaker.h"
+#include "beziermaker.h"
 
+#include "Logger.h"
 #include "PolyLine.h"
 #include "LineImage.h"
 #include "SketchPoint.h"
+#include "LineImagePainter.h"
 
-#include <assert.h>
 #include <math.h>
 #include <vector>
-
-#define REUSE_TANGENTS
-
-#define DO_BEZIER_TRACE
 
 //#define MEM_DEBUG
 
 CBezierMaker::CBezierMaker(void)
+: CImageProcessor()
 {
-	SetParam("error_threshold",20);
+	SetParam(BEZIERMAKER_ERROR_THRESHOLD, 20.0);
+	SetName( new CString("Bezier Maker") );
 }
 
 CBezierMaker::~CBezierMaker(void)
@@ -31,8 +30,8 @@ CBezierMaker* CBezierMaker::Instance() {
 
 CSketchImage* CBezierMaker::Process(CSketchImage* i_src)
 {
-	CLineImage *src = static_cast<CLineImage*>(i_src);
-
+	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
+	ASSERT ( src != NULL );
 
 	//return ShaoZhou(src);
 	CLineImage *dst = DoSchneider(src);
@@ -41,16 +40,16 @@ CSketchImage* CBezierMaker::Process(CSketchImage* i_src)
 }
 
 //simple method. just add good looking control points.
-CSketchImage* CBezierMaker::SimpleMethod(CLineImage* src)
+CSketchImage* CBezierMaker::SimpleMethod(const CLineImage* src) const
 {
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
 	//make dst a copy of src
-	for(int i=0; i<src->Size(); i++) {
-		dst->Add(src->At(i)->Clone());
+	for(unsigned int l_lineIndex=0; l_lineIndex<src->Size(); l_lineIndex++) {
+		dst->Add(src->At(l_lineIndex)->Clone());
 	}
 
-	for(int i=0; i<dst->Size(); i++) {
+	for(unsigned int i=0; i<dst->Size(); i++) {
 		CPolyLine* pl = dst->At(i);
 		vector<CSketchPoint*>::iterator point_iter=pl->Begin();
 
@@ -61,23 +60,23 @@ CSketchImage* CBezierMaker::SimpleMethod(CLineImage* src)
 
 		while(point_iter!=pl->End()) {
 			points.push_back(*point_iter);
-			point_iter++;
+			++point_iter;
 		}
 
-		for(unsigned int i=0; i<points.size(); i++) {
+		for(unsigned int l_pointIndex=0; l_pointIndex<points.size(); l_pointIndex++) {
 			double xdiff; 
 			double ydiff; 
 
-			if(i==0) {
-				xdiff = points.at(i+1)->x - points.at(i)->x;
-				ydiff = points.at(i+1)->y - points.at(i)->y;
+			if(l_pointIndex==0) {
+				xdiff = points.at(l_pointIndex+1)->GetX() - points.at(l_pointIndex)->GetX();
+				ydiff = points.at(l_pointIndex+1)->GetY() - points.at(l_pointIndex)->GetY();
 			} else {
-				if(i==points.size()-1) {
-					xdiff = points.at(i)->x - points.at(i-1)->x;
-					ydiff = points.at(i)->y - points.at(i-1)->y;
+				if(l_pointIndex==points.size()-1) {
+					xdiff = points.at(l_pointIndex)->GetX() - points.at(l_pointIndex-1)->GetX();
+					ydiff = points.at(l_pointIndex)->GetY() - points.at(l_pointIndex-1)->GetY();
 				} else {
-					xdiff = points.at(i+1)->x - points.at(i-1)->x;
-					ydiff = points.at(i+1)->y - points.at(i-1)->y;
+					xdiff = points.at(l_pointIndex+1)->GetX() - points.at(l_pointIndex-1)->GetX();
+					ydiff = points.at(l_pointIndex+1)->GetY() - points.at(l_pointIndex-1)->GetY();
 				}
 			}
 			double scale = sqrt(xdiff*xdiff+ydiff*ydiff);
@@ -90,138 +89,135 @@ CSketchImage* CBezierMaker::SimpleMethod(CLineImage* src)
 			diffx.push_back(xdiff);
 			diffy.push_back(ydiff);
 
-			//TRACE("diff %i: %f %f; scale %f\n",i,xdiff,ydiff,scale);
+			//LOG("diff %i: %f %f; scale %f\n",i,xdiff,ydiff,scale);
 		}
 
-		for(unsigned int i=0; i<points.size()-1; i++) {
-			double tmpx = points.at(i+1)->x - points.at(i)->x;
-			double tmpy = points.at(i+1)->y - points.at(i)->y;
+		for(unsigned int l_point=0; l_point<points.size()-1; l_point++) {
+			double tmpx = points.at(l_point+1)->GetX() - points.at(l_point)->GetX();
+			double tmpy = points.at(l_point+1)->GetY() - points.at(l_point)->GetY();
 			double val = 0.4 * sqrt(tmpx*tmpx + tmpy*tmpy);
 			a.push_back(val);
-			//TRACE("a %i: %f\n",i,val);
 		}
 
-		for(unsigned int i=0; i<points.size()-1; i++) {
+		for(unsigned int l_point2=0; l_point2 < points.size()-1; l_point2++) {
 			//control point 1
-			if(!points.at(i)->IsKnee()) {
+			if(!points.at(l_point2)->IsKnee()) {
 				double x, y;
-				x = a.at(i)*diffx.at(i) + points.at(i)->x;
-				y = a.at(i)*diffy.at(i) + points.at(i)->y;
-				pl->At(i)->SetControlPointForward(CFPoint(x,y));
+				x = a.at(l_point2)*diffx.at(l_point2) + points.at(l_point2)->GetX();
+				y = a.at(l_point2)*diffy.at(l_point2) + points.at(l_point2)->GetY();
+				pl->At(l_point2)->SetControlPointForward(CFPoint(x,y));
 			}
 
 			//control point 2
-			if(!points.at(i+1)->IsKnee()) {
+			if(!points.at(l_point2+1)->IsKnee()) {
 				double x, y;
-				x = -a.at(i)*diffx.at(i+1) + points.at(i+1)->x;
-				y = -a.at(i)*diffy.at(i+1) + points.at(i+1)->y;
-				pl->At(i+1)->SetControlPointBack(CFPoint(x,y));
+				x = -a.at(l_point2)*diffx.at(l_point2+1) + points.at(l_point2+1)->GetX();
+				y = -a.at(l_point2)*diffy.at(l_point2+1) + points.at(l_point2+1)->GetY();
+				pl->At(l_point2+1)->SetControlPointBack(CFPoint(x,y));
 			}
 		}
 	}
 	return dst;
 }
 
-double CBezierMaker::FindError(CPolyLine* polyLine, CPolyLine* curve, vector<double> *tlist, int &worstPoint)
+double CBezierMaker::FindError(CPolyLine* polyLine, CPolyLine* curve, vector<double> *tlist, unsigned int &worstPoint) const
 {
-	worstPoint = -1;
+	worstPoint = 0xffffffff;
 	double totalError = 0;
 	double worstError = -1;
 
-	//TRACE("Curve->Size() %i\n",curve->Size());
+	//LOG("Curve->Size() %i\n",curve->Size());
 
-	for(int i=0; i<polyLine->Size(); i++) {
-		CFPoint linePoint = *(polyLine->At(i));
+	for(unsigned int i=0; i<polyLine->Size(); i++) {
+		CFPoint linePoint = polyLine->At(i)->GetCoords();
 		double b = (*tlist)[i];
 
 		CSketchPoint *start = curve->At(0);
 		CSketchPoint *end = curve->At(1);
 
-		//TRACE("b: %f\n",b);
+		//LOG("b: %f\n",b);
 		double t=1-b;
 
-		//TRACE("t: %f\n",t);
-		//TRACE("start: %f %f\n",start->x,start->y);
-		//TRACE("start->cpf: %f %f\n",start->GetControlPointForward().x,start->GetControlPointForward().y);
+		//LOG("t: %f\n",t);
+		//LOG("start: %f %f\n",start->GetX(),start->GetY());
+		//LOG("start->cpf: %f %f\n",start->GetControlPointForward().GetX(),start->GetControlPointForward().GetY());
 		
 		CFPoint curvePoint(
-			start->x*t*t*t + start->GetControlPointForward().x*3*t*t*b + end->GetControlPointBack().x*3*t*b*b + end->x*b*b*b,
-			start->y*t*t*t + start->GetControlPointForward().y*3*t*t*b + end->GetControlPointBack().y*3*t*b*b + end->y*b*b*b
+			start->GetX()*t*t*t + start->GetControlPointForward().GetX()*3*t*t*b + end->GetControlPointBack().GetX()*3*t*b*b + end->GetX()*b*b*b,
+			start->GetY()*t*t*t + start->GetControlPointForward().GetY()*3*t*t*b + end->GetControlPointBack().GetY()*3*t*b*b + end->GetY()*b*b*b
 			);
 
 		CFPoint diff = curvePoint - linePoint;
 
-		//TRACE("curvePoint: %f %f\n",curvePoint.x,curvePoint.y);
-		//TRACE("linePoint: %f %f\n",linePoint.x,linePoint.y);
-		//TRACE("diff: %f %f\n",diff.x,diff.y);
+		//LOG("curvePoint: %f %f\n",curvePoint.GetX(),curvePoint.GetY());
+		//LOG("linePoint: %f %f\n",linePoint.GetX(),linePoint.GetY());
+		//LOG("diff: %f %f\n",diff.GetX(),diff.GetY());
 
-		double error = sqrt(diff.x*diff.x + diff.y*diff.y);
+		double error = sqrt(diff.GetX()*diff.GetX() + diff.GetY()*diff.GetY());
 
-		//TRACE("error: %f\n",error);
+		//LOG("error: %f\n",error);
 
 		if(error > worstError) {
 			worstPoint = i;
 			worstError = error;
 		}
 		totalError += error;
-		//TRACE("totalError: %f\n",totalError);
+		//LOG("totalError: %f\n",totalError);
 	}
+	ASSERT ( worstPoint != 0xffffffff );
 	return totalError;
 }
 
-CLineImage* CBezierMaker::DoSchneider(CLineImage* src)
+CLineImage* CBezierMaker::DoSchneider(const CLineImage* src)
 {
-	static const double REPARAM_IMPROVEMENT = 0.1;
+	ASSERT ( src != NULL );
+#define REUSE_TANGENTS
+
 	static const double REPARAM_THRESHOLD = 30.0;
 
-	double ERROR_THRESHOLD = GetParam("error_threshold");
+	double ERROR_THRESHOLD = GetParam(BEZIERMAKER_ERROR_THRESHOLD);
 
-	CLineImage *tmp = new CLineImage(src->GetWidth(),src->GetHeight());
+	//LOG( "DoSchneider()\n" );
+
+	CLineImage *l_workImage = new CLineImage(src->GetWidth(),src->GetHeight());
 	//make dst a copy of src
-	for(int i=0; i<src->Size(); i++) {
-		tmp->Add(src->At(i)->Clone());
+	for(unsigned int i=0; i<src->Size(); i++) {
+		l_workImage->Add(src->At(i)->Clone());
 	}
 
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
 #ifdef REUSE_TANGENTS
-	map<int,bool> hasTangents;
+	map<unsigned int,bool> hasTangents;
 	deque<vector<CFPoint>*> hasTangentList;
-	//deque<vector<double>*> hasTList;
 #endif
-
-	//map<int,bool> hasTangents;
-	//deque<vector<CFPoint>*> hasTangentList;
 
 #ifdef MEM_DEBUG
 	CMemoryState oldMemState, newMemState, diffMemState;
 	oldMemState.Checkpoint();
 #endif
 
-	for(int i=0; i<tmp->Size(); i++) {
-		CPolyLine* pl = tmp->At(i);
+	for(unsigned int l_lineIndex=0; l_lineIndex<l_workImage->Size(); l_lineIndex++) {
+		CPolyLine* pl = l_workImage->At(l_lineIndex);
+
+		ASSERT ( 0 == pl->RemoveDuplicatePoints() );
 
 		//make tangent map
 		vector<CFPoint>* tangentList;
 		
 #ifdef REUSE_TANGENTS
-		if(hasTangents[i]) {
+		if(hasTangents[l_lineIndex]) {
 			tangentList = hasTangentList.front();
 			hasTangentList.pop_front();
 
-			//TRACE("popped tangentlist. new size: %i\n",hasTangentList.size());
-			CSketchPoint startTangent = (*tangentList)[0];
-			CSketchPoint endTangent = (*tangentList)[(*tangentList).size()-1];
+			//LOG("popped tangentlist. new size: %i\n",hasTangentList.size());
+			CSketchPoint startTangent ( (*tangentList)[0] );
+			CSketchPoint endTangent ( (*tangentList)[(*tangentList).size()-1] );
 			delete tangentList;
 
 			tangentList = CalcTangents(pl,&startTangent,&endTangent);
-			//tangentList = CalcTangents(pl);
-
-			//tlist = hasTList.front();
-			//hasTList.pop_front();
 		} else {
 			tangentList = CalcTangents(pl);
-			//TRACE("calced tangentlist\n");
 		}
 #else
 		tangentList = CalcTangents(pl);
@@ -230,58 +226,77 @@ CLineImage* CBezierMaker::DoSchneider(CLineImage* src)
 		CPolyLine* curve = 0;
 		bool doAddCurve = true;
 
-		if(pl->Size()<3) {
+		if(pl->Size()<3) 
+		{
+			// straight line
 			curve = FitLine(pl,tangentList);
-		} else {
-			//make T map
+		} 
+		else 
+		{
+			// calculate T list
 			vector<double>* tlist = CalcT(pl);
-			/*TRACE("after calct:\n");
-			for(unsigned int i=0; i<tlist->size(); i++) {
-				TRACE("tlist[%i]: %f\n",i,tlist[i]);
-			}*/
 
-			double previousError = 1000000;
-			double bestError = 1000000;
+			static const double L_VERY_BIG_NUMBER = 100000000.0;
 
-			CPolyLine * bestCurve = 0;
-			int iteration = 0;
-			int worstPoint = -1;
-			while(true) {
-				/*for(unsigned int i=0; i<tlist->size(); i++) {
-					TRACE("tlist[%i]: %f\n",i,tlist[i]);
-				}*/
-				curve = FitSpline(pl,tlist,tangentList);
-				double error = FindError(pl,curve,tlist,worstPoint);
-				//TRACE("pl->size(): %i\n", pl->Size());
-				//TRACE("curve->size(): %i\n", curve->Size());
-				assert(error>=0);
-				//TRACE("FindError: %f\n",error);
-				if(error < previousError) {
-					if(bestCurve != 0) {
+			double previousError = L_VERY_BIG_NUMBER;
+			double bestError = L_VERY_BIG_NUMBER;
+
+			CPolyLine * bestCurve = NULL;
+			unsigned int worstPoint = 0xffffffff;
+
+			//forever loop with two exits
+			for ( ;; )
+			{
+				curve = FitSpline(pl, tlist, tangentList);
+
+				double error = FindError(pl, curve, tlist, worstPoint);
+
+				ASSERT(error >= 0);
+
+				bool l_errorTooBig = error > REPARAM_THRESHOLD;
+				if ( l_errorTooBig ) 
+				{
+					//give up curvefitting - we'll subdivide line and try again
+					break;
+				}
+
+				bool foundBetterCurve = error < previousError;
+
+				if( foundBetterCurve ) 
+				{
+					// store curve in bestCurve
+					if(bestCurve != NULL) 
+					{
 						delete bestCurve;
 					}
 					bestError = error;
 					bestCurve = curve->Clone();
-					//TRACE("new bestError: %f\n",bestError);
 				}
-
-				//break;
-				//TRACE("error: %f  preverror: %f\n",error,previousError);
-				double improvement = 1;
-				if(previousError!=0.0) {
-					improvement -= error/previousError;
-				} else {
-					improvement = 0;
-				}
-
-				if(improvement<REPARAM_IMPROVEMENT || error > REPARAM_THRESHOLD) {
+				else
+				{
+					//last iteration didn't improve situation,
+					//so i guess we give up.
 					break;
 				}
-				//TRACE("iteration: %i  improvement: %f\n",iteration++,improvement);
 
-				if(!Reparametrize(pl,curve,tlist)) {
+				if( ImprovementSmallEnough( error, previousError ))
+				{
+ 					// last iteration didn't improve curve much, so i guess
+					// we're satisfied!
 					break;
 				}
+
+				// ok, try to iterate through once more again - reparametrize t
+
+				bool l_foundBetterTListStatus = false;
+				ReparametrizeT ( pl, curve, tlist, l_foundBetterTListStatus );
+				
+				if(l_foundBetterTListStatus == false) 
+				{
+					// couldn't improve tlist - give up
+					break;
+				}
+				
 				delete curve;
 
 				previousError = error;
@@ -290,51 +305,49 @@ CLineImage* CBezierMaker::DoSchneider(CLineImage* src)
 
 			curve = bestCurve;
 
-			if(bestError > ERROR_THRESHOLD) {
-				//subdivide polyline
-				int subdivIndex = worstPoint;
-				//TRACE("subdivide line\n");
-				assert(worstPoint>=0);
-				assert(worstPoint<pl->Size());
+			bool errorTooBig = bestError > ERROR_THRESHOLD;
+
+			if(errorTooBig) 
+			{
+				//divide line
+				unsigned int subdivIndex = worstPoint;
+
+				ASSERT(worstPoint < pl->Size() );
+
 				CPolyLine * newBackLine = new CPolyLine();
 				CPolyLine * newForwardLine = new CPolyLine();
 
 #ifdef REUSE_TANGENTS
 				vector<CFPoint>* backTangentList = new vector<CFPoint>;
 				vector<CFPoint>* forwardTangentList = new vector<CFPoint>;
-				//vector<double>* backTList = new vector<double>;
-				//vector<double>* forwardTList = new vector<double>;
 #endif
-				//TRACE("backline add:\n");
-				for(int j=0; j<=subdivIndex; j++) {
-					newBackLine->Add(pl->At(j)->Clone());
-					//TRACE("x y : %f %f\n",pl->At(j)->x,pl->At(j)->y);
+				for(unsigned int l_backPointIndex=0; 
+					l_backPointIndex <= subdivIndex;
+					l_backPointIndex++) 
+				{
+					newBackLine->Add(pl->At(l_backPointIndex)->Clone());
 #ifdef REUSE_TANGENTS
-					backTangentList->push_back((*tangentList)[j]);
+					backTangentList->push_back((*tangentList)[l_backPointIndex]);
 #endif
 				}
-				//TRACE("forwardline add:\n");
-				for(int j=subdivIndex; j<pl->Size(); j++) {
-					//TRACE("x y : %f %f\n",pl->At(j)->x,pl->At(j)->y);
-					newForwardLine->Add(pl->At(j)->Clone());
+				for(unsigned int l_forwardPointIndex=subdivIndex; 
+					l_forwardPointIndex < pl->Size(); 
+					l_forwardPointIndex++) 
+				{
+					newForwardLine->Add(pl->At(l_forwardPointIndex)->Clone());
 #ifdef REUSE_TANGENTS
-					forwardTangentList->push_back((*tangentList)[j]);
+					forwardTangentList->push_back((*tangentList)[l_forwardPointIndex]);
 #endif
 				}
 				
-				tmp->Add(newBackLine);
-				tmp->Add(newForwardLine);
+				l_workImage->Add(newBackLine);
+				l_workImage->Add(newForwardLine);
 
 #ifdef REUSE_TANGENTS
-				hasTangents[tmp->Size()-2]=true;
-				hasTangents[tmp->Size()-1]=true;
+				hasTangents[l_workImage->Size()-2]=true;
+				hasTangents[l_workImage->Size()-1]=true;
 				hasTangentList.push_back(backTangentList);
 				hasTangentList.push_back(forwardTangentList);
-				//hasTList.push_back(backTList);
-				//hasTList.push_back(forwardTList);
-				//TRACE("pushed tangentlists. new size: %i\n",hasTangentList.size());
-				//delete backTangentList;
-				//delete forwardTangentList;
 #endif
 				doAddCurve=false;
 			}
@@ -342,40 +355,49 @@ CLineImage* CBezierMaker::DoSchneider(CLineImage* src)
 		}
 		delete tangentList;
 
-		if(doAddCurve) {
+		if(doAddCurve) 
+		{
 			dst->Add(curve);
-		} else {
+		} 
+		else 
+		{
 			delete curve;
 		}
 	}
 
-	delete tmp;
+	delete l_workImage;
 
 #ifdef MEM_DEBUG
 	newMemState.Checkpoint();
 	if( diffMemState.Difference( oldMemState, newMemState ) )
 	{
-		TRACE( "Memory leaked!\n" );
+		LOG( "Memory leaked!\n" );
 	}
 #endif
 
 	return dst;
 }
 
-vector<double>* CBezierMaker::CalcT(CPolyLine* line)
+/** calct is supposed to distribute values from 0.0 to 1.0 
+*/
+vector<double>* CBezierMaker::CalcT(CPolyLine* line) const
 {
+	LOG ( "CalcT enter\n" );
 	vector<double>* tlist = new vector<double>;
 
 	double totalDist = 0;
 
 	//calculate total distance
-	for(int i=1; i<line->Size(); i++) {
-		double x1 = line->At(i-1)->x;
-		double y1 = line->At(i-1)->y;
-		double x2 = line->At(i)->x;
-		double y2 = line->At(i)->y;
-		double xdiff = x2-x1;
-		double ydiff = y2-y1;
+	for(unsigned int l_distancePoint = 1; 
+		l_distancePoint < line->Size(); 
+		l_distancePoint++) 
+	{
+		const double l_x1 = line->At(l_distancePoint-1)->GetX();
+		const double l_y1 = line->At(l_distancePoint-1)->GetY();
+		const double l_x2 = line->At(l_distancePoint)->GetX();
+		const double l_y2 = line->At(l_distancePoint)->GetY();
+		const double xdiff = l_x2-l_x1;
+		const double ydiff = l_y2-l_y1;
 		totalDist += sqrt(xdiff*xdiff+ydiff*ydiff);
 	}
 
@@ -383,29 +405,37 @@ vector<double>* CBezierMaker::CalcT(CPolyLine* line)
 	//first point has T = 0.0
 	tlist->push_back(0.0);
 
-	for(int i=1; i<line->Size()-1; i++) {
-		double x1 = line->At(i-1)->x;
-		double y1 = line->At(i-1)->y;
-		double x2 = line->At(i)->x;
-		double y2 = line->At(i)->y;
-		double xdiff = x2-x1;
-		double ydiff = y2-y1;
+	LOG( "push back 0.0\n" );
+
+	for(unsigned int i=1; i<line->Size()-1; i++) 
+	{
+		const double l_x1 = line->At(i-1)->GetX();
+		const double l_y1 = line->At(i-1)->GetY();
+		const double l_x2 = line->At(i)->GetX();
+		const double l_y2 = line->At(i)->GetY();
+		const double xdiff = l_x2-l_x1;
+		const double ydiff = l_y2-l_y1;
 		
 		currT += sqrt(xdiff*xdiff+ydiff*ydiff)/totalDist;
 		tlist->push_back(currT);
-		//TRACE("T %i/%i: %f\n",i,line->Size()-1,currT);
+
+		ASSERT ( currT >= 0.0 );
+		ASSERT ( currT <= 1.0 );
 	}
 
 	tlist->push_back(1.0);
+	LOG( "push back 1.0\n" );
+
+	LOG( "CalcT exit\n" );
 
 	return tlist;
 }
 
-vector<CFPoint>* CBezierMaker::CalcTangents(CPolyLine* line, CSketchPoint* startTangent, CSketchPoint* endTangent)
+vector<CFPoint>* CBezierMaker::CalcTangents(CPolyLine* line, const CSketchPoint* startTangent, const CSketchPoint* endTangent) const
 {
 	vector<CFPoint>* tlist = new vector<CFPoint>;
 
-	for(int i=0; i<line->Size(); i++) {
+	for(unsigned int i=0; i<line->Size(); i++) {
 
 		double xdiff; 
 		double ydiff;
@@ -415,30 +445,30 @@ vector<CFPoint>* CBezierMaker::CalcTangents(CPolyLine* line, CSketchPoint* start
 		if(i==0) {
 			//first point
 			if(startTangent == NULL) {
-				xdiff = line->At(i+1)->x - line->At(i)->x;
-				ydiff = line->At(i+1)->y - line->At(i)->y;
+				xdiff = line->At(i+1)->GetX() - line->At(i)->GetX();
+				ydiff = line->At(i+1)->GetY() - line->At(i)->GetY();
 			} else {
-				xdiff = startTangent->x;
-				ydiff = startTangent->y;
-				//TRACE("use precalced start. x y: %f %f\n",xdiff,ydiff);
+				xdiff = startTangent->GetX();
+				ydiff = startTangent->GetY();
+				//LOG("use precalced start. x y: %f %f\n",xdiff,ydiff);
 				usingPrecalced = true;
 			}
 		} else {
 			if(i==line->Size()-1) {
 				//endpoint
 				if(endTangent == NULL) {
-					xdiff = line->At(i)->x - line->At(i-1)->x;
-					ydiff = line->At(i)->y - line->At(i-1)->y;
+					xdiff = line->At(i)->GetX() - line->At(i-1)->GetX();
+					ydiff = line->At(i)->GetY() - line->At(i-1)->GetY();
 				} else {
 					//use precalced tangent
-					xdiff = endTangent->x;
-					ydiff = endTangent->y;
-					//TRACE("use precalced end. x y: %f %f\n",xdiff,ydiff);
+					xdiff = endTangent->GetX();
+					ydiff = endTangent->GetY();
+					//LOG("use precalced end. x y: %f %f\n",xdiff,ydiff);
 					usingPrecalced = true;
 				}
 			} else {
-				xdiff = line->At(i+1)->x - line->At(i-1)->x;
-				ydiff = line->At(i+1)->y - line->At(i-1)->y;
+				xdiff = line->At(i+1)->GetX() - line->At(i-1)->GetX();
+				ydiff = line->At(i+1)->GetY() - line->At(i-1)->GetY();
 			}
 		}
 		double scale = sqrt(xdiff*xdiff+ydiff*ydiff);
@@ -446,30 +476,30 @@ vector<CFPoint>* CBezierMaker::CalcTangents(CPolyLine* line, CSketchPoint* start
 			if(!usingPrecalced) {
 				xdiff/=scale;
 				ydiff/=scale;
-				//TRACE("new tangent. x y: %f %f\n",xdiff,ydiff);
+				//LOG("new tangent. x y: %f %f\n",xdiff,ydiff);
 			}
 		} else {
 			xdiff = ydiff = 0;
 		}
 		tlist->push_back(CFPoint(xdiff,ydiff));
-		//TRACE("i %i x %f y %f\n",i,xdiff,ydiff);
+		//LOG("i %i x %f y %f\n",i,xdiff,ydiff);
 	}
 
 	return tlist;
 }
 
-CPolyLine* CBezierMaker::FitSpline(CPolyLine* pl, vector<double>* tlist, vector<CFPoint>* tangentList)
+CPolyLine* CBezierMaker::FitSpline(CPolyLine* pl, vector<double>* tlist, vector<CFPoint>* tangentList) const
 {
-	//TRACE("pl->Size(): %i\n",pl->Size());
-	CFPoint startVector(pl->At(0)->x,pl->At(0)->y);
-	CFPoint endVector(pl->At(pl->Size()-1)->x,pl->At(pl->Size()-1)->y);
+	//LOG("pl->Size(): %i\n",pl->Size());
+	const CFPoint startVector(pl->At(0)->GetX(),pl->At(0)->GetY());
+	const CFPoint endVector(pl->At(pl->Size()-1)->GetX(),pl->At(pl->Size()-1)->GetY());
 
-	//TRACE("startVector: %f %f\n",startVector.x,startVector.y);
-	//TRACE("endVector: %f %f\n",endVector.x,endVector.y);
+	//LOG("startVector: %f %f\n",startVector.GetX(),startVector.GetY());
+	//LOG("endVector: %f %f\n",endVector.GetX(),endVector.GetY());
 
 	CPolyLine *curve = new CPolyLine();
-	curve->Add(new CSketchPoint(startVector.x,startVector.y,true));
-	curve->Add(new CSketchPoint(endVector.x,endVector.y,true));
+	curve->Add(new CSketchPoint(startVector.GetX(),startVector.GetY(),true));
+	curve->Add(new CSketchPoint(endVector.GetX(),endVector.GetY(),true));
 
 	double X_C1_det,C0_X_det,C0_C1_det;
 	double alpha1,alpha2;
@@ -481,62 +511,65 @@ CPolyLine* CBezierMaker::FitSpline(CPolyLine* pl, vector<double>* tlist, vector<
 
 	CFPoint t1_hat = tangentList->at(0);
 	CFPoint t2_hat = -tangentList->at(tangentList->size()-1);
-	//TRACE("t1_hat: %f,%f\n",t1_hat.x,t1_hat.y);
-	//TRACE("t2_hat: %f,%f\n",t2_hat.x,t2_hat.y);
+	//LOG("t1_hat: %f,%f\n",t1_hat.GetX(),t1_hat.GetY());
+	//LOG("t2_hat: %f,%f\n",t2_hat.GetX(),t2_hat.GetY());
 
-	for(int i=0; i<pl->Size(); i++) {
-		CFPoint A1 = t1_hat * (3 * (*tlist)[i] * (1-(*tlist)[i]) * (1-(*tlist)[i]));
-		CFPoint A2 = t2_hat * (3 * (*tlist)[i] * (*tlist)[i] * (1-(*tlist)[i]));
+	for(unsigned int l_tlistIndex=0; 
+		l_tlistIndex<pl->Size(); 
+		l_tlistIndex++) 
+	{
+		CFPoint A1 = t1_hat * (3 * (*tlist)[l_tlistIndex] * (1-(*tlist)[l_tlistIndex]) * (1-(*tlist)[l_tlistIndex]));
+		CFPoint A2 = t2_hat * (3 * (*tlist)[l_tlistIndex] * (*tlist)[l_tlistIndex] * (1-(*tlist)[l_tlistIndex]));
 		A1v.push_back(A1);
 		A2v.push_back(A2);
-		//TRACE("%i A1: %f %f; A2: %f %f\n",i,A1.x,A1.y,A2.x,A2.y);
+		//LOG("%i A1: %f %f; A2: %f %f\n",i,A1.GetX(),A1.GetY(),A2.GetX(),A2.GetY());
 	}
-	for(int i=0; i<pl->Size(); i++) {
-		//TRACE("A1v[%i]: %f %f\n",i,A1v[i].x,A1v[i].y);
-		//TRACE("A2v[%i]: %f %f\n",i,A2v[i].x,A2v[i].y);
-		//TRACE("(*tlist)[%i]: %f\n",i,(*tlist)[i]);
+	for(unsigned int i=0; i < pl->Size(); i++) {
+		//LOG("A1v[%i]: %f %f\n",i,A1v[i].GetX(),A1v[i].GetY());
+		//LOG("A2v[%i]: %f %f\n",i,A2v[i].GetX(),A2v[i].GetY());
+		//LOG("(*tlist)[%i]: %f\n",i,(*tlist)[i]);
 
 		C[0][0] += A1v[i] * A1v[i];
 		C[1][0] += A1v[i] * A2v[i];
 		//C[0][1] += A1v[i] * A2v[i]; do outside loop
 		C[1][1] += A2v[i] * A2v[i];
 
-		CFPoint temp0 = startVector * (1-(*tlist)[i]) * (1-(*tlist)[i]) * (1-(*tlist)[i]);
-		CFPoint temp1 = startVector * 3 * (*tlist)[i] * (1-(*tlist)[i]) * (1-(*tlist)[i]);
-		CFPoint temp2 = endVector * 3 * (*tlist)[i] * (*tlist)[i] * (1-(*tlist)[i]);
-		CFPoint temp3 = endVector * (*tlist)[i] * (*tlist)[i] * (*tlist)[i];
+		const CFPoint temp0 = startVector * (1-(*tlist)[i]) * (1-(*tlist)[i]) * (1-(*tlist)[i]);
+		const CFPoint temp1 = startVector * 3.0 * (*tlist)[i] * (1-(*tlist)[i]) * (1-(*tlist)[i]);
+		const CFPoint temp2 = endVector * 3.0 * (*tlist)[i] * (*tlist)[i] * (1-(*tlist)[i]);
+		const CFPoint temp3 = endVector * (*tlist)[i] * (*tlist)[i] * (*tlist)[i];
 
-		CFPoint temp = (*pl->At(i)) - (temp0+temp1+temp2+temp3);
-		//TRACE("%i temp: %f %f\n",i,temp.x,temp.y);
+		CFPoint temp = pl->At(i)->GetCoords() - (temp0+temp1+temp2+temp3);
+		//LOG("%i temp: %f %f\n",i,temp.GetX(),temp.GetY());
 		X[0] += temp * A1v[i];
 		X[1] += temp * A2v[i];
 	}
 	C[0][1] = C[1][0];
 
-	//TRACE("C[0][0] %f\n",C[0][0]);
-	//TRACE("C[0][1] %f\n",C[0][1]);
-	//TRACE("C[1][1] %f\n",C[1][1]);
+	//LOG("C[0][0] %f\n",C[0][0]);
+	//LOG("C[0][1] %f\n",C[0][1]);
+	//LOG("C[1][1] %f\n",C[1][1]);
 
 	X_C1_det = X[0] * C[1][1] - X[1] * C[0][1];
 	C0_X_det = C[0][0] * X[1] - C[0][1] * X[0];
 	C0_C1_det = C[0][0] * C[1][1] - C[0][1] * C[1][0];
 
-	//TRACE("X_C1_det: %f\n",X_C1_det);
-	//TRACE("C0_X_det: %f\n",C0_X_det);
-	//TRACE("C0_C1_det: %f\n",C0_C1_det);
+	//LOG("X_C1_det: %f\n",X_C1_det);
+	//LOG("C0_X_det: %f\n",C0_X_det);
+	//LOG("C0_C1_det: %f\n",C0_C1_det);
 
 	//
-	//assert(C0_C1_det!=0);
+	//ASSERT(C0_C1_det!=0);
 	if(C0_C1_det == 0) {
-		//TRACE("ERROR!!! do line\n");
+		//LOG("ERROR!!! do line\n");
 		curve->At(0)->SetControlPointForward(startVector);
 		curve->At(1)->SetControlPointBack(startVector);
 	} else {
 		alpha1 = X_C1_det / C0_C1_det;
 		alpha2 = C0_X_det / C0_C1_det;
 
-		//TRACE("alpha1: %f\n",alpha1);
-		//TRACE("alpha2: %f\n",alpha2);
+		//LOG("alpha1: %f\n",alpha1);
+		//LOG("alpha2: %f\n",alpha2);
 		curve->At(0)->SetControlPointForward(startVector + t1_hat * alpha1);
 		curve->At(1)->SetControlPointBack(endVector + t2_hat * alpha2);
 	}
@@ -544,20 +577,20 @@ CPolyLine* CBezierMaker::FitSpline(CPolyLine* pl, vector<double>* tlist, vector<
 	return curve;
 }
 
-CPolyLine* CBezierMaker::FitLine(CPolyLine* pl, vector<CFPoint>* tangentList)
+CPolyLine* CBezierMaker::FitLine(CPolyLine* pl, const vector<CFPoint>* tangentList) const
 {
 	CPolyLine *curve = new CPolyLine();
 
-	CFPoint start = *(pl->At(0));
-	CFPoint end = *(pl->At(1));
+	CFPoint start = pl->At(0)->GetCoords();
+	CFPoint end = pl->At(1)->GetCoords();
 	//CFPoint diff = end-start;
-	//double dist = sqrt(diff.x*diff.x+diff.y*diff.y);
+	//double dist = sqrt(diff.GetX()*diff.GetX()+diff.GetY()*diff.GetY());
 
 	//CFPoint cp1 = start + (*tangentList)[0] * dist * 0.1;
 	//CFPoint cp2 = end - (*tangentList)[1] * dist * 0.1;
 
-	CSketchPoint *startPoint = new CSketchPoint(start.x,start.y,true);
-	CSketchPoint *endPoint = new CSketchPoint(end.x,end.y,true);
+	CSketchPoint *startPoint = new CSketchPoint(start.GetX(),start.GetY(),true);
+	CSketchPoint *endPoint = new CSketchPoint(end.GetX(),end.GetY(),true);
 
 	//startPoint->SetControlPointForward(cp1);
 	//endPoint->SetControlPointBack(cp2);
@@ -568,73 +601,139 @@ CPolyLine* CBezierMaker::FitLine(CPolyLine* pl, vector<CFPoint>* tangentList)
 	return curve;
 }
 
-bool CBezierMaker::Reparametrize(CPolyLine* pl, CPolyLine* curve,vector<double>* tlist)
+/** reparametrize T list
+
+a_foundBetterTListStatus will be set to true if we manage to 
+find a better parametrization of tlist.
+*/
+void CBezierMaker::ReparametrizeT(CPolyLine* pl, 
+								 CPolyLine* curve,
+								 vector<double>* tlist,
+								 bool &a_foundBetterTListStatus) const
 {
+	LOG( " ReparametrizeT start \n" );
+
+	a_foundBetterTListStatus = false;
+
 	CFPoint curveD1[3];
 	CFPoint curveD2[2];
 	
-	//TRACE("curve in : %f %f; %f %f; %f %f; %f %f\n",curve->At(0)->x,curve->At(0)->y,curve->At(0)->GetControlPointForward().x,curve->At(0)->GetControlPointForward().y,curve->At(1)->GetControlPointBack().x,curve->At(1)->GetControlPointBack().y,curve->At(1)->x,curve->At(1)->y);
+	/*
+	LOG("curve in : %f %f; %f %f; %f %f; %f %f\n", curve->At(0)->GetX(), curve->At(0)->GetY(),
+		curve->At(0)->GetControlPointForward().GetX(), curve->At(0)->GetControlPointForward().GetY(),
+		curve->At(1)->GetControlPointBack().GetX(), curve->At(1)->GetControlPointBack().GetY(),
+		curve->At(1)->GetX(), curve->At(1)->GetY());
+	*/
 
 	//1st derivate of curve
-	curveD1[0] = curve->At(0)->GetControlPointForward() - *(curve->At(0));
+	curveD1[0] = curve->At(0)->GetControlPointForward() - curve->At(0)->GetCoords();
 	curveD1[1] = curve->At(1)->GetControlPointBack() - curve->At(0)->GetControlPointForward();
-	curveD1[2] = *(curve->At(1)) - curve->At(1)->GetControlPointBack();
+	curveD1[2] = curve->At(1)->GetCoords() - curve->At(1)->GetControlPointBack();
 
-	//TRACE("curve' in : %f %f; %f %f; %f %f\n",curveD1[0].x,curveD1[0].y,curveD1[1].x,curveD1[1].y,curveD1[2].x,curveD1[2].y);
+	//LOG("curve' in : %f %f; %f %f; %f %f\n",curveD1[0].GetX(),curveD1[0].GetY(),curveD1[1].GetX(),curveD1[1].GetY(),curveD1[2].GetX(),curveD1[2].GetY());
 
 	//2nd derivate of curve
 	curveD2[0] = curveD1[1] - curveD1[0];
 	curveD2[1] = curveD1[2] - curveD1[1];
 
-	//TRACE("curve'' in : %f %f; %f %f\n",curveD2[0].x,curveD2[0].y,curveD2[1].x,curveD2[1].y);
+	//LOG("curve'' in : %f %f; %f %f\n",curveD2[0].GetX(),curveD2[0].GetY(),curveD2[1].GetX(),curveD2[1].GetY());
 
-	for(int i=0; i<pl->Size(); i++) {
+	for(unsigned int i=0; i < pl->Size(); i++) {
 		double b = (*tlist)[i];
 		double a = 1 - b;
 
-		CFPoint curvePoint0;
-		CFPoint curvePoint1;
-		CFPoint curvePoint2;
+		CFPoint curvePoint0 ( curve->At(0)->GetX()*a*a*a + curve->At(0)->GetControlPointForward().GetX()*3*a*a*b + curve->At(1)->GetControlPointBack().GetX()*3*a*b*b + curve->At(1)->GetX()*b*b*b,
+			curve->At(0)->GetY()*a*a*a + curve->At(0)->GetControlPointForward().GetY()*3*a*a*b + curve->At(1)->GetControlPointBack().GetY()*3*a*b*b + curve->At(1)->GetY()*b*b*b );
 
-		curvePoint0.x = curve->At(0)->x*a*a*a + curve->At(0)->GetControlPointForward().x*3*a*a*b + curve->At(1)->GetControlPointBack().x*3*a*b*b + curve->At(1)->x*b*b*b;
-		curvePoint0.y = curve->At(0)->y*a*a*a + curve->At(0)->GetControlPointForward().y*3*a*a*b + curve->At(1)->GetControlPointBack().y*3*a*b*b + curve->At(1)->y*b*b*b;
+		CFPoint curvePoint1 ( curveD1[0].GetX()*a*a + curveD1[1].GetX()*a*b + curveD1[2].GetX()*b*b,
+			curveD1[0].GetY()*a*a + curveD1[1].GetY()*a*b + curveD1[2].GetY()*b*b );
+		
+		CFPoint curvePoint2 ( curveD2[0].GetX()*a + curveD2[1].GetX()*b,
+			curveD2[0].GetY()*a + curveD2[1].GetY()*b );
 
-		curvePoint1.x = curveD1[0].x*a*a + curveD1[1].x*a*b + curveD1[2].x*b*b;
-		curvePoint1.y = curveD1[0].y*a*a + curveD1[1].y*a*b + curveD1[2].y*b*b;
-
-		curvePoint2.x = curveD2[0].x*a + curveD2[1].x*b;
-		curvePoint2.y = curveD2[0].y*a + curveD2[1].y*b;
-
-		CFPoint diff = curvePoint0 - *(pl->At(i));
+		CFPoint diff = curvePoint0 - pl->At(i)->GetCoords();
 
 		// f(t)/f'(t)
-		double numerator = diff.x * curvePoint1.x + diff.y * curvePoint1.y;
-		double denominator = curvePoint1.x * curvePoint1.x + diff.x * curvePoint2.x;
-		denominator += curvePoint1.y * curvePoint1.y + diff.y * curvePoint2.y;
+		double numerator = diff.GetX() * curvePoint1.GetX() + diff.GetY() * curvePoint1.GetY();
+		double denominator = 0;
+		denominator += curvePoint1.GetX() * curvePoint1.GetX(); 
+		denominator += curvePoint1.GetY() * curvePoint1.GetY();
+		denominator += diff.GetX() * curvePoint2.GetX();
+		denominator += diff.GetY() * curvePoint2.GetY();
+
+		//LOG( "curvePoint1: %x %x\n", curvePoint1.GetX(), curvePoint1.GetY() );
+		//LOG( "curvePoint2: %x %x\n", curvePoint2.GetX(), curvePoint2.GetY() );
+		//LOG( "diff: %x %x\n", diff.GetX(), diff.GetY() );
 
 		//calculate distances
-		double oldDistance = sqrt(diff.x*diff.x+diff.y*diff.y);
-		(*tlist)[i] -= numerator/denominator;
+		double oldDistance = sqrt(diff.GetX()*diff.GetX()+diff.GetY()*diff.GetY());
+
+		if ( denominator != 0 ) 
+		{
+			(*tlist)[i] -= numerator/denominator;
+		}
+		else 
+		{
+			LOG( "! warn: zero denominator\n" );
+		}
 		b = (*tlist)[i];
 		a = 1-b;
 		CSketchPoint *start = curve->At(0);
 		CSketchPoint *end = curve->At(1);
 		CFPoint newPoint(
-			start->x*a*a*a + start->GetControlPointForward().x*3*a*a*b + end->GetControlPointBack().x*3*a*b*b + end->x*b*b*b,
-			start->y*a*a*a + start->GetControlPointForward().y*3*a*a*b + end->GetControlPointBack().y*3*a*b*b + end->y*b*b*b
+			start->GetX()*a*a*a + start->GetControlPointForward().GetX()*3*a*a*b + end->GetControlPointBack().GetX()*3*a*b*b + end->GetX()*b*b*b,
+			start->GetY()*a*a*a + start->GetControlPointForward().GetY()*3*a*a*b + end->GetControlPointBack().GetY()*3*a*b*b + end->GetY()*b*b*b
 			);
-		diff = newPoint - *(pl->At(i));
-		double newDistance = sqrt(diff.x*diff.x+diff.y*diff.y);
+		diff = newPoint - pl->At(i)->GetCoords();
+		double newDistance = sqrt(diff.GetX()*diff.GetX()+diff.GetY()*diff.GetY());
 
-		//TRACE("oldDistance: %f\n",oldDistance);
-		//TRACE("newDistance: %f\n",newDistance);
 		if(newDistance > oldDistance) {
-			//TRACE("newDistance > oldDistance!\n");
-			return false;
+			return;
 		}
-
 	}
 
-	//TRACE("SUCCESS\n");
-	return true;
+	//LOG("SUCCESS\n");
+	a_foundBetterTListStatus = true;
+
+	return;
+}
+
+bool CBezierMaker::ImprovementSmallEnough(double a_error, double a_previousError) const
+{
+	static const double REPARAM_SMALLEST_USEFUL_IMPROVEMENT = 0.1;
+
+	double l_improvement;
+
+	if( a_previousError != 0.0 ) 
+	{
+		l_improvement = 1 - a_error / a_previousError;
+	} 
+	else 
+	{
+		// previous was perfect, thus there can be no improvement 
+		l_improvement = 0.0;
+		ASSERT( false );
+	}
+
+	bool l_improvementSmallEnough = l_improvement < REPARAM_SMALLEST_USEFUL_IMPROVEMENT;
+
+	return l_improvementSmallEnough;
+}
+
+void CBezierMaker::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
+{
+	static const int SCALE = 1;
+	int width = a_canvas->GetWidth();
+	int height = a_canvas->GetHeight();
+
+	CRawImage<ARGB> *tmp = new CRawImage<ARGB>(width*SCALE,height*SCALE);
+	tmp->Clear();
+	CLineImage *src = dynamic_cast<CLineImage*>( a_image );
+	ASSERT ( src != NULL );
+	CLineImagePainter::Paint(tmp,src);
+	for(int i=0; i<width*height; i++) {
+		ARGB p=tmp->GetPixel(i);
+		if(p) a_canvas->SetPixel(i, p);
+	}
+	delete tmp;
 }

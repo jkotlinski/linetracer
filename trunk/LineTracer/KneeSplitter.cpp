@@ -1,15 +1,14 @@
 #include "StdAfx.h"
-#include ".\kneesplitter.h"
+#include "kneesplitter.h"
 
 #include <math.h>
-#include <assert.h>
 
 #include "LineImage.h"
 #include "SketchPoint.h"
 
 CKneeSplitter::CKneeSplitter(void)
 {
-	SetParam("threshold",-0.3);
+	SetParam(KNEESPLITTER_THRESHOLD,-0.3);
 }
 
 CKneeSplitter::~CKneeSplitter(void)
@@ -22,11 +21,12 @@ CKneeSplitter* CKneeSplitter::Instance() {
 }
 
 CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
-	CLineImage *src = static_cast<CLineImage*>(i_src);
+	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
+	ASSERT ( src != NULL );
 
-	TRACE ( "KneeSplitter()\n" );
+	// LOG ( "KneeSplitter()\n" );
 
-	double threshold = GetParam("threshold");
+	double threshold = GetParam(KNEESPLITTER_THRESHOLD);
 
 	for(unsigned int i=0; i<src->Size(); i++) 
 	{
@@ -46,10 +46,10 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 			iter++;
 			CSketchPoint *next_point = *iter;
 
-			double diffx1 = prev_point->x - point->x;
-			double diffy1 = prev_point->y - point->y;
-			double diffx2 = next_point->x - point->x;
-			double diffy2 = next_point->y - point->y;
+			double diffx1 = prev_point->GetX() - point->GetX();
+			double diffy1 = prev_point->GetY() - point->GetY();
+			double diffx2 = next_point->GetX() - point->GetX();
+			double diffy2 = next_point->GetY() - point->GetY();
 			double dist1 = sqrt(diffx1*diffx1+diffy1*diffy1);
 			double dist2 = sqrt(diffx2*diffx2+diffy2*diffy2);
 
@@ -62,7 +62,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 			if(diff>threshold) {
 				point->SetKnee(true);
-				//TRACE("SETKNEE\n");
+				//LOG("SETKNEE\n");
 			} else {
 				point->SetKnee(false);
 			}
@@ -75,9 +75,9 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 
 	CLineImage *dst = new CLineImage(src->GetWidth(), src->GetHeight());
 
-	for(unsigned int i=0; i<src->Size(); i++) 
+	for(unsigned int l_lineIndex=0; l_lineIndex<src->Size(); l_lineIndex++) 
 	{
-		CPolyLine* line = src->At(i);
+		CPolyLine* line = src->At(l_lineIndex);
 		CPolyLine* addLine = new CPolyLine();
 
 		vector<CSketchPoint*>::iterator iter = line->Begin();
@@ -86,7 +86,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 			addLine->Add((*iter)->Clone());
 			if((*iter)->IsKnee()) {
 				//break line
-				//TRACE("ISKNEE\n");
+				//LOG("ISKNEE\n");
 				dst->Add(addLine);
 				addLine = new CPolyLine();
 				addLine->Add((*iter)->Clone());
@@ -97,4 +97,7 @@ CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
 	}
 
 	return dst;
+}
+void CKneeSplitter::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const
+{
 }

@@ -17,4 +17,6 @@ private:
 	int Thin(CRawImage<bool> *img);
 	bool IsPointThinnable(CRawImage<bool>* img, CPoint p);
 	bool IsPointThinnableZhangSuen(CRawImage<bool>* img, CPoint p, int pass);
+public:
+	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };
