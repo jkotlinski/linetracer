@@ -2,6 +2,9 @@
 //
 #pragma once
 
+#ifndef __LINETRACER_H
+#define __LINETRACER_H
+
 #ifndef __AFXWIN_H__
 	#error include 'stdafx.h' before including this file for PCH
 #endif
@@ -16,16 +19,18 @@
 class CLineTracerApp : public CWinApp
 {
 public:
-	CLineTracerApp();
+	CLineTracerApp(void);
 
 
 // Overrides
 public:
-	virtual BOOL InitInstance();
+	virtual BOOL InitInstance(void);
 
 // Implementation
-	afx_msg void OnAppAbout();
+	afx_msg void OnAppAbout(void);
 	DECLARE_MESSAGE_MAP()
 };
 
 extern CLineTracerApp theApp;
+
+#endif

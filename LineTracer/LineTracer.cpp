@@ -7,7 +7,7 @@
 
 #include "LineTracerDoc.h"
 #include "LineTracerView.h"
-#include ".\linetracer.h"
+#include "linetracer.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -46,7 +46,8 @@ BOOL CLineTracerApp::InitInstance()
 	// visual styles.  Otherwise, any window creation will fail.
 	InitCommonControls();
 
-	CWinApp::InitInstance();
+	BOOL l_initResult = CWinApp::InitInstance();
+	ASSERT ( l_initResult != 0 );
 
 	// Standard initialization
 	// If you are not using these features and wish to reduce the size
@@ -79,7 +80,7 @@ BOOL CLineTracerApp::InitInstance()
 	if (!ProcessShellCommand(cmdInfo))
 		return FALSE;
 	// The one and only window has been initialized, so show and update it
-	m_pMainWnd->ShowWindow(SW_SHOW);
+	(void) m_pMainWnd->ShowWindow(SW_SHOW);
 	m_pMainWnd->UpdateWindow();
 	// call DragAcceptFiles only if there's a suffix
 	//  In an SDI app, this should occur after ProcessShellCommand
@@ -124,7 +125,7 @@ END_MESSAGE_MAP()
 void CLineTracerApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
-	aboutDlg.DoModal();
+	(void) aboutDlg.DoModal();
 }
 
 

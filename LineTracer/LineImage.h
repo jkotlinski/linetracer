@@ -12,20 +12,21 @@ class CLineImage
 	: public CSketchImage
 {
 public:
+	CLineImage(void);
 	CLineImage(int width, int height);
 	~CLineImage(void);
 private:
 	vector<CPolyLine*> m_polyLines;
 public:
 	void Add(CPolyLine* polyLine);
-	unsigned int Size(void);
-	CPolyLine* At(int i);
+	const unsigned int Size(void) const;
+	CPolyLine* At ( unsigned int i ) const;
 	void Clear(void);
 	void SolderKnots(void);
-	int IsKnotInLines(CFPoint p);
-	CLineImage* Clone(void);
-	bool IsTail(CPolyLine* pl);
-	CLineImage* SmoothPositions();
+	const int IsKnotInLines(const CFPoint &p) const;
+	CLineImage* Clone(void) const;
+	bool IsTail(CPolyLine* pl) const;
+	CLineImage* SmoothPositions() const;
 	// check all lines in image and update their tail status
 	void UpdateTailData(void);
 };
