@@ -40,5 +40,11 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnClose(void);
 	DECLARE_MESSAGE_MAP()
+	void ActivateFrame(int nCmdShow);
+
+private:
+	void WriteWindowPlacement(WINDOWPLACEMENT *pwp);
+	BOOL ReadWindowPlacement(WINDOWPLACEMENT *pwp);
+
 };
 
