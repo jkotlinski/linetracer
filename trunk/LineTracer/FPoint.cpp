@@ -95,3 +95,9 @@ void CFPoint::SetX(const double a_val) {
 void CFPoint::SetY(const double a_val) {
 	m_y = a_val;
 }
+
+const unsigned int CFPoint::HashValue() const {
+	unsigned int l_x = int ( GetX() + 0.5 );
+	unsigned int l_y = int ( GetY() + 0.5 );
+	return ( l_x << 16 ) | l_y;
+}
