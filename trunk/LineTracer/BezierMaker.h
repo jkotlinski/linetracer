@@ -21,5 +21,5 @@ private:
 	vector<CFPoint>* CalcTangents(CPolyLine* line,CSketchPoint* startTangent = NULL, CSketchPoint* endTangent = NULL);
 	CPolyLine* FitSpline(CPolyLine* pl, vector<double>* tlist, vector<CFPoint>* tangentList);
 	CPolyLine* FitLine(CPolyLine* pl, vector<CFPoint>* tangentList);
-	bool Reparametrize(CPolyLine* pl, CPolyLine* curve, vector<double>* tlist);
+	void ReparametrizeT(CPolyLine* pl, CPolyLine* curve, vector<double>* tlist, bool &a_foundBetterTList);
 };
