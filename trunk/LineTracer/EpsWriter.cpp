@@ -46,7 +46,7 @@ void CEpsWriter::Write(CString *FileName)
 
 	out.WriteString("0.5 setlinewidth\n");
 
-	for(int i=0; i<lineImage->Size(); i++) {
+	for(unsigned int i=0; i<lineImage->Size(); i++) {
 		CPolyLine* pl=lineImage->At(i);
 
 		str.Format("%f %f moveto\n",pl->At(0)->x,height-pl->At(0)->y);
@@ -54,7 +54,7 @@ void CEpsWriter::Write(CString *FileName)
 
 		//-------------------------------------
 
-		for(int i=0; i<pl->Size()-1; i++) {
+		for(unsigned int i=0; i<pl->Size()-1; i++) {
 
 			CFPoint p = pl->At(i)->GetControlPointForward();
 			str.Format("%f %f ",p.x,height-p.y);

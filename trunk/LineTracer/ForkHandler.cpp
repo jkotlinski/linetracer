@@ -50,7 +50,7 @@ vector<CFPoint>* CForkHandler::Find3Forks(CLineImage *li)
 	map<CFPoint,int> counter;
 	vector<CFPoint>* forks = new vector<CFPoint>;
 
-	for(int i=0; i<li->Size(); i++) {
+	for(unsigned int i=0; i<li->Size(); i++) {
 		CPolyLine *line = li->At(i);
 
 		if(*(line->GetHeadPoint()) != *(line->GetTailPoint())) {
@@ -94,19 +94,29 @@ CLineImage* CForkHandler::HandleTForks(CLineImage* li)
 		vector<int> lineId;
 
 		TRACE("tmpLi->Size(): %i\n",tmpLi->Size());
-		for(int i=0; i<tmpLi->Size(); i++) {
+		for(unsigned int i=0; i<tmpLi->Size(); i++) {
 			if(dontAddLine[i]) continue;
 			CPolyLine *line = tmpLi->At(i);
 
-			if(*(line->GetHeadPoint()) == *iter) {
+			if(*(line->GetHeadPoint()) == *iter) 
+			{
 				//fork point == line headpoint
-				int j = min(2, line->Size()-1);
+				unsigned int j = min(2, line->Size()-1);
+
+				// check for wrapping error
+				assert ( j < 1000000 );
+
 				CFPoint p = *line->At(j) - *line->At(j-1);
 				vectors.push_back(p.Unit());
 				lineId.push_back(i);
-			} else if(*(line->GetTailPoint()) == *iter) {
+			} else if(*(line->GetTailPoint()) == *iter) 
+			{
 				//fork point == line tailpoint
-				int j = max(0, line->Size()-3);
+				unsigned int j = (unsigned int)(max(0, ((int)line->Size()) - 3));
+
+				// check for wrapping error
+				assert ( j < 1000000 );
+
 				CFPoint p = *line->At(j) - *line->At(j+1);
 				vectors.push_back(p.Unit());
 				lineId.push_back(i);
@@ -187,7 +197,7 @@ CLineImage* CForkHandler::HandleTForks(CLineImage* li)
 		}
 	}
 
-	for(int i=0; i<tmpLi->Size(); i++) {
+	for(unsigned int i=0; i<tmpLi->Size(); i++) {
 		if(!dontAddLine[i]) {
 			newImage->Add(tmpLi->At(i)->Clone());
 		} else {
@@ -253,11 +263,11 @@ CLineImage* CForkHandler::HandleYForks(CLineImage* li)
 		vector<int> lineId;
 
 		TRACE("tmpLi->Size(): %i\n",tmpLi->Size());
-		for(int i=0; i<tmpLi->Size(); i++) {
+		for(unsigned int i=0; i<tmpLi->Size(); i++) {
 			if(dontAddLine[i]) continue;
 			CPolyLine *line = tmpLi->At(i);
 
-			assert(line->Size()>1);
+			assert(line->Size() > 1);
 			if(*(line->GetHeadPoint()) == *iter) {
 				//fork point == line headpoint
 				int j = min(2, line->Size()-1);
@@ -266,7 +276,7 @@ CLineImage* CForkHandler::HandleYForks(CLineImage* li)
 				lineId.push_back(i);
 			} else if(*(line->GetTailPoint()) == *iter) {
 				//fork point == line tailpoint
-				int j = max(0, line->Size()-3);
+				int j = max(0, ((int)line->Size()) - 3);
 				CFPoint p = *line->At(j) - *line->At(j+1);
 				vectors.push_back(p.Unit());
 				lineId.push_back(i);
@@ -324,7 +334,7 @@ CLineImage* CForkHandler::HandleYForks(CLineImage* li)
 		}
 	}
 
-	for(int i=0; i<tmpLi->Size(); i++) {
+	for(unsigned int i=0; i<tmpLi->Size(); i++) {
 		if(!dontAddLine[i]) {
 			newImage->Add(tmpLi->At(i)->Clone());
 		} else {
@@ -450,7 +460,7 @@ void CForkHandler::HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* 
 		if(newEndPoint!=0) newLine1->Add(newEndPoint->Clone());
 	} else {
 		//merge lines
-		for(int i=0; i<baseLine->Size(); i++) {
+		for(unsigned int i=0; i<baseLine->Size(); i++) {
 			newLine1->Add(baseLine->At(i)->Clone());
 		}
 	}
@@ -476,7 +486,7 @@ void CForkHandler::HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* 
 		if(newEndPoint!=0) newLine2->Add(newEndPoint->Clone());
 	} else {
 		//merge lines
-		for(int i=0; i<baseLine->Size(); i++) {
+		for(unsigned int i=0; i<baseLine->Size(); i++) {
 			newLine2->Add(baseLine->At(i)->Clone());
 		}
 	}
