@@ -35,7 +35,7 @@ CSketchImage* CGaussian::Process(CSketchImage* i_src)
 
 	if(radius>0.0) {
 		//smooth
-		GaussianSmooth(src, dst, (double)radius);
+		GaussianSmooth(src, dst, static_cast<double>(radius));
 	} else {
 		for(int i=0; i<src->GetHeight()*src->GetWidth(); i++) {
 			dst->SetPixel(i,src->GetPixel(i));
@@ -93,7 +93,7 @@ void CGaussian::GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned
 					sum += kernel[center+rr];
 				}
 			}
-			dst->SetPixel(c,r,(unsigned char)(dot/sum));
+			dst->SetPixel(c,r,static_cast<unsigned char>(dot/sum));
 		}
 	}
 
@@ -103,11 +103,12 @@ void CGaussian::GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned
 
 
 void CGaussian::MakeGaussianKernel(double sigma, double **kernel, int *windowsize)
+const
 {
 	int i, center;
 	double x, fx, sum=0.0;
 
-	*windowsize = 1 + 2 * (int)ceil(2.5 * sigma);
+	*windowsize = 1 + 2 * static_cast<int> ( ceil ( 2.5 * sigma ) );
 	center = (*windowsize) / 2;
 
 	*kernel = new double[*windowsize];

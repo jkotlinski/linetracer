@@ -7,11 +7,10 @@
 #include <algorithm>
 
 #include "Binarizer.h"
-#include "polyline.h"
-#include ".\polyline.h"
 
 CPolyLine::CPolyLine(void)
 : m_isTail(false)
+, m_points()
 {
 }
 
@@ -19,7 +18,7 @@ CPolyLine::~CPolyLine(void)
 {
 	try {
 		vector<CSketchPoint*>::iterator iter;
-		for(iter=Begin(); iter!=End(); iter++) {
+		for(iter=Begin(); iter!=End(); ++iter) {
 			if(*iter!=NULL) {
 				delete *iter;
 				*iter = NULL;
@@ -41,10 +40,10 @@ void CPolyLine::Add(CSketchPoint *point)
 }
 
 
-bool CPolyLine::Contains(CPoint p)
+bool CPolyLine::Contains(const CPoint &p)
 {
 	vector<CSketchPoint*>::iterator iter;
-	for(iter=Begin(); iter!=End(); iter++) {
+	for(iter=Begin(); iter!=End(); ++iter) {
 		if((*iter)->GetX() == p.x && (*iter)->GetY() == p.y) {
 			return true;
 		}
@@ -54,7 +53,7 @@ bool CPolyLine::Contains(CPoint p)
 
 unsigned int CPolyLine::Size(void) const
 {
-	return (unsigned int) m_points.size();
+	return static_cast<unsigned int> ( m_points.size() );
 }
 
 /*CSketchPoint *CPolyLine::At(int i)
@@ -70,13 +69,14 @@ CPolyLine* CPolyLine::Clone(void)
 
 	vector<CSketchPoint*>::iterator iter;
 
-	for(iter = Begin(); iter != End(); iter++) {
+	for(iter = Begin(); iter != End(); ++iter) {
 		newLine->Add((*iter)->Clone());
 	}
 	return newLine;
 }
 
 int CPolyLine::HasKnots(void)
+const
 {
 	int knotCount=0;
 
@@ -164,12 +164,12 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		//me backwards
 		vector<CSketchPoint*>::iterator iter;
 		iter=End();
-		iter--;
+		--iter;
 		while(iter!=Begin()) {
 			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
-			iter--;
+			--iter;
 		}
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointForward());
@@ -177,7 +177,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		iter=line->Begin();
 		linkPoint->SetControlPointForward((*iter)->GetControlPointForward());
 		tmp->Add(linkPoint);
-		for(iter++; iter!=line->End(); iter++) {
+		for(++iter; iter!=line->End(); ++iter) {
 			tmp->Add(*iter);
 			*iter=0;
 		}
@@ -190,27 +190,27 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		//me backwards
 		vector<CSketchPoint*>::iterator iter;
 		iter=End();
-		iter--;
+		--iter;
 		while(iter!=Begin()) {
 			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
-			iter--;
+			--iter;
 		} 
 
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointForward());
 		//line backwards
 		iter=line->End();
-		iter--;
+		--iter;
 		linkPoint->SetControlPointForward((*iter)->GetControlPointBack());
 		tmp->Add(linkPoint);
-		iter--;
+		--iter;
 		while(iter!=line->Begin()) {
 			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
-			iter--;
+			--iter;
 		}
 		(*iter)->SwapControlPoints();
 		tmp->Add(*iter);
@@ -224,13 +224,13 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		vector<CSketchPoint*>::iterator iter;
 		iter=Begin();
 		vector<CSketchPoint*>::iterator end=End();
-		end--;
+		--end;
 		while (iter != end) 
 		{
 			//(*iter)->Trace();
 			tmp->Add(*iter);
 			*iter=0;
-			iter++;
+			++iter;
 		}
 
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
@@ -242,13 +242,13 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		//LOG("linkPoint: ");
 		//linkPoint->Trace();
 		
-		iter++;
+		++iter;
 		while(iter!=line->End()) 
 		{
 			//(*iter)->Trace();
 			tmp->Add(*iter);
 			*iter=0;
-			iter++;
+			++iter;
 		}
 		break;
 		}
@@ -259,27 +259,27 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		vector<CSketchPoint*>::iterator iter;
 		iter=Begin();
 		vector<CSketchPoint*>::iterator end=End();
-		end--;
+		--end;
 		do {
 			tmp->Add(*iter);
 			*iter=0;
-			iter++;
+			++iter;
 		} while(iter!=end);
 
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
 		linkPoint->SetControlPointBack((*iter)->GetControlPointBack());
 		//line backwards
 		iter=line->End();
-		iter--;
+		--iter;
 		linkPoint->SetControlPointForward((*iter)->GetControlPointBack());
 		tmp->Add(linkPoint);
 
-		iter--;
+		--iter;
 		while(iter!=line->Begin()) {
 			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
-			iter--;
+			--iter;
 		}
 		(*iter)->SwapControlPoints();
 		tmp->Add(*iter);
@@ -322,12 +322,12 @@ double CPolyLine::GetMaxDeviation()
 	vector<CSketchPoint*>::iterator end;
 
 	iter=m_points.begin();
-	iter++;
+	++iter;
 	end=m_points.end();
-	end--;
+	--end;
 
 	while(iter!=end) {
-		iter++;
+		++iter;
 
 		CSketchPoint *p = *iter;
 
@@ -364,12 +364,12 @@ CSketchPoint* CPolyLine::GetMaxDeviationPoint(void)
 	vector<CSketchPoint*>::iterator end;
 
 	iter=m_points.begin();
-	iter++;
+	++iter;
 	end=m_points.end();
-	end--;
+	--end;
 
 	while(iter!=end) {
-		iter++;
+		++iter;
 
 		CSketchPoint *p = *iter;
 
@@ -397,7 +397,7 @@ int CPolyLine::GetMedianThickness(void)
 {
 	vector<CSketchPoint*>::iterator iter;
 	vector<int> thicknesses;
-	for(iter=m_points.begin(); iter!=m_points.end(); iter++) {
+	for(iter=m_points.begin(); iter!=m_points.end(); ++iter) {
 		thicknesses.push_back(CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(0.5+(*iter)->GetX()),int(0.5+(*iter)->GetY())));
 	}
 	sort(thicknesses.begin(),thicknesses.end());
@@ -410,6 +410,7 @@ void CPolyLine::SetTail(bool val)
 }
 
 bool CPolyLine::IsTail(void)
+const
 {
 	return m_isTail;
 }
@@ -516,7 +517,7 @@ int CPolyLine::RemoveDuplicatePoints (void)
 
 	for(iter = l_newLine->Begin(); 
 		iter != l_newLine->End(); 
-		iter++) 
+		++iter) 
 	{
 		Add( (*iter)->Clone() );
 	}
@@ -584,6 +585,7 @@ void CPolyLine::AssertNotEqualTo(const CPolyLine & a_otherLine)
 }
 
 const bool CPolyLine::Equals(const CPolyLine& a_line)
+const
 {
 	static const double K_MAX_DISTANCE_FOR_EQUALITY = 0.1;
 

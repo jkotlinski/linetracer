@@ -2,7 +2,6 @@
 #include "fpoint.h"
 
 #include <math.h>
-#include ".\fpoint.h"
 
 CFPoint::CFPoint(double ix,double iy)
 : m_x(ix)

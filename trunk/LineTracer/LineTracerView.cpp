@@ -295,7 +295,9 @@ int CLineTracerView::GetImageHeight(void)
 
 void CLineTracerView::SetInputImageFileName(CString FileName)
 {
-	GetDocument()->SetInputImageFileName(FileName);
+	CLineTracerDoc *l_document = GetDocument();
+	ASSERT ( l_document != NULL );
+	l_document->SetInputImageFileName(FileName);
 	Bitmap *inputBitmap;
 
 	if(FileName!=_T("")) {
@@ -410,7 +412,7 @@ int CLineTracerView::GetViewHeight(void)
 	return l_clientRect.bottom;
 }
 
-void CLineTracerView::ZoomIn(CPoint a_point)
+void CLineTracerView::ZoomIn(const CPoint &a_point)
 {
 	AffineTransform l_inverse = GetTransform();
 	l_inverse.Invert();
@@ -423,12 +425,13 @@ void CLineTracerView::ZoomIn(CPoint a_point)
 	Invalidate(FALSE);
 }
 
-void CLineTracerView::ZoomOut(CPoint a_point)
+void CLineTracerView::ZoomOut(const CPoint &a_point)
 {
 	AffineTransform l_inverse = GetTransform();
 	l_inverse.Invert();
 
-	PointF l_clickPoint ( (float)a_point.x, (float)a_point.y );
+	PointF l_clickPoint ( static_cast<float>(a_point.x), 
+		static_cast<float>(a_point.y) );
 	l_inverse.TransformPoint(l_clickPoint);
 
 	m_magnification.Decrease();

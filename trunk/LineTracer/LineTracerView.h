@@ -86,8 +86,8 @@ public:
 private:
 	int GetViewWidth(void);
 	int GetViewHeight(void);
-	void ZoomIn(CPoint a_point);
-	void ZoomOut(CPoint a_point);
+	void ZoomIn(const CPoint &a_point);
+	void ZoomOut(const CPoint &a_point);
 public:
 	void SetImageCenter(PointF a_point);
 private:

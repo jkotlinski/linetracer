@@ -48,7 +48,7 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 				if(pixelsInArea.size() < min_area) {
 					while(!pixelsInArea.empty()) {
 						CPoint p = pixelsInArea.front();
-						dst->SetPixel(p.x,p.y,0);
+						dst->SetPixel(p.x,p.y, false);
 						pixelsInArea.pop_front();
 					}
 				}
@@ -59,6 +59,7 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 }
 
 void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_pool_allocator<CPoint> >* pixelsInArea, const CPoint &start)
+const
 {
 	deque<CPoint,boost::fast_pool_allocator<CPoint> > pointsToCheck;
 
@@ -78,7 +79,7 @@ void CHoleFiller::ScanArea(CRawImage<bool>* canvas, deque<CPoint,boost::fast_poo
 		if(!canvas->GetPixel(p.x,p.y)) continue;
 
 		pixelsInArea->push_back(p);
-		canvas->SetPixel(p.x,p.y,0);
+		canvas->SetPixel(p.x,p.y,false);
 		pointsToCheck.push_back(CPoint(p.x+1,p.y));
 		pointsToCheck.push_back(CPoint(p.x-1,p.y));
 		pointsToCheck.push_back(CPoint(p.x,p.y+1));

@@ -15,10 +15,10 @@ public:
 private:
 	vector<CSketchPoint*> m_points;
 public:
-	bool Contains(CPoint p);
+	bool Contains(const CPoint &p);
 	unsigned int Size(void) const;
 	CPolyLine* Clone(void);
-	int HasKnots(void);
+	int HasKnots(void) const;
 	CSketchPoint* GetHeadPoint(void) const;
 	CSketchPoint* GetTailPoint(void) const;
 	CPolyLine* MergeLine(CPolyLine* line);
@@ -33,7 +33,7 @@ private:
 	bool m_isTail;
 public:
 	void SetTail(bool val);
-	bool IsTail(void);
+	bool IsTail(void) const;
 	CPolyLine* SmoothPositions(void);
 	void Trace(void) const;
 	int RemoveDuplicatePoints(void);
@@ -48,5 +48,5 @@ private:
 
 public:
 	void AssertNotEqualTo(const CPolyLine & a_otherLine);
-	const bool Equals(const CPolyLine& a_line);
+	const bool Equals(const CPolyLine& a_line) const;
 };
