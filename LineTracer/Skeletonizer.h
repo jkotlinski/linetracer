@@ -43,6 +43,4 @@ private:
 	void TrackBoundary(int x, int y, char* f, double* U, double &val, int width);
 	//CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
 	//CLineImage* SmoothPositions(CLineImage* lineImage);
-public:
-	void PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) const;
 };
