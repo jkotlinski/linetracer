@@ -14,7 +14,10 @@ private:
 public:
 	CSketchImage* Process(CSketchImage* src);
 private:
-	int Thin(CRawImage<bool> *img);
-	bool IsPointThinnable(CRawImage<bool>* img, CPoint p);
-	bool IsPointThinnableZhangSuen(CRawImage<bool>* img, CPoint p, int pass);
+	deque<CPoint> PeelPixels(const CRawImage<bool> *img);
+	int DeletePixels(deque<CPoint> & a_pixelPoints,
+		CRawImage<bool> & a_canvas);
+	bool IsPointThinnable(const CRawImage<bool>* img, const CPoint & p) const;
+	bool IsPointThinnableZhangSuen(const CRawImage<bool>* img, const CPoint & p, int pass) const;
+	int m_maxPeelIterationsUntilAreaIsDetected;
 };
