@@ -17,6 +17,7 @@ CForkHandler::CForkHandler(void)
 , TForks(NULL)
 , YForks(NULL)
 {
+	SetName(CString("forkhandler"));
 	ThreeForks = new vector<CFPoint>;
 	TForks = new vector<CFPoint>;
 	YForks = new vector<CFPoint>;
@@ -95,7 +96,7 @@ vector<CFPoint>* CForkHandler::Find3Forks(const CLineImage *li) const
 
 CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 {
-	CLogger::Instance()->Inactivate();
+	CLogger::Inactivate();
 
 	static const double SAME_LINE_MAX = -0.8;
 	static const double CROSS_LINE_MIN = -0.75;
@@ -107,7 +108,7 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 	TForks = new vector<CFPoint>;
 
 	vector<CFPoint>::iterator iter;
-	map<int,bool> dontAddLine;
+	map<unsigned int,bool> dontAddLine;
 
 	for(iter=ThreeForks->begin(); iter!=ThreeForks->end(); ++iter) {
 		//iterate through all three-fork points
@@ -381,7 +382,7 @@ void CForkHandler::MarkYFork(CPolyLine* line, const CFPoint &p, int median) cons
 		iterEnd = line->End();
 		--iterEnd;
 
-		for(; iter!=iterEnd; iter++) {
+		for(; iter!=iterEnd; ++iter) {
 			CFPoint l_p = (*iter)->GetCoords();
 			int dist=CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
 			LOG("dist: %i\n",dist);
@@ -396,12 +397,12 @@ void CForkHandler::MarkYFork(CPolyLine* line, const CFPoint &p, int median) cons
 		//from tail
 
 		iterEnd = line->Begin();
-		iterEnd++;
+		++iterEnd;
 
 		iter = line->End();
-		iter--;
+		--iter;
 		(*iter)->SetIsYFork( true );
-		iter--;
+		--iter;
 		for(;;) {
 			CFPoint l_p = (*iter)->GetCoords();
 			int dist=CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
@@ -535,7 +536,7 @@ void CForkHandler::PaintImage(CSketchImage* a_image, CRawImage<ARGB> *a_canvas) 
 	vector<CFPoint> *forks = CForkHandler::Instance()->TForks;
 	vector<CFPoint>::iterator iter;
 
-	for(iter = forks->begin(); iter != forks->end(); iter++) {
+	for(iter = forks->begin(); iter != forks->end(); ++iter) {
 		CFPoint p = *iter;
 
 		static const ARGB TFORK_COL = 0xff00ff00;
