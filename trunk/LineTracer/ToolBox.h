@@ -20,7 +20,7 @@ private:
 
 protected:
 	CSliderCtrl c_binarizerThresholdControl;
-	CSliderCtrl c_detailEnchanceControl;
+	CSliderCtrl c_detailEnhanceControl;
 	CSliderCtrl c_holeFillerControl;
 	CSliderCtrl c_tailPrunerControl;
 	CSliderCtrl c_curveDetailControl;
@@ -41,7 +41,7 @@ protected:
 	
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnNMReleasedCaptureDetailEnchanceSlider(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMReleasedCaptureDetailEnhanceSlider(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnToolboxChangeBwthreshold(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnDrawHoleFillerSlider(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLineLengthSlider(NMHDR *pNMHDR, LRESULT *pResult);

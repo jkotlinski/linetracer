@@ -144,7 +144,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Weak Line Intensifying",IDC_STATIC,12,129,83,8
     LTEXT           "Brightness",IDC_STATIC,12,18,104,11
-    CONTROL         "",IDC_DETAILENCHANCESLIDER,"msctls_trackbar32",TBS_BOTH | 
+    CONTROL         "",IDC_DETAILENHANCESLIDER,"msctls_trackbar32",TBS_BOTH | 
                     TBS_NOTICKS | TBS_TOOLTIPS | WS_TABSTOP,12,139,98,10
     LTEXT           "Short Line Removal",IDC_STATIC,12,106,91,8
     CONTROL         "",IDC_TAILPRUNERSLIDER,"msctls_trackbar32",TBS_BOTH | 
