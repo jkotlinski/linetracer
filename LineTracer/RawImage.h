@@ -78,6 +78,39 @@ private:
 		return false;
 	}
 
+public:
+
+	void DeleteAllBlackPixelsWithoutWhiteNeighbors(void)
+	{
+		deque<CPoint> l_pixelsToDelete;
+		for ( int l_y = 1; l_y < GetHeight()-1; l_y++ )
+		{
+			for ( int l_x = 1; l_x < GetWidth()-1; l_x++ )
+			{
+				bool l_pixelIsWhite = ( GetPixel( l_x, l_y ) == 0 );
+				if ( l_pixelIsWhite )
+				{
+					continue;
+				}
+
+				//check if neighbors are white
+				if ( GetPixel ( l_x-1, l_y ) == 0 ) continue;
+				if ( GetPixel ( l_x+1, l_y ) == 0 ) continue;
+				if ( GetPixel ( l_x, l_y+1 ) == 0 ) continue;
+				if ( GetPixel ( l_x, l_y-1 ) == 0 ) continue;
+
+				CPoint l_point(l_x,l_y);
+				l_pixelsToDelete.push_back(l_point);
+			}
+		}
+
+		while ( l_pixelsToDelete.empty() == false )
+		{
+			CPoint p = l_pixelsToDelete.front();
+			l_pixelsToDelete.pop_front();
+			SetPixel ( p.x, p.y, 0 );
+		}
+	}
 };
 
 template <class T>
