@@ -1,0 +1,80 @@
+TO DO:
+
+MENYN
+- view->vector image och view->original uppdaterar inte toolboxstatus!
+
+ANDRA BUGGAR
+- ibland får man sådana där "streck" som löper in i bilden, som inte
+kommer från någon detalj i bilden. Försvinner om man ändrar
+inställningarna litegranna.
+- om jag väljer "load image", jobbar lite i den bilden, och därefter
+väljer "load image" igen för att välja en ny bild, så får jag ingen
+fråga om jag vill spara det jag höll på med.
+- länkarna till nyss använda filer funkar inte. Den byter namn på
+vilken fil jag har öppen uppe i listen, men inte bilden. Först blir
+det helt vitt, men när man ändrar någon inställning kommer den gamla
+bilden fram.
+- om man inte har någon bild öppen, och väljer exit (eller att stänga
+ned programmet genom att klicka på krysset övre högra hörnet) så får
+man frågan om man vill spara "Untitled". Men det finns alltså inget
+att spara.
+- det är lite störigt att det står "Ready" i statusbaren när
+programmet uppenbarligen håller på att tänka...
+- info på statusbaren för vad de olika menyalternativen innebär funkar
+bara för View->Statusbar. Inte för någon annan.
+
+STABILITET
+- programmet hänger sig (en gång hittills)
+- små bilder funkar bra på min dator, stora bilder blir mycket långsamt
+- ibland blir bilden svart (med vita streck istället, dvs inverterad)
+för mig. Har hänt typ tiotal gånger. Aning om varför?
+
+FRÅGOR
+- har du testat på Olas bild "blyerts-smutsig" med den galna fågeln?
+När jag testar på den bilden blir resultatet riktigt konstigt.
+- gick det att fixa att göra musmarkörerna små? (förstoringsglaset och handen)
+- gick det att fixa att ha visa vektorbild/pixelbild som två knappar bara?
+
+* visa zoom-nivå, tack!
+* flimmmer när man drar bild
+* laure2.gif blir väldigt fel
+* ta tillbaka scrollbars för för stor bild
+* framtiden: kolla minnesanvändning (double->float?)
+* framtiden: x-korsning
+
+* bug - eller?: sliders slutar funka när man ändrar dom med höger/vänster tgb? nej??
+
+- fixa linjebredd (min-max)
+- linjebredd vid linjeutritning
+- beziermaker->DoSchneider leaks memory
+
+idé för korsningar:
+ - kolla EFTER man gjort schneider. limma ihop de ändar som ligger ihop
+
+idé för yta->linje: 
+ - kopiera original till arbetsbild
+ - thinna arbetsbilden N gånger
+ - för de ytor som är kvar - kapa bort små ytor
+ - expandera arbetsbilden N gånger, AND:a varje gång med original
+ - ta bort alla ytor på arbetsbilden i originalbilden
+ - kantdetektera arbetsbilden
+ - addera arbetsbilden till originalbilden
+
+- new line prune layer
+- stoppa tracing mot gradientens riktning
+
+
+==================================
+
+The significance of a straight line fit to a list of points can be estimated by
+calculating the ratio of the length of the line segment divided by the maximum
+deviation of any point from the line (the maximum deviation is always assumed to
+be at least two pixels in size to account for limitations on measurement accuracy).
+This measure will remain constant as the scale of the image is changed, and it
+therefore provides a scale­independent measure of significance that places no prior
+expectations on the allowable deviations. This significance measure is then used
+in a modified version of the recursive endpoint subdivision method (see Figure
+7). A segment is recursively subdivided at the point with maximum deviation
+from a line connecting its endpoints (Figure 7 (b,c)). This process is repeated
+until each segment is no more than 4 pixels in length, producing a binary tree of
+possible subdivisions. This representation is similar to the strip trees described
