@@ -123,34 +123,37 @@ int CBinarizer::CalculateOtsuThreshold(const CRawImage<unsigned char> *img) cons
 	for(int i=0; i<256; i++) histogram[i]=0;
 	for(int l_pixelIndex=0; 
 		l_pixelIndex<img->GetHeight()*img->GetWidth(); 
-		l_pixelIndex++) {
+		l_pixelIndex++) 
+	{
 		histogram[img->GetPixel(l_pixelIndex)]++;
 	}
 
 	int bestThreshold = -1;
-	int bestThresholdVariance = 0xfffffff;
+	long long bestThresholdVariance = 0xfffffffffffffff;
 
-	for(int l_threshold=1; l_threshold<255; l_threshold++) {
-		int p1 = 0;
-		int p2 = 0;
-		int mu1 = 0;
-		int mu2 = 0;
-		int v1 = 0;
-		int v2 = 0;
+	for(int l_threshold=1; l_threshold<255; l_threshold++) 
+	{
+		long long p1 = 0;
+		long long p2 = 0;
 
 		//calculate p1,p2
 		for(int l_lowerIndex=0; 
 			l_lowerIndex<=l_threshold; 
-			l_lowerIndex++) {
+			l_lowerIndex++) 
+		{
 			p1+=histogram[l_lowerIndex];
 		}
 		for(int l_upperIndex=l_threshold+1; 
 			l_upperIndex<256; 
-			l_upperIndex++) {
+			l_upperIndex++) 
+		{
 			p2+=histogram[l_upperIndex];
 		}
 
-		if(p1 && p2) {
+		if(p1 && p2) 
+		{
+			long long mu1 = 0;
+			long long mu2 = 0;
 
 			//calculate mu1, mu2
 			for(int l_lower=0; l_lower<=l_threshold; l_lower++) {
@@ -162,6 +165,8 @@ int CBinarizer::CalculateOtsuThreshold(const CRawImage<unsigned char> *img) cons
 			mu1/=p1;
 			mu2/=p2;
 
+			long long v1 = 0;
+			long long v2 = 0;
 			//calculate v1, v2
 			{
 				for(int l_lower=0; l_lower<=l_threshold; l_lower++) {
@@ -174,10 +179,10 @@ int CBinarizer::CalculateOtsuThreshold(const CRawImage<unsigned char> *img) cons
 			v1/=p1;
 			v2/=p2;
 
-			int variance = p1*v1 + p2*v2;
-			if(variance<bestThresholdVariance) {
+			long long variance = p1*v1 + p2*v2;
+			if(variance < bestThresholdVariance) {
 				bestThreshold = l_threshold;
-				bestThresholdVariance=variance;
+				bestThresholdVariance = variance;
 			}
 		}
 	}
