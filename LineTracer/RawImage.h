@@ -3,6 +3,7 @@
 #include "SketchImage.h"
 
 #include <deque>
+#include <assert.h>
 
 template <class T>
 class CRawImage
@@ -112,6 +113,19 @@ public:
 			SetPixel ( p.x, p.y, 0 );
 		}
 	}
+
+	void calculate_histogram(int * a_histogram, int a_levels) const
+	{
+		memset ( a_histogram, 0, a_levels );
+		for ( int l_offset = 0;
+			l_offset < GetPixelCount();
+			l_offset++ )
+		{
+			int l_level = GetPixel(l_offset);
+			assert ( l_level < a_levels || !"histogram: intensity out of allowed range" );
+			a_histogram[l_level]++;
+		}
+	}
 };
 
 template <class T>
@@ -178,11 +192,11 @@ CRawImage<T>::CRawImage(Bitmap * b)
 {
 	SetSize( int(b->GetWidth()), int(b->GetHeight()) );
 
-	if (GetPixels()<=0) return;
+	if (GetPixelCount()<=0) return;
 
 	// allocate memory for pixel data
 	//lint -e{737} sign loss ok
-	m_buffer = new T[GetPixels()];
+	m_buffer = new T[GetPixelCount()];
 
 	if ( m_buffer == NULL )
 		return;
@@ -264,7 +278,7 @@ Bitmap * CRawImage<T>::GetBitmap(void) const
 template <class T>
 void CRawImage<T>::Clear(void)
 {
-	for(int i=0; i<GetPixels(); i++) {
+	for(int i=0; i<GetPixelCount(); i++) {
 		SetPixel(i,static_cast<T> ( 0 ));
 	}
 }
@@ -317,7 +331,7 @@ void CRawImage<T>::Erode(void)
 template <class T>
 void CRawImage<T>::Fill(T val)
 {
-	for(int i=0; i<GetPixels(); i++) {
+	for(int i=0; i<GetPixelCount(); i++) {
 		SetPixel(i,val);
 	}
 }

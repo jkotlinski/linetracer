@@ -21,7 +21,7 @@ private:
 protected:
 	CSliderCtrl c_binarizerThresholdControl;
 	CSliderCtrl c_detailEnhanceControl;
-	CSliderCtrl c_holeFillerControl;
+	//CSliderCtrl c_holeFillerControl;
 	CSliderCtrl c_tailPrunerControl;
 	CSliderCtrl c_curveDetailControl;
 	

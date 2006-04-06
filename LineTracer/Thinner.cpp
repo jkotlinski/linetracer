@@ -23,7 +23,7 @@ CSketchImage* CThinner::Process(CSketchImage *i_src) {
 	ASSERT ( src != NULL );
 	CRawImage<bool> *dst = new CRawImage<bool>(src->GetWidth(),src->GetHeight());
 
-	for(int i=0; i<src->GetPixels(); i++) {
+	for(int i=0; i<src->GetPixelCount(); i++) {
 		dst->SetPixel(i,!src->GetPixel(i));
 	}
 

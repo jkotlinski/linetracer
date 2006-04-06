@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <map>
+#include <assert.h>
 
 #include "Binarizer.h"
 
@@ -506,7 +507,10 @@ void CForkHandler::HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* 
 	if(line2->GetTailPoint()->Distance(p)<0.8) {
 		//add forwards
 		int i=0;
-		while(!line2->At(i)->IsYFork() || ((line2->Size()-i)>5)) {
+		int l_line_size = (int) line2->Size();
+		ASSERT ( l_line_size >= 0 || !"line size negative" );
+		ASSERT ( (i < l_line_size) || !"i too big" );
+		while(!line2->At(i)->IsYFork() || ((l_line_size-i)>5)) {
 			newLine2->Add(line2->At(i)->Clone());
 			i++;
 		}

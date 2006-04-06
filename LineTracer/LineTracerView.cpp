@@ -73,6 +73,9 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTEPS, OnUpdateFileExportEps)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE_AS, OnUpdateFileSaveAs)
 	ON_MESSAGE( (WM_UPDATE_STATUSBAR_WITH_STRING), (OnUpdateStatusbarWithString) )
+	ON_MESSAGE( WM_PROCESS_THREAD_FINISHED, OnProcessThreadFinished )
+	ON_COMMAND(ID_HELP_SENDFEEDBACK, OnHelpSendfeedback)
+	ON_COMMAND(ID_HELP_REPORTBUG, OnHelpReportbug)
 END_MESSAGE_MAP()
 
 
@@ -249,9 +252,9 @@ void CLineTracerView::OnUpdateViewBinarizer(CCmdUI *pCmdUI)
 
 void CLineTracerView::OnUpdateViewGaussian(CCmdUI *pCmdUI)
 {
-	CLayerManager *lm = CLayerManager::Instance();
+/*	CLayerManager *lm = CLayerManager::Instance();
 	CLayer* l = lm->GetLayer(CLayerManager::GAUSSIAN);
-	pCmdUI->SetCheck(l->IsVisible());
+	pCmdUI->SetCheck(l->IsVisible());*/
 }
 
 void CLineTracerView::OnFileExporteps() {
@@ -270,7 +273,8 @@ void CLineTracerView::OnFileExporteps() {
 void CLineTracerView::OnUpdateViewOriginal(CCmdUI *pCmdUI)
 {
 	CLayerManager *lm = CLayerManager::Instance();
-	CLayer* l = lm->GetLayer(CLayerManager::HOLEFILLER);
+	//CLayer* l = lm->GetLayer(CLayerManager::HOLEFILLER);
+	CLayer* l = lm->GetLayer(CLayerManager::AREAS_TO_CLOSED_CURVES);
 	pCmdUI->SetCheck(l->IsVisible());
 }
 
@@ -400,6 +404,12 @@ bool CLineTracerView::LoadImage(Bitmap** image, CString *fileName)
 }
 
 //------------------------------------
+
+afx_msg LRESULT CLineTracerView::OnProcessThreadFinished(WPARAM wParam, LPARAM lParam)
+{
+	CLayerManager::Instance()->ResetProcessThread();
+	return 0;
+}
 
 afx_msg LRESULT CLineTracerView::OnUpdateStatusbarWithString
 	(WPARAM wParam, LPARAM lParam)
@@ -837,4 +847,14 @@ void CLineTracerView::OnUpdateFileExportEps(CCmdUI *pCmdUI)
 void CLineTracerView::OnUpdateFileSaveAs(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable( ImageIsLoaded() );
+}
+
+void CLineTracerView::OnHelpSendfeedback()
+{
+	::ShellExecute(0, "open", "mailto:kotlinski@gmail.com?subject=LineTracer feedback", 0, 0, SW_SHOW);
+}
+
+void CLineTracerView::OnHelpReportbug()
+{
+	::ShellExecute(0, "open", "mailto:kotlinski@gmail.com?subject=LineTracer bug report", 0, 0, SW_SHOW);
 }

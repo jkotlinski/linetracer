@@ -26,7 +26,7 @@ CSketchImage* CDeSaturator::Process(CSketchImage* i_src)
 
 	//int threshold=(int)GetParam("threshold");
 
-	for(int i=0; i<src->GetPixels(); i++) {
+	for(int i=0; i<src->GetPixelCount(); i++) {
 		ARGB c=src->GetPixel(i);
 			
 		ARGB brightness=(c&0xff0000)>>16;

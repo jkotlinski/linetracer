@@ -35,18 +35,18 @@ CLayerManager::CLayerManager(void)
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer(  );
+	/*layer=new CLayer(  );
 	layer->SetImageProcessor(CGaussian::Instance());
-	m_Layers.push_back(layer);
+	m_Layers.push_back(layer);*/
 
 	layer=new CLayer( );
 	layer->SetImageProcessor(CBinarizer::Instance());
-	//layer->SetVisible(true);
+	layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
 	layer=new CLayer( );
 	layer->SetImageProcessor(CHoleFiller::Instance());
-	layer->SetVisible(true);
+	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
 	layer=new CLayer( );
@@ -127,7 +127,7 @@ void CLayerManager::ProcessLayers()
 		m_restartProcess = true;
 	}
 	else 
-	{
+	{			
 		m_processThread = AfxBeginThread ( 
 			DoProcessLayers, 
 			static_cast<LPVOID>( this )
@@ -275,6 +275,10 @@ UINT CLayerManager::DoProcessLayers(LPVOID pParam)
 	//redraw!
 	l_lm->GetLineTracerView()->Invalidate( FALSE );
 
+	l_lm->m_lineTracerView->PostMessage(
+		WM_PROCESS_THREAD_FINISHED, 
+		0, 0);
+
 	return 0;
 }
 
@@ -352,7 +356,8 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 
 void CLayerManager::SetOriginalLayerVisibility(bool a_isVisible)
 {
-	GetLayer(HOLEFILLER)->SetVisible(a_isVisible);
+	//GetLayer(HOLEFILLER)->SetVisible(a_isVisible);
+	GetLayer(BINARIZER)->SetVisible(a_isVisible);
 }
 
 void CLayerManager::SetVectorLayerVisibility(bool a_isVisible)
@@ -364,4 +369,9 @@ bool CLayerManager::IsProcessing(void)
 const
 {
 	return m_isProcessing;
+}
+
+void CLayerManager::ResetProcessThread(void)
+{
+	m_processThread=NULL;
 }
