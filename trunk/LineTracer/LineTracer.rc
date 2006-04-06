@@ -387,7 +387,6 @@ IDI_ZOOM                ICON                    "res\\zoom.ico"
 IDI_ORIGINAL_LAYER      ICON                    "res\\show_pixel.ico"
 IDI_VECTOR_LAYER        ICON                    "res\\show_vector_red.ico"
 IDI_ALL_LAYERS          ICON                    "res\\icon2.ico"
-IDI_VECTOR_LAYER1       ICON                    "res\\vector_l.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
