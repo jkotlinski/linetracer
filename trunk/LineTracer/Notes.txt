@@ -1,5 +1,16 @@
 TO DO:
 
+IDÉ för kneesplitter:
+knäna blir från början lite rundade av thinner-algoritmen. kneesplitter 
+borde räta ut kanterna mha att flytta om punkten som knämarkeras
+utifrån kringliggande punkter.
+
+ALTERNATIV IDÉ för att hantera änd-Y-korsningar:
+börja från enkla spetsar. gå utifrån och sug ut ändkorsningar.
+
+areas to closed curve processor funkar inte bra med kantiga ytor, typ stjärnor.
+på grund av att erode tar fler pixlar än motsvarande dilate.
+
 MENYN
 - view->vector image och view->original uppdaterar inte toolboxstatus!
 
@@ -20,7 +31,6 @@ man frågan om man vill spara "Untitled". Men det finns alltså inget
 att spara.
 
 STABILITET
-- programmet hänger sig (en gång hittills)
 - små bilder funkar bra på min dator, stora bilder blir mycket långsamt
 - ibland blir bilden svart (med vita streck istället, dvs inverterad)
 för mig. Har hänt typ tiotal gånger. Aning om varför?
@@ -40,9 +50,12 @@ När jag testar på den bilden blir resultatet riktigt konstigt.
 
 * bug - eller?: sliders slutar funka när man ändrar dom med höger/vänster tgb? nej??
 
+== IMPLEMENTATIONSGREJER ======
+ * beziermaker->DoSchneider leaks memory - använd shared_ptr ?
+ * pthreads?
+
 - fixa linjebredd (min-max)
 - linjebredd vid linjeutritning
-- beziermaker->DoSchneider leaks memory
 
 idé för korsningar:
  - kolla EFTER man gjort schneider. limma ihop de ändar som ligger ihop och är riktade från varandra

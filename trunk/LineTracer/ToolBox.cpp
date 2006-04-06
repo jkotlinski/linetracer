@@ -62,11 +62,11 @@ BOOL CToolBox::OnInitDialogBar()
 	c_detailEnhanceControl.SetPos( 
 		21 - int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C ) ) );
 
-	c_holeFillerControl.SetRange(0,40);
-	c_holeFillerControl.SetPos( 
+/*	//c_holeFillerControl.SetRange(0,20);
+	//c_holeFillerControl.SetPos( 
 		int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL ) ) );
-
-	c_tailPrunerControl.SetRange(0,10);
+*/
+	c_tailPrunerControl.SetRange(0,40);
 	c_tailPrunerControl.SetPos( 
 		int( l_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) ) );
 
@@ -104,7 +104,7 @@ void CToolBox::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CAboutDlg)
 	DDX_Control(pDX, IDC_BWTHRESHOLD, c_binarizerThresholdControl);
 	DDX_Control(pDX, IDC_DETAILENHANCESLIDER, c_detailEnhanceControl);
-	DDX_Control(pDX, IDC_HOLEFILLERSLIDER, c_holeFillerControl);
+	//DDX_Control(pDX, IDC_HOLEFILLERSLIDER, c_holeFillerControl);
 	DDX_Control(pDX, IDC_TAILPRUNERSLIDER, c_tailPrunerControl);
 	DDX_Control(pDX, IDC_CURVEDETAILSLIDER, c_curveDetailControl);
 	DDX_Control(pDX, IDC_MOVEBUTTON, c_moveButton);
@@ -140,7 +140,7 @@ double CToolBox::GetParam(CProjectSettings::ParamName a_name) const
 			break;
 
 		case CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL:
-			retVal = c_holeFillerControl.GetPos();
+			//retVal = c_holeFillerControl.GetPos();
 			break;
 
 		case CProjectSettings::TAILPRUNER_THRESHOLD:
@@ -176,8 +176,8 @@ afx_msg LRESULT CToolBox::OnUpdateToolboxDataFromLayers
 	int l_detailEnhanceVal = int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C) );
 	(void) c_detailEnhanceControl.SetPos( 21 - l_detailEnhanceVal );
 
-	int l_holeFillerVal = int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL) );
-	(void) c_holeFillerControl.SetPos( l_holeFillerVal );
+	//int l_holeFillerVal = int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL) );
+	//(void) c_holeFillerControl.SetPos( l_holeFillerVal );
 
 	int l_tailPrunerVal = int( l_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) );
 	(void) c_tailPrunerControl.SetPos( l_tailPrunerVal );

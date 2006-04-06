@@ -13,7 +13,7 @@ public:
 
 	enum LayerTypes { 
 		DESATURATOR, 
-		GAUSSIAN, 
+		//GAUSSIAN, 
 		BINARIZER, 
 		HOLEFILLER,
 		AREAS_TO_CLOSED_CURVES,
@@ -60,4 +60,5 @@ public:
 	void SetOriginalLayerVisibility(bool a_isVisible);
 	void SetVectorLayerVisibility(bool a_isVisible);
 	bool IsProcessing(void) const;
+	void ResetProcessThread(void);
 };

@@ -15,7 +15,7 @@ public:
 
 	enum Type { 
 		DESATURATOR, 
-		GAUSSIAN, 
+		//GAUSSIAN, 
 		BINARIZER, 
 		HOLEFILLER,
 		AREAS_TO_CLOSED_CURVES,

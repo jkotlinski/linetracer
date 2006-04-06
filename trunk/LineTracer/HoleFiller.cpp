@@ -27,7 +27,7 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 
 	CRawImage<bool> *dst = new CRawImage<bool>(src->GetWidth(),src->GetHeight());
 	CRawImage<bool> tmp(src->GetWidth(),src->GetHeight());
-	for(int i=0; i<src->GetPixels(); i++) {
+	for(int i=0; i<src->GetPixelCount(); i++) {
 		bool val = src->GetPixel(i);
 		dst->SetPixel(i, val);
 		tmp.SetPixel(i, val);

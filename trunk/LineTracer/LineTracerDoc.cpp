@@ -160,6 +160,7 @@ void CLineTracerDoc::ProcessLayers(void)
 
 void CLineTracerDoc::OnParametersGaussian()
 {
+	/*
 	ASSERT ( false );
 	CParamDialog dlg;
 	CProjectSettings *l_settings = CProjectSettings::Instance();
@@ -181,6 +182,7 @@ void CLineTracerDoc::OnParametersGaussian()
 			ProcessLayers();
 		}
 	}
+	*/
 }
 
 
@@ -199,7 +201,7 @@ void CLineTracerDoc::OnViewBinarizer()
 	l->SetVisible(!l->IsVisible());
 
 	lm->GetLayer(CLayerManager::DESATURATOR)->SetVisible(false);
-	lm->GetLayer(CLayerManager::GAUSSIAN)->SetVisible(false);
+	//lm->GetLayer(CLayerManager::GAUSSIAN)->SetVisible(false);
 
 	UpdateAllViews(NULL);
 	SetModifiedFlag();
@@ -207,7 +209,7 @@ void CLineTracerDoc::OnViewBinarizer()
 
 void CLineTracerDoc::OnViewGaussian()
 {
-	CLayerManager *lm = CLayerManager::Instance();
+/*	CLayerManager *lm = CLayerManager::Instance();
 	CLayer *l = lm->GetLayer(CLayerManager::GAUSSIAN);
 	l->SetVisible(!l->IsVisible());
 
@@ -215,13 +217,14 @@ void CLineTracerDoc::OnViewGaussian()
 	lm->GetLayer(CLayerManager::BINARIZER)->SetVisible(false);
 
 	UpdateAllViews(NULL);
-	SetModifiedFlag();
+	SetModifiedFlag();*/
 }
 
 void CLineTracerDoc::OnViewOriginal()
 {
 	CLayerManager *lm = CLayerManager::Instance();
-	CLayer *l = lm->GetLayer(CLayerManager::HOLEFILLER);
+	//CLayer *l = lm->GetLayer(CLayerManager::HOLEFILLER);
+	CLayer* l = lm->GetLayer(CLayerManager::AREAS_TO_CLOSED_CURVES);
 	l->SetVisible(!l->IsVisible());
 
 	UpdateAllViews(NULL);

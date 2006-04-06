@@ -37,7 +37,7 @@ void CProjectSettings::SetParam ( CProjectSettings::ParamName a_paramName, doubl
 
 void CProjectSettings::Init(void)
 {
-	SetParam(BEZIERMAKER_ERROR_THRESHOLD, 20.0);
+	SetParam(BEZIERMAKER_ERROR_THRESHOLD, 15.0);
 	SetParam(BINARIZER_THRESHOLD, -1.0);
 	SetParam(BINARIZER_MEAN_C, 10.0);
 	SetParam(LINESEGMENTOR_THRESHOLD, 1.5);

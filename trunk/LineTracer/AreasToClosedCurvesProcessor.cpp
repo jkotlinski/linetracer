@@ -32,7 +32,7 @@ CSketchImage* AreasToClosedCurvesProcessor::Process(CSketchImage *a_src_image)
 	//N = maximum line radius
 	//A = minimum area
 	static const int l_maximumLineRadius = 2;
-	static const int l_minimumAreaThreshold = 50;
+	static const int l_minimumAreaThreshold = 30;
 
 	//copy source_bitmap to work_bitmap
 	CRawImage<bool> *l_sourceImage = static_cast< CRawImage<bool>* >(a_src_image);
@@ -62,7 +62,7 @@ CSketchImage* AreasToClosedCurvesProcessor::Process(CSketchImage *a_src_image)
 	}
 
 	//source_bitmap &= !work_bitmap
-	for ( int l_offset=0; l_offset<l_workImage->GetPixels(); l_offset++)
+	for ( int l_offset=0; l_offset<l_workImage->GetPixelCount(); l_offset++)
 	{
 		if ( l_workImage->GetPixel(l_offset) == false )
 		{
@@ -73,13 +73,13 @@ CSketchImage* AreasToClosedCurvesProcessor::Process(CSketchImage *a_src_image)
 
 	//edge detect work_bitmap
 	// == remove all black pixels with only black neighbors
-	deque<int> l_pixelsToPaintWhite;
+	deque<pair<int,int> > l_pixelsToPaintWhite;
 
 	for ( int y = 1; y < l_workImage->GetHeight()-1; y++ )
 	{
 		for ( int x = 1; x < l_workImage->GetWidth()-1; x++ )
 		{
-			if ( l_workImage->GetPixel(x,y) == false )
+			if ( false == l_workImage->GetPixel(x,y) )
 			{
 				//pixel is black
 
@@ -90,20 +90,20 @@ CSketchImage* AreasToClosedCurvesProcessor::Process(CSketchImage *a_src_image)
 				if ( l_workImage->GetPixel(x, y-1) ) continue;
 
 				//mark pixel to be painted white
-				l_pixelsToPaintWhite.push_back( x | (y<<16) );
+				l_pixelsToPaintWhite.push_back( pair<int,int> ( x, y ) );
 			}
 		}
 	}
 	while ( !l_pixelsToPaintWhite.empty() )
 	{
-		int l_pixelPos = l_pixelsToPaintWhite.front();
+		pair<int,int> l_pixelPos = l_pixelsToPaintWhite.front();
 		l_pixelsToPaintWhite.pop_front();
 		//paint white
-		l_workImage->SetPixel(l_pixelPos&0xffff, l_pixelPos>>16, true);
+		l_workImage->SetPixel(l_pixelPos.first, l_pixelPos.second, true);
 	}
 
 	//source_bitmap |= work_bitmap
-	for ( int l_offset=0; l_offset<l_workImage->GetPixels(); l_offset++)
+	for ( int l_offset=0; l_offset<l_workImage->GetPixelCount(); l_offset++)
 	{
 		if ( l_workImage->GetPixel(l_offset) == false )
 		{
