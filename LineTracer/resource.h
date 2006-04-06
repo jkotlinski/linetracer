@@ -19,7 +19,6 @@
 #define IDI_ORIGINAL_LAYER              150
 #define IDI_VECTOR_LAYER                151
 #define IDI_ALL_LAYERS                  152
-#define IDI_VECTOR_LAYER1               154
 #define IDC_EDIT                        1000
 #define IDC_SPIN1                       1001
 #define IDC_BWTHRESHOLD                 1002
