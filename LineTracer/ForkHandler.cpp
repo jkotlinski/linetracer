@@ -103,7 +103,7 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 	static const double SAME_LINE_MAX = -0.8;
 	static const double CROSS_LINE_MIN = -0.75;
 
-	CLineImage *tmpLi = li->Clone();
+	CLineImage *l_tmpLineImage = li->Clone();
 	CLineImage *newImage = new CLineImage(li->GetWidth(),li->GetHeight());
 
 	delete TForks;
@@ -118,10 +118,10 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 		vector<CFPoint> vectors;
 		vector<int> lineId;
 
-		LOG("tmpLi->Size(): %i\n",tmpLi->Size());
-		for(unsigned int i=0; i<tmpLi->Size(); i++) {
+		LOG("l_tmpLineImage->Size(): %i\n",l_tmpLineImage->Size());
+		for(unsigned int i=0; i<l_tmpLineImage->Size(); i++) {
 			if(dontAddLine[i]) continue;
-			CPolyLine *line = tmpLi->GetLine(i);
+			CPolyLine *line = l_tmpLineImage->GetLine(i);
 
 			if( line->GetHeadPoint()->GetCoords() == *iter) 
 			{
@@ -162,15 +162,15 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 		//LOG("C_12: %f\n",C_12);
 
 		//doesn't do anything -- remove?
-		//tmpLi->IsTail(tmpLi->At(lineId[0]));
+		//l_tmpLineImage->IsTail(l_tmpLineImage->At(lineId[0]));
 
 		if(C_01 < SAME_LINE_MAX && C_02 > CROSS_LINE_MIN && C_12 > CROSS_LINE_MIN) {
 			//merge line 0 and 1
 			TForks->push_back(*iter);
 			dontAddLine[lineId[0]]=true;
 			dontAddLine[lineId[1]]=true;
-			CPolyLine *l1 = tmpLi->GetLine(lineId[0])->Clone();
-			CPolyLine *l2 = tmpLi->GetLine(lineId[1])->Clone();
+			CPolyLine *l1 = l_tmpLineImage->GetLine(lineId[0])->Clone();
+			CPolyLine *l2 = l_tmpLineImage->GetLine(lineId[1])->Clone();
 			ASSERT ( l1->Size() > 1 );
 			ASSERT ( l2->Size() > 1 );
 			CPolyLine *l3 = l1->MergeLine(l2);
@@ -178,20 +178,20 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 			int l1Size = l1->Size();
 			int l_connectorPointIndex = l1Size-1;
 			l4->SmoothPoint(l_connectorPointIndex);
-			//SetEndPoint(tmpLi->At(lineId[2]),p);
-			tmpLi->Add(l4);
+			//SetEndPoint(l_tmpLineImage->At(lineId[2]),p);
+			l_tmpLineImage->Add(l4);
 			delete l1;
 			delete l2;
 			delete l3;
-			//tmpLi->Add(l2);
+			//l_tmpLineImage->Add(l2);
 			LOG("fork. don't add lines %i %i\n",lineId[0],lineId[1]);
 		} else if(C_02 < SAME_LINE_MAX && C_01 > CROSS_LINE_MIN && C_12 > CROSS_LINE_MIN) {
 			//merge line 0 and 2
 			TForks->push_back(*iter);
 			dontAddLine[lineId[0]]=true;
 			dontAddLine[lineId[2]]=true;
-			CPolyLine *l1 = tmpLi->GetLine(lineId[0])->Clone();
-			CPolyLine *l2 = tmpLi->GetLine(lineId[2])->Clone();
+			CPolyLine *l1 = l_tmpLineImage->GetLine(lineId[0])->Clone();
+			CPolyLine *l2 = l_tmpLineImage->GetLine(lineId[2])->Clone();
 			ASSERT ( l1->Size() > 1 );
 			ASSERT ( l2->Size() > 1 );
 			CPolyLine *l3 = l1->MergeLine(l2);
@@ -199,8 +199,8 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 			int l1Size = l1->Size();
 			int l_connectorPointIndex = l1Size-1;
 			l4->SmoothPoint(l_connectorPointIndex);
-			//SetEndPoint(tmpLi->At(lineId[1]),p);
-			tmpLi->Add(l4);
+			//SetEndPoint(l_tmpLineImage->At(lineId[1]),p);
+			l_tmpLineImage->Add(l4);
 			delete l1;
 			delete l2;
 			delete l3;
@@ -210,8 +210,8 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 			TForks->push_back(*iter);
 			dontAddLine[lineId[1]]=true;
 			dontAddLine[lineId[2]]=true;
-			CPolyLine *l1 = tmpLi->GetLine(lineId[1])->Clone();
-			CPolyLine *l2 = tmpLi->GetLine(lineId[2])->Clone();
+			CPolyLine *l1 = l_tmpLineImage->GetLine(lineId[1])->Clone();
+			CPolyLine *l2 = l_tmpLineImage->GetLine(lineId[2])->Clone();
 			ASSERT ( l1->Size() > 1 );
 			ASSERT ( l2->Size() > 1 );
 			CPolyLine *l3 = l1->MergeLine(l2);
@@ -221,8 +221,8 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 			int l3Size = l3->Size();
 			int l_connectorPointIndex = l1Size-1;
 			l4->SmoothPoint(l_connectorPointIndex);
-			//SetEndPoint(tmpLi->At(lineId[0]),p);
-			tmpLi->Add(l4);
+			//SetEndPoint(l_tmpLineImage->At(lineId[0]),p);
+			l_tmpLineImage->Add(l4);
 			l4->AssertNotEqualTo(*l1);
 			l4->AssertNotEqualTo(*l2);
 			delete l1;
@@ -235,15 +235,15 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 		}
 	}
 
-	for(unsigned int i=0; i<tmpLi->Size(); i++) {
+	for(unsigned int i=0; i<l_tmpLineImage->Size(); i++) {
 		if(!dontAddLine[i]) {
-			newImage->Add(tmpLi->GetLine(i)->Clone());
+			newImage->Add(l_tmpLineImage->GetLine(i)->Clone());
 		} else {
 			LOG("didn't add %i\n",i);
 		}
 	}
 
-	delete tmpLi;
+	delete l_tmpLineImage;
 
 	return newImage;
 }
