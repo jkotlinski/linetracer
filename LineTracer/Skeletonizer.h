@@ -27,14 +27,14 @@ private:
 	CRawImage<ARGB>* DeleteNonMaximumsSimple(CRawImage<ARGB>* dst);
 	//MaximumMapType* DoAFMM(CRawImage<bool>* dst,bool direction);
 	int IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
-	CRawImage<ARGB>* CreateSegmentMap(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
-	CLineImage* Vectorize(CRawImage<ARGB>* segmentMap, CRawImage<ARGB>* knotMap);
-	void TraceLine(CRawImage<ARGB>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds);
+	(void) CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
+	CLineImage* Vectorize(CRawImage<bool>* segmentMap, CRawImage<ARGB>* knotMap);
+	void TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds);
 	CFPoint IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point, map<int,bool> *forbiddenEndKnotIds);
 	CSketchPoint FindNeighborKnot(CRawImage<ARGB>* knotImg, CPoint p);
-	CPoint FindSegmentNeighbor(CRawImage<ARGB>* segmentImage, const CPoint &p);
-	bool NoOrthogonalNeighbors(CRawImage<ARGB>* segmentImage, CFPoint p);
-	bool IsEndPoint(CRawImage<ARGB>* image,CPoint p);
+	CPoint FindSegmentNeighbor(CRawImage<bool>* segmentImage, const CPoint &p);
+	bool NoOrthogonalNeighbors(CRawImage<bool>* segmentImage, CFPoint p);
+	bool IsEndPoint(CRawImage<bool>* image,CPoint p);
 	double AFMMSolve(int i1, int j1, int i2, int j2, double sol, char *f, double* T, int width);
 	
 	static const char BAND=0;
@@ -44,6 +44,6 @@ private:
 	//CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
 	//CLineImage* SmoothPositions(CLineImage* lineImage);
 private:
-	void TraceEndpoints( CRawImage<ARGB> &segmentMap, CLineImage &li );
-	void TraceCircles( CRawImage<ARGB> &segmentMap, CLineImage &li );
+	void TraceSimpleLines( CRawImage<bool> &segmentMap, CLineImage &li );
+	void TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li );
 };
