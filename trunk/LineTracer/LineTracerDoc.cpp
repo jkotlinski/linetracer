@@ -224,7 +224,7 @@ void CLineTracerDoc::OnViewOriginal()
 {
 	CLayerManager *lm = CLayerManager::Instance();
 	//CLayer *l = lm->GetLayer(CLayerManager::HOLEFILLER);
-	CLayer* l = lm->GetLayer(CLayerManager::AREAS_TO_CLOSED_CURVES);
+	CLayer* l = lm->GetLayer(CLayerManager::BINARIZER);
 	l->SetVisible(!l->IsVisible());
 
 	UpdateAllViews(NULL);
