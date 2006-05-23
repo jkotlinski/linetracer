@@ -87,16 +87,16 @@ const
 	return knotCount;
 }
 
-CSketchPoint *CPolyLine::GetHeadPoint(void)
+CSketchPoint *CPolyLine::GetHeadPoint(unsigned int a_offset)
 const
 {
-	return m_points.front();
+	return m_points[a_offset];
 }
 
-CSketchPoint *CPolyLine::GetTailPoint(void)
+CSketchPoint *CPolyLine::GetTailPoint(unsigned int a_offset)
 const
 {
-	return m_points.back();
+	return m_points[m_points.size() - 1 - a_offset];
 }
 
 /* return a new line that is a merge of this and the other line.
