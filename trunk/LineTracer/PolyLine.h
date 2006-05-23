@@ -19,8 +19,8 @@ public:
 	unsigned int Size(void) const;
 	CPolyLine* Clone(void);
 	int HasKnots(void) const;
-	CSketchPoint* GetHeadPoint(void) const;
-	CSketchPoint* GetTailPoint(void) const;
+	CSketchPoint* GetHeadPoint(unsigned int a_offset=0) const;
+	CSketchPoint* GetTailPoint(unsigned int a_offset=0) const;
 	CPolyLine* MergeLine(CPolyLine* line);
 	vector<CSketchPoint*>::iterator Begin(void);
 	vector<CSketchPoint*>::iterator End(void);
