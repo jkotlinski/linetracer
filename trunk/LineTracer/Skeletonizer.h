@@ -27,7 +27,7 @@ private:
 	CRawImage<ARGB>* DeleteNonMaximumsSimple(CRawImage<ARGB>* dst);
 	//MaximumMapType* DoAFMM(CRawImage<bool>* dst,bool direction);
 	int IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
-	(void) CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
+	void CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
 	CLineImage* Vectorize(CRawImage<bool>* segmentMap, CRawImage<ARGB>* knotMap);
 	void TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds);
 	CFPoint IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point, map<int,bool> *forbiddenEndKnotIds);

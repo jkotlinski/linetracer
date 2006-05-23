@@ -50,15 +50,14 @@ CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 	*/
 	(void) CreateKnotImage(src,knotImage);
 
-	CLineImage* li = Vectorize(src, knotImage); //Vectorize(segmentMap, knotImage);
+	CLineImage* li = Vectorize(src, knotImage);
 
 	delete knotImage;
 
-	//trace simple lines
+	//trace simple lines = lines with two end points
 	TraceSimpleLines ( *src, *li );
 
-	//TODO: circle detect
-	//we have a bunch of segments left, that have no end points.
+	//maybe we have a bunch of lines left, that have no end points? must be circles.
 	TraceCircles ( *src, *li );
 
 	LOG("skeletonizer->process complete\n");
