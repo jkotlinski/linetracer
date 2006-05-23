@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "FPoint.h"
 #include "PolyLine.h"
+#include "PolyLineIterator.h"
 
 #include <vector>
 #include <map>
@@ -14,12 +15,12 @@
 CForkHandler::CForkHandler(void)
 : CImageProcessor()
 , ThreeForks(NULL)
-, TForks(NULL)
+//, TForks(NULL)
 , YForks(NULL)
 {
 	SetName(CString("Fork Handler"));
 	ThreeForks = new vector<CFPoint>;
-	TForks = new vector<CFPoint>;
+	//TForks = new vector<CFPoint>;
 	YForks = new vector<CFPoint>;
 }
 
@@ -27,7 +28,7 @@ CForkHandler::~CForkHandler(void)
 {
 	try {
 		delete ThreeForks;
-		delete TForks;
+		//delete TForks;
 		delete YForks;
 	} 
 	catch (...) {
@@ -96,6 +97,30 @@ vector<CFPoint>* CForkHandler::Find3Forks(const CLineImage *li) const
 	return forks;
 }
 
+void HandleFoundTFork ( 
+					   CPolyLine * a_baseline1,
+					   CPolyLine * a_baseline2, 
+					   CPolyLine * a_vert_line,
+					   CFPoint a_merge_point
+					   ) {
+	PolyLineIterator pli1 (a_baseline1, a_merge_point);
+	CSketchPoint *basepoint_1 = pli1.Next();
+	CSketchPoint *basepoint_neighbor_1 = pli1.Next();
+
+	PolyLineIterator pli2 (a_baseline2, a_merge_point);
+	CSketchPoint *basepoint_2 = pli2.Next();
+	CSketchPoint *basepoint_neighbor_2 = pli2.Next();
+
+	PolyLineIterator pli3 ( a_vert_line, a_merge_point );
+	CSketchPoint *vert_point = pli3.Next();
+
+	CFPoint l_base_point = (basepoint_neighbor_1->GetCoords() + 
+							basepoint_neighbor_2->GetCoords()) / 2.0 ;
+	basepoint_1->SetCoords(l_base_point);
+	basepoint_2->SetCoords(l_base_point);
+	vert_point->SetCoords(l_base_point);
+}
+
 CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 {
 	CLogger::Inactivate();
@@ -105,9 +130,6 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 
 	CLineImage *l_tmpLineImage = li->Clone();
 	CLineImage *newImage = new CLineImage(li->GetWidth(),li->GetHeight());
-
-	delete TForks;
-	TForks = new vector<CFPoint>;
 
 	vector<CFPoint>::iterator iter;
 	map<unsigned int,bool> dontAddLine;
@@ -164,75 +186,33 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 		//doesn't do anything -- remove?
 		//l_tmpLineImage->IsTail(l_tmpLineImage->At(lineId[0]));
 
-		if(C_01 < SAME_LINE_MAX && C_02 > CROSS_LINE_MIN && C_12 > CROSS_LINE_MIN) {
-			//merge line 0 and 1
-			TForks->push_back(*iter);
-			dontAddLine[lineId[0]]=true;
-			dontAddLine[lineId[1]]=true;
-			CPolyLine *l1 = l_tmpLineImage->GetLine(lineId[0])->Clone();
-			CPolyLine *l2 = l_tmpLineImage->GetLine(lineId[1])->Clone();
-			ASSERT ( l1->Size() > 1 );
-			ASSERT ( l2->Size() > 1 );
-			CPolyLine *l3 = l1->MergeLine(l2);
-			CPolyLine *l4 = l3->Clone();
-			int l1Size = l1->Size();
-			int l_connectorPointIndex = l1Size-1;
-			l4->SmoothPoint(l_connectorPointIndex);
-			//SetEndPoint(l_tmpLineImage->At(lineId[2]),p);
-			l_tmpLineImage->Add(l4);
-			delete l1;
-			delete l2;
-			delete l3;
-			//l_tmpLineImage->Add(l2);
-			LOG("fork. don't add lines %i %i\n",lineId[0],lineId[1]);
-		} else if(C_02 < SAME_LINE_MAX && C_01 > CROSS_LINE_MIN && C_12 > CROSS_LINE_MIN) {
-			//merge line 0 and 2
-			TForks->push_back(*iter);
-			dontAddLine[lineId[0]]=true;
-			dontAddLine[lineId[2]]=true;
-			CPolyLine *l1 = l_tmpLineImage->GetLine(lineId[0])->Clone();
-			CPolyLine *l2 = l_tmpLineImage->GetLine(lineId[2])->Clone();
-			ASSERT ( l1->Size() > 1 );
-			ASSERT ( l2->Size() > 1 );
-			CPolyLine *l3 = l1->MergeLine(l2);
-			CPolyLine *l4 = l3->Clone();
-			int l1Size = l1->Size();
-			int l_connectorPointIndex = l1Size-1;
-			l4->SmoothPoint(l_connectorPointIndex);
-			//SetEndPoint(l_tmpLineImage->At(lineId[1]),p);
-			l_tmpLineImage->Add(l4);
-			delete l1;
-			delete l2;
-			delete l3;
-			LOG("fork. don't add lines %i %i\n",lineId[0],lineId[2]);
-		} else if(C_12 < SAME_LINE_MAX && C_01 > CROSS_LINE_MIN && C_02 > CROSS_LINE_MIN) {
-			//merge line 1 and 2
-			TForks->push_back(*iter);
-			dontAddLine[lineId[1]]=true;
-			dontAddLine[lineId[2]]=true;
-			CPolyLine *l1 = l_tmpLineImage->GetLine(lineId[1])->Clone();
-			CPolyLine *l2 = l_tmpLineImage->GetLine(lineId[2])->Clone();
-			ASSERT ( l1->Size() > 1 );
-			ASSERT ( l2->Size() > 1 );
-			CPolyLine *l3 = l1->MergeLine(l2);
-			CPolyLine *l4 = l3->Clone();
-			int l1Size = l1->Size();
-			int l2Size = l2->Size();
-			int l3Size = l3->Size();
-			int l_connectorPointIndex = l1Size-1;
-			l4->SmoothPoint(l_connectorPointIndex);
-			//SetEndPoint(l_tmpLineImage->At(lineId[0]),p);
-			l_tmpLineImage->Add(l4);
-			l4->AssertNotEqualTo(*l1);
-			l4->AssertNotEqualTo(*l2);
-			delete l1;
-			delete l2;
-			delete l3;
+		CPolyLine * baseline1 = 0;
+		CPolyLine * baseline2 = 0;
+		CPolyLine * vert_line = 0;
 
+		if(C_01 < SAME_LINE_MAX && C_02 > CROSS_LINE_MIN && C_12 > CROSS_LINE_MIN) {
+			//0 and 1 are same line...
+			baseline1 = l_tmpLineImage->GetLine(lineId[0]);
+			baseline2 = l_tmpLineImage->GetLine(lineId[1]);
+			vert_line = l_tmpLineImage->GetLine(lineId[2]);
+		} else if(C_02 < SAME_LINE_MAX && C_01 > CROSS_LINE_MIN && C_12 > CROSS_LINE_MIN) {
+			//0 and 2 are same line...
+			baseline1 = l_tmpLineImage->GetLine(lineId[0]);
+			baseline2 = l_tmpLineImage->GetLine(lineId[2]);
+			vert_line = l_tmpLineImage->GetLine(lineId[1]);
+		} else if(C_12 < SAME_LINE_MAX && C_01 > CROSS_LINE_MIN && C_02 > CROSS_LINE_MIN) {
+			//2 and 1 are same line...
+			baseline1 = l_tmpLineImage->GetLine(lineId[2]);
+			baseline2 = l_tmpLineImage->GetLine(lineId[1]);
+			vert_line = l_tmpLineImage->GetLine(lineId[0]);
 			LOG("fork. don't add lines %i %i\n",lineId[1],lineId[2]);
 		} else {
 			LOG("nofork\n");
+			// no found fork
+			continue;
 		}
+
+		HandleFoundTFork ( baseline1, baseline2, vert_line, *iter );
 	}
 
 	for(unsigned int i=0; i<l_tmpLineImage->Size(); i++) {

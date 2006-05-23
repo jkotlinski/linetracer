@@ -46,6 +46,10 @@ const CFPoint operator*(const CFPoint& point, const double val)
 {
 	return CFPoint(point.GetX()*val,point.GetY()*val);
 }
+const CFPoint operator/(const CFPoint& point, const double val)
+{
+	return CFPoint(point.GetX()/val,point.GetY()/val);
+}
 double operator*(const CFPoint& point1, const CFPoint& point2)
 {
 	return point1.GetX() * point2.GetX() + point1.GetY() * point2.GetY();

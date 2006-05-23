@@ -221,6 +221,9 @@
 				RelativePath=".\PolyLine.cpp">
 			</File>
 			<File
+				RelativePath=".\PolyLineIterator.cpp">
+			</File>
+			<File
 				RelativePath=".\ProjectSettings.cpp">
 			</File>
 			<File
@@ -347,6 +350,9 @@
 			</File>
 			<File
 				RelativePath=".\PolyLine.h">
+			</File>
+			<File
+				RelativePath=".\PolyLineIterator.h">
 			</File>
 			<File
 				RelativePath=".\pool\pool.hpp">

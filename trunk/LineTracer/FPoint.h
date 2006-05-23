@@ -23,6 +23,7 @@ public:
 
 bool operator<(const CFPoint& p1,const CFPoint& p2);
 const CFPoint operator*(const CFPoint& point, const double val);
+const CFPoint operator/(const CFPoint& point, const double val);
 double operator*(const CFPoint& point1, const CFPoint& point2);
 const CFPoint operator-(const CFPoint& original, const CFPoint& subtractor);
 const CFPoint operator+(const CFPoint& point1, const CFPoint& point2);
