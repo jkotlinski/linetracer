@@ -78,7 +78,7 @@ int CThinner::DeletePixels(deque<CPoint> & a_pixelPoints, CRawImage<bool> & a_ca
 	return l_deletedPixelCount;
 }
 
-/*stantiford method*/
+/*stentiford method*/
 bool CThinner::IsPointThinnable(const CRawImage<bool>* img, const CPoint & p) 
 const
 {
