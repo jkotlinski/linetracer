@@ -151,3 +151,8 @@ CFPoint CSketchPoint::GetCFPoint(void) const
 {
 	return m_point;
 }
+
+void CSketchPoint::SetCoords(CFPoint p)
+{
+	m_point = p;
+}

@@ -23,7 +23,7 @@ public:
 private:
 	vector<CFPoint>* Find3Forks(const CLineImage *li) const;
 	vector<CFPoint>* ThreeForks;
-	vector<CFPoint>* TForks;
+	//vector<CFPoint>* TForks;
 	vector<CFPoint>* YForks;
 	CLineImage* HandleTForks(const CLineImage* li);
 	void SetEndPoint(CPolyLine* pl, const CFPoint &p) const;

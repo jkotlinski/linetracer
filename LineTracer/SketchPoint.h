@@ -40,6 +40,7 @@ public:
 	const double GetX(void) const;
 	const double GetY(void) const;
 	const CFPoint GetCoords(void) const;
+	void SetCoords(CFPoint p);
 	const double Distance(const CFPoint &a_p) const;
 	void SetX(double a_val);
 	void SetY(double a_val);
