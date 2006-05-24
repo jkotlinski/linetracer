@@ -2,18 +2,24 @@
 #include ".\polylineiterator.h"
 #include <assert.h>
 
-PolyLineIterator::PolyLineIterator(CPolyLine * a_line, CFPoint a_start_point)
+PolyLineIterator::PolyLineIterator(CPolyLine * a_line, CFPoint a_start_point, bool & a_status)
 : m_line(a_line)
 , m_index(0)
 , m_is_forward_iterator(false)
 {
+	a_status=true;
 	assert ( a_line );
-	if ( a_line->GetHeadPoint()->GetCoords() == a_start_point )
+	CSketchPoint * l_headpoint = a_line->GetHeadPoint();
+	CSketchPoint * l_tailpoint = a_line->GetTailPoint();
+	if ( l_headpoint->GetCoords( ) == a_start_point )
 	{
 		m_is_forward_iterator = true;
-	} else {
+	} else if ( l_tailpoint->GetCoords() == a_start_point ) {
 		m_index = a_line->Size() - 1;
+	} else {
+		a_status = false;
 	}
+	m_is_valid = a_status;
 }
 
 PolyLineIterator::~PolyLineIterator(void)
@@ -22,6 +28,7 @@ PolyLineIterator::~PolyLineIterator(void)
 }
 
 CSketchPoint * PolyLineIterator::Next ( bool & l_status ) {
+	assert ( m_is_valid );
 	l_status = true;
 	if ( m_index < 0 ) {
 		m_index = 0;
@@ -39,4 +46,12 @@ CSketchPoint * PolyLineIterator::Next ( bool & l_status ) {
 CSketchPoint * PolyLineIterator::Next ( ) {
 	bool l_status = false;
 	return Next ( l_status );
+}
+
+PolyLineIterator * PolyLineIterator::CreateIteratorFromOtherEnd()
+{
+	bool l_status;
+	assert ( m_is_valid );
+	int l_index = m_is_forward_iterator ? m_line->Size() - 1 : 0;
+	return new PolyLineIterator(m_line, m_line->At(l_index)->GetCoords(), l_status);
 }

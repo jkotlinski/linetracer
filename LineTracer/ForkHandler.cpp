@@ -125,15 +125,16 @@ void HandleFoundTFork (
 					   CPolyLine * a_vert_line,
 					   CFPoint a_merge_point
 					   ) {
-	PolyLineIterator pli1 (a_baseline1, a_merge_point);
+	bool l_status = false;
+	PolyLineIterator pli1 (a_baseline1, a_merge_point, l_status);
 	CSketchPoint *basepoint_1 = pli1.Next();
 	CSketchPoint *basepoint_neighbor_1 = pli1.Next();
 	
-	PolyLineIterator pli2 (a_baseline2, a_merge_point);
+	PolyLineIterator pli2 (a_baseline2, a_merge_point, l_status);
 	CSketchPoint *basepoint_2 = pli2.Next();
 	CSketchPoint *basepoint_neighbor_2 = pli2.Next();
 	
-	PolyLineIterator pli3 ( a_vert_line, a_merge_point );
+	PolyLineIterator pli3 ( a_vert_line, a_merge_point, l_status );
 	CSketchPoint *vert_point = pli3.Next();
 	CSketchPoint *vert_point_2 = pli3.Next();
 
@@ -172,14 +173,17 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 			if(dontAddLine[i]) continue;
 			CPolyLine *line = l_tmpLineImage->GetLine(i);
 
-			PolyLineIterator pli (line, *iter);
-			CFPoint p1 = pli.Next()->GetCoords();
-			CFPoint p2 = pli.Next()->GetCoords();
-			bool l_status = false;
-			CFPoint p3 = pli.Next(l_status)->GetCoords();
-			CFPoint diff = l_status ? (p3-p2) : (p2-p1);
-			vectors.push_back(diff.Unit());
-			lineId.push_back(i);
+			bool l_status=false;
+			PolyLineIterator pli (line, *iter, l_status);
+			if ( l_status ) {
+				CFPoint p1 = pli.Next()->GetCoords();
+				CFPoint p2 = pli.Next()->GetCoords();
+				bool l_status = false;
+				CFPoint p3 = pli.Next(l_status)->GetCoords();
+				CFPoint diff = l_status ? (p3-p2) : (p2-p1);
+				vectors.push_back(diff.Unit());
+				lineId.push_back(i);
+			}
 		}
 
 		if(vectors.size()!=3) continue;
@@ -318,21 +322,21 @@ CLineImage* CForkHandler::HandleYForks(const CLineImage* li)
 			dontAddLine[lineId[0]]=true;
 			dontAddLine[lineId[1]]=true;
 			dontAddLine[lineId[2]]=true;
-			HandleYFork(tmpLi,line0,line1,line2,*iter);
+			HandleFoundYFork(tmpLi,line0,line1,line2,*iter);
 		} else if(C_01 < sameLineMax1 && C_12 < sameLineMax1) {
 			//attach baseline 1 to line 0,2
 			YForks->push_back(*iter);
 			dontAddLine[lineId[0]]=true;
 			dontAddLine[lineId[1]]=true;
 			dontAddLine[lineId[2]]=true;
-			HandleYFork(tmpLi,line1,line0,line2,*iter);
+			HandleFoundYFork(tmpLi,line1,line0,line2,*iter);
 		} else if(C_02 < sameLineMax2 && C_12 < sameLineMax2) {
 			//attach baseline 2 to line 0,1
 			YForks->push_back(*iter);
 			dontAddLine[lineId[0]]=true;
 			dontAddLine[lineId[1]]=true;
 			dontAddLine[lineId[2]]=true;
-			HandleYFork(tmpLi,line2,line1,line0,*iter);
+			HandleFoundYFork(tmpLi,line2,line1,line0,*iter);
 		} else {
 			LOG("nofork\n");
 		}
@@ -354,55 +358,28 @@ void CForkHandler::MarkYFork(CPolyLine* line, const CFPoint &p, int median) cons
 {
 	CLogger::Instance()->Inactivate();
 
-	vector<CSketchPoint*>::iterator iter;
-	vector<CSketchPoint*>::iterator iterEnd;
+	bool l_create_iterator_status = false;
+	PolyLineIterator l_pli ( line, p, l_create_iterator_status );
+	assert ( l_create_iterator_status );
 
-	if(line->GetHeadPoint()->Distance(p)<0.8) {
-		//from head
+	bool l_iterate_status = false;
+	CSketchPoint * l_current_point = l_pli.Next(l_iterate_status);
+	l_current_point->SetIsYFork(true);
+	while ( l_iterate_status ) {
+		CFPoint l_p = l_current_point->GetCoords();
+		int dist = CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
 
-		iter=line->Begin();
-		(*iter)->SetIsYFork( true );
-		++iter;
-		iterEnd = line->End();
-		--iterEnd;
-
-		for(; iter!=iterEnd; ++iter) {
-			CFPoint l_p = (*iter)->GetCoords();
-			int dist=CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
-			LOG("dist: %i\n",dist);
-			if(dist>median) {
-				(*iter)->SetIsYFork(true);
-			} else {
-				break;
-			}
+		if ( dist > median ) {
+			l_current_point->SetIsYFork(true);
+		} else {
+			break;
 		}
-		
-	} else {
-		//from tail
 
-		iterEnd = line->Begin();
-		++iterEnd;
-
-		iter = line->End();
-		--iter;
-		(*iter)->SetIsYFork( true );
-		--iter;
-		for(;;) {
-			CFPoint l_p = (*iter)->GetCoords();
-			int dist=CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
-			LOG("dist: %i\n",dist);
-			if(dist>median) {
-				(*iter)->SetIsYFork( true );
-			} else {
-				break;
-			}
-			if(iter==iterEnd) break;
-			--iter;
-		}
+		l_current_point = l_pli.Next(l_iterate_status);
 	}
 }
 
-void CForkHandler::HandleYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* line1, CPolyLine* line2, const CFPoint &p)
+void CForkHandler::HandleFoundYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* line1, CPolyLine* line2, const CFPoint &p)
 {
 	CLogger::Inactivate();
 
