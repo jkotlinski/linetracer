@@ -241,27 +241,6 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 	return newImage;
 }
 
-//when handling t forks: set connecting line endpoint to average of 
-//the other spliced lines.
-//this is not done very clean...
-//a better idea is to extend the line until it collides with the
-//other (new connected) line
-void CForkHandler::SetEndPoint(CPolyLine* pl, const CFPoint &p) const
-{
-	CFPoint headPoint = pl->GetHeadPoint()->GetCoords();
-	CFPoint tailPoint = pl->GetTailPoint()->GetCoords();
-
-	if(p.Distance(headPoint) < p.Distance(tailPoint)) {
-		//modify headpoint
-		pl->GetHeadPoint()->SetX( p.GetX() );
-		pl->GetHeadPoint()->SetY( p.GetY() );
-	} else {
-		//modify tailpoint
-		pl->GetTailPoint()->SetX ( p.GetX() );
-		pl->GetTailPoint()->SetY ( p.GetY() );
-	}
-}
-
 CLineImage* CForkHandler::HandleYForks(const CLineImage* li)
 {
 	CLogger::Instance()->Inactivate();
