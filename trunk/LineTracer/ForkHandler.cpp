@@ -128,11 +128,11 @@ void HandleFoundTFork (
 	PolyLineIterator pli1 (a_baseline1, a_merge_point);
 	CSketchPoint *basepoint_1 = pli1.Next();
 	CSketchPoint *basepoint_neighbor_1 = pli1.Next();
-
+	
 	PolyLineIterator pli2 (a_baseline2, a_merge_point);
 	CSketchPoint *basepoint_2 = pli2.Next();
 	CSketchPoint *basepoint_neighbor_2 = pli2.Next();
-
+	
 	PolyLineIterator pli3 ( a_vert_line, a_merge_point );
 	CSketchPoint *vert_point = pli3.Next();
 	CSketchPoint *vert_point_2 = pli3.Next();
@@ -172,28 +172,14 @@ CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
 			if(dontAddLine[i]) continue;
 			CPolyLine *line = l_tmpLineImage->GetLine(i);
 
-			if( line->GetHeadPoint()->GetCoords() == *iter) 
-			{
-				//fork point == line headpoint
-				unsigned int j = line->Size()-1;
-				j = min(2, j);
-
-				// check for wrapping error
-				ASSERT ( j < 1000000 );
-
-				CFPoint p = line->At(j)->GetCoords() - line->At(j-1)->GetCoords();
-				vectors.push_back(p.Unit());
-				lineId.push_back(i);
-			} 
-			else if(line->GetTailPoint()->GetCoords() == *iter) {
-				//fork point == line tailpoint
-				int j = line->Size()-3;
-				j = max ( 0, j );
-
-				CFPoint p = line->At(j)->GetCoords() - line->At(j+1)->GetCoords();
-				vectors.push_back(p.Unit());
-				lineId.push_back(i);
-			}
+			PolyLineIterator pli (line, *iter);
+			CFPoint p1 = pli.Next()->GetCoords();
+			CFPoint p2 = pli.Next()->GetCoords();
+			bool l_status = false;
+			CFPoint p3 = pli.Next(l_status)->GetCoords();
+			CFPoint diff = l_status ? (p3-p2) : (p2-p1);
+			vectors.push_back(diff.Unit());
+			lineId.push_back(i);
 		}
 
 		if(vectors.size()!=3) continue;

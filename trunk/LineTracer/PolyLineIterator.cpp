@@ -21,10 +21,22 @@ PolyLineIterator::~PolyLineIterator(void)
 	m_line = 0;
 }
 
-CSketchPoint * PolyLineIterator::Next() {
-	assert ( m_index >= 0 );
-	assert ( static_cast<unsigned int>(m_index) < m_line->Size() );
-	CSketchPoint * p = m_line->At(m_index);
+CSketchPoint * PolyLineIterator::Next ( bool & l_status ) {
+	l_status = true;
+	if ( m_index < 0 ) {
+		m_index = 0;
+		l_status = false;
+	} 
+	else if ( static_cast<unsigned int>(m_index) >= m_line->Size() ) {
+		m_index = m_line->Size() - 1;
+		l_status = false;
+	}
+	CSketchPoint * a_p = m_line->At(m_index);
 	m_index += m_is_forward_iterator ? 1 : -1;
-	return p;
+	return a_p;
+}
+
+CSketchPoint * PolyLineIterator::Next ( ) {
+	bool l_status = false;
+	return Next ( l_status );
 }
