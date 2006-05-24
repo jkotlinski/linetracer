@@ -97,6 +97,28 @@ vector<CFPoint>* CForkHandler::Find3Forks(const CLineImage *li) const
 	return forks;
 }
 
+CFPoint FindIntersectionOfLines ( 
+						  CFPoint p1, //point 1 in line 1
+						  CFPoint p2, //point 2 in line 1
+						  CFPoint p3, //point 1 in line 2
+						  CFPoint p4  //point 2 in line 2
+						  ) {
+	double a1 = p2.GetY() - p1.GetY();
+	double b1 = p1.GetX() - p2.GetX();
+	double c1 = p2.GetX() * p1.GetY() - p1.GetX() * p2.GetY(); //a1*x + b1*y + c1 = 0 is line 1
+
+	double a2 = p4.GetY() - p3.GetY();
+	double b2 = p3.GetX() - p4.GetX();
+	double c2 = p4.GetX() * p3.GetY() - p3.GetX() * p4.GetY(); //a2*x + b2*y + c2 = 0 is line 2
+
+	double denom = a1*b2 - a2*b1;
+	if ( 0.0 == denom ) {
+		//parallel lines 
+		assert ( 0 );
+	}
+	return CFPoint( (b1*c2 - b2*c1)/denom, (a2*c1 - a1*c2)/denom );
+}
+
 void HandleFoundTFork ( 
 					   CPolyLine * a_baseline1,
 					   CPolyLine * a_baseline2, 
@@ -113,12 +135,17 @@ void HandleFoundTFork (
 
 	PolyLineIterator pli3 ( a_vert_line, a_merge_point );
 	CSketchPoint *vert_point = pli3.Next();
+	CSketchPoint *vert_point_2 = pli3.Next();
 
-	CFPoint l_base_point = (basepoint_neighbor_1->GetCoords() + 
-							basepoint_neighbor_2->GetCoords()) / 2.0 ;
-	basepoint_1->SetCoords(l_base_point);
-	basepoint_2->SetCoords(l_base_point);
-	vert_point->SetCoords(l_base_point);
+	CFPoint l_intersection = FindIntersectionOfLines (
+		basepoint_neighbor_1->GetCoords(), 
+		basepoint_neighbor_2->GetCoords(), 
+		vert_point->GetCoords(), 
+		vert_point_2->GetCoords() );
+
+	basepoint_1->SetCoords(l_intersection);
+	basepoint_2->SetCoords(l_intersection);
+	vert_point->SetCoords(l_intersection);
 }
 
 CLineImage* CForkHandler::HandleTForks(const CLineImage* li)
