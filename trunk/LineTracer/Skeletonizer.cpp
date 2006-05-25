@@ -260,44 +260,14 @@ void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* kno
 	map<int,int> labelMap;	
 	map<int,int> labelCounter;	
 
-	//paint knots red
-	for(int x=1; x<image->GetWidth()-1; x++) {
-		for(int y=1; y<image->GetHeight()-1; y++) {
-	
+	for(int y=1; y<image->GetHeight()-1; y++) {	
+		for(int x=1; x<image->GetWidth()-1; x++) {
 			if(image->GetPixel(x,y)) {
 				int l_knot_id = IsKnot(image,x,y);
-				if(l_knot_id) {
+				if ( l_knot_id ) {
 					//mark knot
 					knotImage->SetPixel(x,y, k_knot_mask | l_knot_id);
-
-					//remove knot from image map
-					//image->SetPixel(x,y,0);
-
-					//mark knot neighbors
-					if(!(knotImage->GetPixel(x-1,y) & k_knot_mask)) {
-						knotImage->SetPixel(x-1,y, k_knot_neighbor_mask|l_knot_id);
-					}
-					if(!(knotImage->GetPixel(x+1,y)&k_knot_mask)) {
-						knotImage->SetPixel(x+1,y, k_knot_neighbor_mask|l_knot_id);
-					}
-					if(!(knotImage->GetPixel(x,y+1)&k_knot_mask)) {
-						knotImage->SetPixel(x,y+1, k_knot_neighbor_mask|l_knot_id);
-					}
-					if(!(knotImage->GetPixel(x,y-1)&k_knot_mask)) {
-						knotImage->SetPixel(x,y-1, k_knot_neighbor_mask|l_knot_id);
-					}
-					if(!(knotImage->GetPixel(x-1,y-1)&k_knot_mask)) {
-						knotImage->SetPixel(x-1,y-1, k_knot_neighbor_mask|l_knot_id);
-					}
-					if(!(knotImage->GetPixel(x-1,y+1)&k_knot_mask)) {
-						knotImage->SetPixel(x-1,y+1,  k_knot_neighbor_mask|l_knot_id);
-					}
-					if(!(knotImage->GetPixel(x+1,y-1)&k_knot_mask)) {
-						knotImage->SetPixel(x+1,y-1,  k_knot_neighbor_mask|l_knot_id);
-					}
-					if(!(knotImage->GetPixel(x+1,y+1)&k_knot_mask)) {
-						knotImage->SetPixel(x+1,y+1,  k_knot_neighbor_mask|l_knot_id);
-					}
+					MarkKnotNeighborsWithKnotId(knotImage, x, y, l_knot_id);				
 				}
 			}
 		}
@@ -310,6 +280,34 @@ void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* kno
 				image->SetPixel(x,y,false);
 			}
 		}
+	}
+}
+
+void CSkeletonizer::MarkKnotNeighborsWithKnotId(CRawImage< Gdiplus::ARGB >* knotImage, int x, int y, int l_knot_id)
+{
+	if(!(knotImage->GetPixel(x-1,y) & k_knot_mask)) {
+		knotImage->SetPixel(x-1,y, k_knot_neighbor_mask|l_knot_id);
+	}
+	if(!(knotImage->GetPixel(x+1,y)&k_knot_mask)) {
+		knotImage->SetPixel(x+1,y, k_knot_neighbor_mask|l_knot_id);
+	}
+	if(!(knotImage->GetPixel(x,y+1)&k_knot_mask)) {
+		knotImage->SetPixel(x,y+1, k_knot_neighbor_mask|l_knot_id);
+	}
+	if(!(knotImage->GetPixel(x,y-1)&k_knot_mask)) {
+		knotImage->SetPixel(x,y-1, k_knot_neighbor_mask|l_knot_id);
+	}
+	if(!(knotImage->GetPixel(x-1,y-1)&k_knot_mask)) {
+		knotImage->SetPixel(x-1,y-1, k_knot_neighbor_mask|l_knot_id);
+	}
+	if(!(knotImage->GetPixel(x-1,y+1)&k_knot_mask)) {
+		knotImage->SetPixel(x-1,y+1,  k_knot_neighbor_mask|l_knot_id);
+	}
+	if(!(knotImage->GetPixel(x+1,y-1)&k_knot_mask)) {
+		knotImage->SetPixel(x+1,y-1,  k_knot_neighbor_mask|l_knot_id);
+	}
+	if(!(knotImage->GetPixel(x+1,y+1)&k_knot_mask)) {
+		knotImage->SetPixel(x+1,y+1,  k_knot_neighbor_mask|l_knot_id);
 	}
 }
 

@@ -43,7 +43,9 @@ private:
 	void TrackBoundary(int x, int y, char* f, double* U, double &val, int width);
 	//CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
 	//CLineImage* SmoothPositions(CLineImage* lineImage);
+
 private:
 	void TraceSimpleLines( CRawImage<bool> &segmentMap, CLineImage &li );
 	void TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li );
+	void MarkKnotNeighborsWithKnotId(CRawImage< Gdiplus::ARGB >* knotImage, int x, int y, int l_knot_id);
 };
