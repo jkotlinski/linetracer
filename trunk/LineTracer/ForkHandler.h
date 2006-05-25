@@ -26,6 +26,6 @@ private:
 	vector<CFPoint>* YForks;
 	CLineImage* HandleTForks(const CLineImage* li);
 	CLineImage* HandleYForks(const CLineImage* li);
-	void MarkYFork(CPolyLine* line, const CFPoint &p, int median) const;
+	void MarkPointsWithLineWidthGreaterThanMedian(CPolyLine* line, const CFPoint &p) const;
 	void HandleFoundYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* line1, CPolyLine* line2, const CFPoint &p);
 };
