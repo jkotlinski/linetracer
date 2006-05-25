@@ -391,22 +391,22 @@ CSketchPoint * AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian (
 	assert ( l_status );
 	PolyLineIterator * l_reverse_pli = l_forward_pli.CreateIteratorFromOtherEnd();
 
-	//always add at least one point
 	CSketchPoint * l_last_added_point = 0;
 
-	//now for the rest...
 	int l_loop_safety_counter = 0;
 	for (;;) {
 		assert ( l_loop_safety_counter++ < 100000 );
 		bool l_could_iterate = false;
 		CSketchPoint * l_point = l_reverse_pli->Next( l_could_iterate );
-		bool l_already_iterated_through_all_points = !l_could_iterate;
+		bool l_already_added_all_points = !l_could_iterate;
 
 		bool l_point_is_wider_than_median = l_point->IsLineWidthGreaterThanMedianOfLine();
 		bool l_less_than_six_left_to_iterate = l_reverse_pli->PointsLeftToIterate() < 6;
-		if ( l_already_iterated_through_all_points || 
+
+		if ( l_already_added_all_points || 
 			( l_point_is_wider_than_median && l_less_than_six_left_to_iterate ) ) 
 		{
+			// stop iterating
 			delete l_reverse_pli;
 			assert ( l_last_added_point );
 			return l_last_added_point;
@@ -436,42 +436,31 @@ void CForkHandler::HandleFoundYFork(CLineImage* img, CPolyLine* baseLine, CPolyL
 	CSketchPoint *newEndPoint = AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian (
 		newBase, baseLine, p );
 
-	//add line 1
 	AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian(newLine1,line1,p);
 	AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian(newLine2,line2,p);
 
-	if(!mergeBaseLine) {
+	if ( mergeBaseLine ) {
+		//merge lines
+		CPolyLine * l_tmpLine = newLine1->MergeLine(newBase->Clone());
+		l_tmpLine->SmoothPositions();
+		img->Add(l_tmpLine);
+
+		l_tmpLine = newLine2->MergeLine(newBase);
+		l_tmpLine->SmoothPositions();
+		img->Add(l_tmpLine);
+
+		delete newLine1;
+		delete newLine2;
+		delete newBase;
+	} else {
 		//just connect to base line, but don't merge lines
 		assert (newEndPoint);
 		newLine1->Add(newEndPoint->Clone());
 		newLine2->Add(newEndPoint->Clone());
-	} else {
-		//merge lines
-		for(unsigned int i=0; i<baseLine->Size(); i++) {
-			newLine1->Add(baseLine->At(i)->Clone());
-			newLine2->Add(baseLine->At(i)->Clone());
-		}
-	}
-
-	if ( !mergeBaseLine ) {
 		if ( newBase->Size()>1 ) {
 			img->Add(newBase);
 		}
-	} 
-	else 
-	{
-		delete newBase;
-		LOG("do smooothpositions\n");
-		CPolyLine *tmp = newLine1->SmoothPositions();
-		delete newLine1;
-		newLine1 = tmp;
-		tmp = newLine2->SmoothPositions();
-		delete newLine2;
-		newLine2 = tmp;
+		img->Add(newLine1);
+		img->Add(newLine2);
 	}
-	ASSERT ( newLine1->Size() > 1 );
-	ASSERT ( newLine2->Size() > 1 );
-
-	img->Add(newLine1);
-	img->Add(newLine2);
 }
