@@ -44,8 +44,8 @@ public:
 	const double Distance(const CFPoint &a_p) const;
 	void SetX(double a_val);
 	void SetY(double a_val);
-	void SetIsYFork(bool a_isTrue);
-	const bool IsYFork(void) const;
+	void SetLineWidthGreaterThanMedianOfLine(bool a_isTrue);
+	const bool IsLineWidthGreaterThanMedianOfLine(void) const;
 	PointF GetPointF(void);
 	float Distance(const CSketchPoint & a_point) const;
 private:

@@ -354,7 +354,7 @@ CLineImage* CForkHandler::HandleYForks(const CLineImage* li)
 	return newImage;
 }
 
-void CForkHandler::MarkYFork(CPolyLine* line, const CFPoint &p, int median) const
+void CForkHandler::MarkPointsWithLineWidthGreaterThanMedian(CPolyLine* line, const CFPoint &p) const
 {
 	CLogger::Instance()->Inactivate();
 
@@ -364,13 +364,13 @@ void CForkHandler::MarkYFork(CPolyLine* line, const CFPoint &p, int median) cons
 
 	bool l_iterate_status = false;
 	CSketchPoint * l_current_point = l_pli.Next(l_iterate_status);
-	l_current_point->SetIsYFork(true);
+	l_current_point->SetLineWidthGreaterThanMedianOfLine(true);
 	while ( l_iterate_status ) {
 		CFPoint l_p = l_current_point->GetCoords();
 		int dist = CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
 
-		if ( dist > median ) {
-			l_current_point->SetIsYFork(true);
+		if ( dist > line->GetMedianThickness() ) {
+			l_current_point->SetLineWidthGreaterThanMedianOfLine(true);
 		} else {
 			break;
 		}
@@ -379,17 +379,51 @@ void CForkHandler::MarkYFork(CPolyLine* line, const CFPoint &p, int median) cons
 	}
 }
 
+CSketchPoint * AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian ( 
+	CPolyLine * l_dst_line,
+	CPolyLine * l_src_line,
+	const CFPoint & p
+	)
+{
+	// iterate tail line, from tail towards intersection
+	bool l_status = false;
+	PolyLineIterator l_forward_pli ( l_src_line, p, l_status );
+	assert ( l_status );
+	PolyLineIterator * l_reverse_pli = l_forward_pli.CreateIteratorFromOtherEnd();
+
+	//always add at least one point
+	CSketchPoint * l_last_added_point = 0;
+
+	//now for the rest...
+	int l_loop_safety_counter = 0;
+	for (;;) {
+		assert ( l_loop_safety_counter++ < 100000 );
+		bool l_could_iterate = false;
+		CSketchPoint * l_point = l_reverse_pli->Next( l_could_iterate );
+		bool l_already_iterated_through_all_points = !l_could_iterate;
+
+		bool l_point_is_wider_than_median = l_point->IsLineWidthGreaterThanMedianOfLine();
+		bool l_less_than_six_left_to_iterate = l_reverse_pli->PointsLeftToIterate() < 6;
+		if ( l_already_iterated_through_all_points || 
+			( l_point_is_wider_than_median && l_less_than_six_left_to_iterate ) ) 
+		{
+			delete l_reverse_pli;
+			assert ( l_last_added_point );
+			return l_last_added_point;
+		}
+		l_last_added_point = l_point->Clone();
+		l_dst_line->Add(l_last_added_point);
+	}
+}
+
+
 void CForkHandler::HandleFoundYFork(CLineImage* img, CPolyLine* baseLine, CPolyLine* line1, CPolyLine* line2, const CFPoint &p)
 {
 	CLogger::Inactivate();
 
-	int median1 = line1->GetMedianThickness();
-	int median2 = line2->GetMedianThickness();
-	int median = baseLine->GetMedianThickness(); //min(median1,median2);
-
-	MarkYFork(baseLine,p,median);
-	MarkYFork(line1,p,median1);
-	MarkYFork(line2,p,median2);
+	MarkPointsWithLineWidthGreaterThanMedian(baseLine,p);
+	MarkPointsWithLineWidthGreaterThanMedian(line1,p);
+	MarkPointsWithLineWidthGreaterThanMedian(line2,p);
 
 	CPolyLine *newBase = new CPolyLine();
 	CPolyLine *newLine1= new CPolyLine();
@@ -398,91 +432,31 @@ void CForkHandler::HandleFoundYFork(CLineImage* img, CPolyLine* baseLine, CPolyL
 	//add new base line
 	bool mergeBaseLine = baseLine->IsTail();
 	LOG("mergeBaseLine: %x\n", mergeBaseLine?1:0 );
-		//baseLine->GetHeadPoint()->Distance(*baseLine->GetTailPoint())<20 ? true : false;
-	CSketchPoint *newEndPoint = 0;
 
-	if(baseLine->GetTailPoint()->Distance(p)<0.8) {
-		//add forwards
-		int i=0;
-		while(!baseLine->At(i)->IsYFork() || baseLine->Size()-i>5) {
-			newBase->Add(baseLine->At(i)->Clone());
-			i++;
-		}
-		if(!mergeBaseLine && i!=0) {
-			newEndPoint = baseLine->At(i-1);
-		}
-	} else {
-		//add backwards
-		int i=baseLine->Size()-1;
-		while(!baseLine->At(i)->IsYFork() || i>4) {
-			newBase->Add(baseLine->At(i)->Clone());
-			i--;
-		}
-		if(!mergeBaseLine && i!=baseLine->Size()-1) {
-			newEndPoint = baseLine->At(i+1);
-		}
-	}
-
+	CSketchPoint *newEndPoint = AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian (
+		newBase, baseLine, p );
 
 	//add line 1
-	if(line1->GetTailPoint()->Distance(p)<0.8) {
-		//add forwards
-		int i=0;
-		while(!line1->At(i)->IsYFork() || (line1->Size()-i>5)) {
-			newLine1->Add(line1->At(i)->Clone());
-			i++;
-		}
-	} else {
-		//add backwards
-		int i=line1->Size()-1;
-		while( !line1->At(i)->IsYFork() || ( i > 4 )) {
-			newLine1->Add(line1->At(i)->Clone());
-			i--;
-		}
-	}
+	AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian(newLine1,line1,p);
+	AddLineFromOtherEndToPUntilLineWidthGreaterThanMedian(newLine2,line2,p);
+
 	if(!mergeBaseLine) {
 		//just connect to base line, but don't merge lines
-		if(newEndPoint!=0) newLine1->Add(newEndPoint->Clone());
+		assert (newEndPoint);
+		newLine1->Add(newEndPoint->Clone());
+		newLine2->Add(newEndPoint->Clone());
 	} else {
 		//merge lines
 		for(unsigned int i=0; i<baseLine->Size(); i++) {
 			newLine1->Add(baseLine->At(i)->Clone());
-		}
-	}
-	//TRACE ( "newLine1\n" );
-	//newLine1->Trace();
-
-	//add line 2
-	if(line2->GetTailPoint()->Distance(p)<0.8) {
-		//add forwards
-		int i=0;
-		int l_line_size = (int) line2->Size();
-		ASSERT ( l_line_size >= 0 || !"line size negative" );
-		ASSERT ( (i < l_line_size) || !"i too big" );
-		while(!line2->At(i)->IsYFork() || ((l_line_size-i)>5)) {
-			newLine2->Add(line2->At(i)->Clone());
-			i++;
-		}
-	} else {
-		//add backwards
-		int i=line2->Size()-1;
-		while(!line2->At(i)->IsYFork() || (i>4)) {
-			newLine2->Add(line2->At(i)->Clone());
-			i--;
-		}
-	}
-	if(!mergeBaseLine) {
-		//just connect to base line, but don't merge lines
-		if(newEndPoint!=0) newLine2->Add(newEndPoint->Clone());
-	} else {
-		//merge lines
-		for(unsigned int i=0; i<baseLine->Size(); i++) {
 			newLine2->Add(baseLine->At(i)->Clone());
 		}
-	} 
+	}
 
-	if(!mergeBaseLine && newBase->Size()>1) {
-		img->Add(newBase);
+	if ( !mergeBaseLine ) {
+		if ( newBase->Size()>1 ) {
+			img->Add(newBase);
+		}
 	} 
 	else 
 	{
@@ -498,12 +472,6 @@ void CForkHandler::HandleFoundYFork(CLineImage* img, CPolyLine* baseLine, CPolyL
 	ASSERT ( newLine1->Size() > 1 );
 	ASSERT ( newLine2->Size() > 1 );
 
-	/*
-	TRACE ( "finalLine1:\n" );
-	newLine1->Trace();
-	TRACE ( "finalLine2:\n" );
-	newLine2->Trace();
-*/
 	img->Add(newLine1);
 	img->Add(newLine2);
 }

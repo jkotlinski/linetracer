@@ -128,12 +128,12 @@ void CSketchPoint::SetY(double a_val)
 	m_point.SetY(a_val);
 }
 
-void CSketchPoint::SetIsYFork(bool a_isTrue)
+void CSketchPoint::SetLineWidthGreaterThanMedianOfLine(bool a_isTrue)
 {
 	m_isYFork = a_isTrue;
 }
 
-const bool CSketchPoint::IsYFork(void) const {
+const bool CSketchPoint::IsLineWidthGreaterThanMedianOfLine(void) const {
 	return m_isYFork;
 }
 

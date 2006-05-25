@@ -415,6 +415,8 @@ CPolyLine* CPolyLine::SmoothPositions(void)
 	CPolyLine* nuLine = new CPolyLine();
 	nuLine->SetTail(IsTail());
 
+	assert ( Size() > 0 );
+
 	nuLine->Add(GetHeadPoint()->Clone());
 
 	for(unsigned int point=1; point<Size()-1; point++) {
