@@ -2,7 +2,7 @@
 #include ".\polylineiterator.h"
 #include <assert.h>
 
-PolyLineIterator::PolyLineIterator(CPolyLine * a_line, CFPoint a_start_point, bool & a_status)
+PolyLineIterator::PolyLineIterator(const CPolyLine * const a_line, CFPoint a_start_point, bool & a_status)
 : m_line(a_line)
 , m_index(0)
 , m_is_forward_iterator(false)
@@ -24,7 +24,6 @@ PolyLineIterator::PolyLineIterator(CPolyLine * a_line, CFPoint a_start_point, bo
 
 PolyLineIterator::~PolyLineIterator(void)
 {
-	m_line = 0;
 }
 
 CSketchPoint * PolyLineIterator::Next ( bool & l_status ) {
@@ -54,4 +53,13 @@ PolyLineIterator * PolyLineIterator::CreateIteratorFromOtherEnd()
 	assert ( m_is_valid );
 	int l_index = m_is_forward_iterator ? m_line->Size() - 1 : 0;
 	return new PolyLineIterator(m_line, m_line->At(l_index)->GetCoords(), l_status);
+}
+
+int PolyLineIterator::PointsLeftToIterate () {
+	assert ( m_is_valid );
+	if ( m_is_forward_iterator ) {
+		return m_line->Size() - 1 - m_index;
+	} else {
+		return m_index;
+	}
 }
