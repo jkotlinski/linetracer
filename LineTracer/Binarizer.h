@@ -16,12 +16,7 @@ private:
 	int* m_sketchBoard;
 public:
 	void Init(void);
-public:
-	const CRawImage<int>* GetDistanceMap() const;
 private:
-	CRawImage<int>* m_distanceMap;
-	void CalcDistanceMap(const CRawImage<bool>* img);
-
 	bool m_isInitialized;
 public:
 	void Reset(void);

@@ -6,7 +6,7 @@
 #include <math.h>
 #include <algorithm>
 
-#include "Binarizer.h"
+#include "DistanceMapBuilder.h"
 
 CPolyLine::CPolyLine(void)
 : m_isTail(false)
@@ -393,7 +393,7 @@ int CPolyLine::GetMedianThickness(void)
 	vector<CSketchPoint*>::iterator iter;
 	vector<int> thicknesses;
 	for(iter=m_points.begin(); iter!=m_points.end(); ++iter) {
-		thicknesses.push_back(CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(0.5+(*iter)->GetX()),int(0.5+(*iter)->GetY())));
+		thicknesses.push_back(DistanceMapBuilder::Instance()->GetDistanceMap()->GetPixel(int(0.5+(*iter)->GetX()),int(0.5+(*iter)->GetY())));
 	}
 	sort(thicknesses.begin(),thicknesses.end());
 	return thicknesses.at(thicknesses.size()/2);

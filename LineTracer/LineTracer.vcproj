@@ -158,6 +158,9 @@
 				RelativePath=".\DeSaturator.cpp">
 			</File>
 			<File
+				RelativePath=".\DistanceMapBuilder.cpp">
+			</File>
+			<File
 				RelativePath=".\EpsWriter.cpp">
 			</File>
 			<File
@@ -278,6 +281,9 @@
 			</File>
 			<File
 				RelativePath=".\DeSaturator.h">
+			</File>
+			<File
+				RelativePath=".\DistanceMapBuilder.h">
 			</File>
 			<File
 				RelativePath=".\EpsWriter.h">
