@@ -9,7 +9,6 @@
 CBinarizer::CBinarizer(void)
 : CImageProcessor()
 , m_sketchBoard(NULL)
-, m_distanceMap()
 , m_isInitialized(false)
 {
 	LOG("init binarizer\n");
@@ -21,7 +20,6 @@ CBinarizer::~CBinarizer(void)
 {
 	delete[] m_sketchBoard;
 	m_sketchBoard = NULL;
-	delete m_distanceMap;
 }
 
 CBinarizer *CBinarizer::Instance() {
@@ -118,8 +116,6 @@ CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 		}
 	}
 
-	CalcDistanceMap(dst);
-
 	return dst;
 }
 
@@ -195,8 +191,6 @@ int CBinarizer::CalculateOtsuThreshold(const CRawImage<unsigned char> *img) cons
 		}
 	}
 
-	//LOG("find otsu: %i\n", bestThreshold);
-
 	return bestThreshold;
 }
 
@@ -204,57 +198,6 @@ void CBinarizer::Init(void)
 {
 	delete[] m_sketchBoard;
 	m_sketchBoard = NULL;
-}
-
-void CBinarizer::CalcDistanceMap(const CRawImage<bool>* img)
-{
-	delete m_distanceMap;
-	m_distanceMap = new CRawImage<int>(img->GetWidth(),img->GetHeight());
-	m_distanceMap->Clear();
-	/*for(int i=0; i<img->GetPixelCount(); i++) {
-		if(!img->GetPixel(i)) {
-			m_distanceMap->SetPixel(i,1000000);
-		} else {
-			m_distanceMap->SetPixel(i,0);
-		}
-	}*/
-
-	{
-		for(int x=1; x<img->GetWidth()-1; x++) {
-			for(int y=1; y<img->GetHeight()-1; y++) {
-				if(!img->GetPixel(x,y)) {
-					int l_westVal = m_distanceMap->GetPixel(x-1,y)+3;
-					int l_southVal = m_distanceMap->GetPixel(x,y-1)+3;
-					int l_southWestVal = m_distanceMap->GetPixel(x-1,y-1)+4;
-					int l_newVal = min(l_southVal, l_westVal );
-					l_newVal = min(l_newVal, l_southWestVal);
-					m_distanceMap->SetPixel(x, y, l_newVal);
-				}
-			}
-		}
-	}
-	//pass 2
-	{
-		for(int x=img->GetWidth()-2; x>0; x--) {
-			for(int y=img->GetHeight()-2; y>0; y--) {
-				if(!img->GetPixel(x,y)) {
-					int l_myVal = m_distanceMap->GetPixel(x,y);
-					int l_eastVal = m_distanceMap->GetPixel(x+1,y)+3;
-					int l_northVal = m_distanceMap->GetPixel(x,y+1)+3;
-					int l_northEastVal = m_distanceMap->GetPixel(x+1,y+1)+4;
-
-					int l_newVal = min( l_myVal, l_eastVal );
-					l_newVal = min( l_newVal, l_northVal );
-					l_newVal = min( l_newVal, l_northEastVal );
-					m_distanceMap->SetPixel(x,y,l_newVal);
-				}
-			}
-		}
-	}
-}
-
-const CRawImage<int>* CBinarizer::GetDistanceMap() const {
-	return m_distanceMap;
 }
 
 void CBinarizer::Reset(void)

@@ -4,6 +4,8 @@
 #include "RawImage.h"
 #include "ProjectSettings.h"
 
+#include "DistanceMapBuilder.h"
+
 CHoleFiller::CHoleFiller(void)
 : CImageProcessor()
 {
@@ -55,6 +57,9 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 			}
 		}
 	}
+
+	DistanceMapBuilder::Instance()->CalcDistanceMap(dst);
+
 	return dst;
 }
 

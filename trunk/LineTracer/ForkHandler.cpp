@@ -10,7 +10,7 @@
 #include <map>
 #include <assert.h>
 
-#include "Binarizer.h"
+#include "DistanceMapBuilder.h"
 
 CForkHandler::CForkHandler(void)
 : CImageProcessor()
@@ -367,7 +367,7 @@ void CForkHandler::MarkPointsWithLineWidthGreaterThanMedian(CPolyLine* line, con
 	l_current_point->SetLineWidthGreaterThanMedianOfLine(true);
 	while ( l_iterate_status ) {
 		CFPoint l_p = l_current_point->GetCoords();
-		int dist = CBinarizer::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
+		int dist = DistanceMapBuilder::Instance()->GetDistanceMap()->GetPixel(int(l_p.GetX()+0.5),int(l_p.GetY()+0.5));
 
 		if ( dist > line->GetMedianThickness() ) {
 			l_current_point->SetLineWidthGreaterThanMedianOfLine(true);
