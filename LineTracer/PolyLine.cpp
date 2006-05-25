@@ -153,7 +153,7 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		l_shortestIntersectionType = INTERSECTION_TAIL_TO_TAIL;
 	}
 
-	ASSERT ( l_shortestIntersectionDistance < 5 );
+	//ASSERT ( l_shortestIntersectionDistance < 5 );
 
 	switch( l_shortestIntersectionType )
 	{
