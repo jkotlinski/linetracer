@@ -272,7 +272,10 @@ CLineImage* CForkHandler::HandleYForks(const CLineImage* li)
 			if(dontAddLine[i]) continue;
 			CPolyLine *line = tmpLi->GetLine(i);
 
-			ASSERT(line->Size() > 1);
+			if ( line->Size() < 2 ) {
+				dontAddLine[i] = true;
+				continue;
+			}
 			if(line->GetHeadPoint()->GetCoords() == *iter) {
 				//fork point == line headpoint
 				int j = line->Size() - 1;
