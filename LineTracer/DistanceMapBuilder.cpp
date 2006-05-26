@@ -31,6 +31,7 @@ void DistanceMapBuilder::CalcDistanceMap(const CRawImage<bool>* img)
 					int l_val = m_distanceMap->GetPixel(x-1,y)+3;
 					l_val = min(l_val, m_distanceMap->GetPixel(x,y-1)+3);
 					l_val = min(l_val, m_distanceMap->GetPixel(x-1,y-1)+4);
+					l_val = min(l_val, m_distanceMap->GetPixel(x+1,y-1)+4);
 					m_distanceMap->SetPixel(x, y, l_val);
 				}
 			}
@@ -45,6 +46,7 @@ void DistanceMapBuilder::CalcDistanceMap(const CRawImage<bool>* img)
 					l_val = min(l_val,m_distanceMap->GetPixel(x+1,y)+3);
 					l_val = min(l_val,m_distanceMap->GetPixel(x,y+1)+3);
 					l_val = min(l_val,m_distanceMap->GetPixel(x+1,y+1)+4);
+					l_val = min(l_val, m_distanceMap->GetPixel(x-1,y+1)+4);
 
 					m_distanceMap->SetPixel(x,y,l_val);
 				}
