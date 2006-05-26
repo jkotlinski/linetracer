@@ -12,8 +12,12 @@
 
 using namespace std;
 
-const unsigned int k_knot_mask = 0x80000000;
-const unsigned int k_knot_neighbor_mask = 0x40000000;
+enum {
+	k_none,
+	k_knot,
+	k_knot_neighbor,
+	k_invalid
+};
 
 //#define DEFINE_BLOCK_ALLOCATED_MAP
 //#define DEFINE_BLOCK_ALLOCATED_MULTIMAP
@@ -39,7 +43,7 @@ CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
 	ASSERT ( src != NULL );
 	
-	CRawImage<ARGB>* knotImage=new CRawImage<ARGB>(src->GetWidth(),src->GetHeight());
+	CRawImage<char>* knotImage=new CRawImage<char>(src->GetWidth(),src->GetHeight());
 	knotImage->Clear();
 
 	/* get a map with all line pixels marked with a line of the respective id.
@@ -141,12 +145,10 @@ förgrening.
 detta görs genom att räkna hur många separata riktningar det "sticker ut" linjer från 
 denna pixel.
 om det går ut linjer i fler än två separata riktningar, är detta en knutpunkt,
-och ett unikt id för denna knutpunkt returneras. annars returneras 0.
+varvid funktionen returnerar sant. annars falskt.
 */
-int CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
+bool CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
 {
-	static int currentKnot = 1;
-
 	int l_direction_matrix[8];
 	int l_neighbors = 0;
 
@@ -185,11 +187,11 @@ int CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
 		if ( l_direction_id_slot[i] ) l_neighbors++;
 	}
 
-	return ( l_neighbors > 2 ) ? currentKnot++ : 0;
+	return l_neighbors > 2;
 }
 
 /*one-pass segmentation algorithm*/
-void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* knotImage)
+void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image, CRawImage<char>* knotImage)
 {
 	map<int,int> labelMap;	
 	map<int,int> labelCounter;	
@@ -197,11 +199,10 @@ void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* kno
 	for(int y=1; y<image->GetHeight()-1; y++) {	
 		for(int x=1; x<image->GetWidth()-1; x++) {
 			if(image->GetPixel(x,y)) {
-				int l_knot_id = IsKnot(image,x,y);
-				if ( l_knot_id ) {
+				if ( IsKnot(image,x,y) ) {
 					//mark knot
-					knotImage->SetPixel(x,y, k_knot_mask | l_knot_id);
-					MarkKnotNeighborsWithKnotId(knotImage, x, y, l_knot_id);				
+					knotImage->SetPixel(x,y, k_knot);
+					MarkKnotNeighbors(knotImage, x, y);
 				}
 			}
 		}
@@ -210,49 +211,49 @@ void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* kno
 	//remove knots from image map
 	for(int x=1; x<image->GetWidth()-1; x++) {
 		for(int y=1; y<image->GetHeight()-1; y++) {
-			if ( knotImage->GetPixel(x,y) & k_knot_mask ) {
+			if ( knotImage->GetPixel(x,y) == k_knot ) {
 				image->SetPixel(x,y,false);
 			}
 		}
 	}
 }
 
-void CSkeletonizer::MarkKnotNeighborsWithKnotId(CRawImage< Gdiplus::ARGB >* knotImage, int x, int y, int l_knot_id)
+void CSkeletonizer::MarkKnotNeighbors(CRawImage<char>* knotImage, int x, int y)
 {
-	if(!(knotImage->GetPixel(x-1,y) & k_knot_mask)) {
-		knotImage->SetPixel(x-1,y, k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x-1,y) != k_knot ) {
+		knotImage->SetPixel(x-1,y, k_knot_neighbor );
 	}
-	if(!(knotImage->GetPixel(x+1,y)&k_knot_mask)) {
-		knotImage->SetPixel(x+1,y, k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x+1,y) != k_knot ) {
+		knotImage->SetPixel(x+1,y, k_knot_neighbor);
 	}
-	if(!(knotImage->GetPixel(x,y+1)&k_knot_mask)) {
-		knotImage->SetPixel(x,y+1, k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x,y+1) != k_knot ) {
+		knotImage->SetPixel(x,y+1, k_knot_neighbor);
 	}
-	if(!(knotImage->GetPixel(x,y-1)&k_knot_mask)) {
-		knotImage->SetPixel(x,y-1, k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x,y-1) != k_knot ) {
+		knotImage->SetPixel(x,y-1, k_knot_neighbor);
 	}
-	if(!(knotImage->GetPixel(x-1,y-1)&k_knot_mask)) {
-		knotImage->SetPixel(x-1,y-1, k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x-1,y-1) != k_knot ) {
+		knotImage->SetPixel(x-1,y-1, k_knot_neighbor);
 	}
-	if(!(knotImage->GetPixel(x-1,y+1)&k_knot_mask)) {
-		knotImage->SetPixel(x-1,y+1,  k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x-1,y+1) != k_knot ) {
+		knotImage->SetPixel(x-1,y+1,  k_knot_neighbor);
 	}
-	if(!(knotImage->GetPixel(x+1,y-1)&k_knot_mask)) {
-		knotImage->SetPixel(x+1,y-1,  k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x+1,y-1) != k_knot ) {
+		knotImage->SetPixel(x+1,y-1,  k_knot_neighbor);
 	}
-	if(!(knotImage->GetPixel(x+1,y+1)&k_knot_mask)) {
-		knotImage->SetPixel(x+1,y+1,  k_knot_neighbor_mask|l_knot_id);
+	if( knotImage->GetPixel(x+1,y+1) != k_knot ) {
+		knotImage->SetPixel(x+1,y+1,  k_knot_neighbor);
 	}
 }
 
-CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CRawImage<ARGB>* knotImg)
+CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CRawImage<char>* knotImg)
 {
 	CLineImage* li=new CLineImage(knotImg->GetWidth(), knotImg->GetHeight());
 
 	//trace lines with knot endpoints
 	for(int y=1; y<knotImg->GetHeight()-1; y++) {
 		for ( int x=1; x<knotImg->GetWidth()-1; x++ ) {
-			if ( knotImg->GetPixel(x,y) & k_knot_mask ) {
+			if ( knotImg->GetPixel(x,y) == k_knot ) {
 				//is a knot
 
 				for (;;) {
@@ -283,7 +284,7 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CRawImage<ARGB
 	//connect neighboring knots
 	for(int x=1; x<knotImg->GetWidth()-1; x++) {
 		for(int y=1; y<knotImg->GetHeight()-1; y++) {
-			if(knotImg->GetPixel(x,y)&k_knot_mask) {
+			if(knotImg->GetPixel(x,y) == k_knot ) {
 				CSketchPoint p=FindNeighborKnot(knotImg, CPoint(x,y));
 
 				//found neighboring knot
@@ -303,7 +304,7 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CRawImage<ARGB
 	return li;
 }
 
-void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start)
+void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CRawImage<char>* knotImage, CPolyLine* line, CFPoint start)
 {
 	CSketchPoint p(start);
 
@@ -372,7 +373,7 @@ void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* kn
 }
 
 /* return true if the point is a knot neighbor */
-CFPoint CSkeletonizer::IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point)
+CFPoint CSkeletonizer::IsKnotNeighbor(CRawImage<char>* knotImage, CFPoint point)
 {
 	double x=point.GetX();
 	double y=point.GetY();
@@ -380,45 +381,45 @@ CFPoint CSkeletonizer::IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point)
 	if(!x || x==knotImage->GetWidth()-1) return CFPoint(-1,-1);
 	if(!y || y==knotImage->GetHeight()-1) return CFPoint(-1,-1);
 
-	if(!(knotImage->GetPixel((int)x,(int)y)&k_knot_neighbor_mask)) return CFPoint(-1,-1);
+	if( k_knot_neighbor != knotImage->GetPixel((int)x,(int)y) ) return CFPoint(-1,-1);
 
 	int p;
 
 	p=knotImage->GetPixel(int(x-1),(int)y);
-	if(p&k_knot_mask) return CFPoint(x-1,y);
+	if(k_knot == p) return CFPoint(x-1,y);
 	p=knotImage->GetPixel(int(x+1),int(y));
-	if(p&k_knot_mask) return CFPoint(x+1,y);
+	if(k_knot == p) return CFPoint(x+1,y);
 	p=knotImage->GetPixel(int(x),int(y-1));
-	if(p&k_knot_mask) return CFPoint(x,y-1);
+	if(k_knot == p) return CFPoint(x,y-1);
 	p=knotImage->GetPixel(int(x),int(y+1));
-	if(p&k_knot_mask) return CFPoint(x,y+1);
+	if(k_knot == p) return CFPoint(x,y+1);
 
 	p=knotImage->GetPixel(int(x+1),int(y+1));
-	if(p&k_knot_mask) return CFPoint(x+1,y+1);
+	if(k_knot == p) return CFPoint(x+1,y+1);
 	p=knotImage->GetPixel(int(x+1),int(y-1));
-	if(p&k_knot_mask) return CFPoint(x+1,y-1);
+	if(k_knot == p) return CFPoint(x+1,y-1);
 	p=knotImage->GetPixel(int(x-1),int(y+1));
-	if(p&k_knot_mask) return CFPoint(x-1,y+1);
+	if(k_knot == p) return CFPoint(x-1,y+1);
 	p=knotImage->GetPixel(int(x-1),int(y-1));
-	if(p&k_knot_mask) return CFPoint(x-1,y-1);
+	if(k_knot == p) return CFPoint(x-1,y-1);
 
 	return CFPoint(-1,-1);
 }
 
 /* return the position of any knot neighboring p */
-CSketchPoint CSkeletonizer::FindNeighborKnot(CRawImage<ARGB>* knotImg, CPoint p)
+CSketchPoint CSkeletonizer::FindNeighborKnot(CRawImage<char>* knotImg, CPoint p)
 {
 	//check horizontal+vertical neighbors
-	if(knotImg->GetPixel(p.x-1,p.y)&k_knot_mask) return CSketchPoint(p.x-1,p.y,true,true);
-	if(knotImg->GetPixel(p.x,p.y-1)&k_knot_mask) return CSketchPoint(p.x,p.y-1,true,true);
-	if(knotImg->GetPixel(p.x+1,p.y)&k_knot_mask) return CSketchPoint(p.x+1,p.y,true,true);
-	if(knotImg->GetPixel(p.x,p.y+1)&k_knot_mask) return CSketchPoint(p.x,p.y+1,true,true);
+	if(knotImg->GetPixel(p.x-1,p.y) == k_knot) return CSketchPoint(p.x-1,p.y,true,true);
+	if(knotImg->GetPixel(p.x,p.y-1) == k_knot) return CSketchPoint(p.x,p.y-1,true,true);
+	if(knotImg->GetPixel(p.x+1,p.y) == k_knot) return CSketchPoint(p.x+1,p.y,true,true);
+	if(knotImg->GetPixel(p.x,p.y+1) == k_knot) return CSketchPoint(p.x,p.y+1,true,true);
 
 	//check diagonal neighbors
-	if(knotImg->GetPixel(p.x-1,p.y-1)&k_knot_mask) return CSketchPoint(p.x-1,p.y-1,true,true);
-	if(knotImg->GetPixel(p.x+1,p.y-1)&k_knot_mask) return CSketchPoint(p.x+1,p.y-1,true,true);
-	if(knotImg->GetPixel(p.x+1,p.y+1)&k_knot_mask) return CSketchPoint(p.x+1,p.y+1,true,true);
-	if(knotImg->GetPixel(p.x-1,p.y+1)&k_knot_mask) return CSketchPoint(p.x-1,p.y+1,true,true);
+	if(knotImg->GetPixel(p.x-1,p.y-1) == k_knot) return CSketchPoint(p.x-1,p.y-1,true,true);
+	if(knotImg->GetPixel(p.x+1,p.y-1) == k_knot) return CSketchPoint(p.x+1,p.y-1,true,true);
+	if(knotImg->GetPixel(p.x+1,p.y+1) == k_knot) return CSketchPoint(p.x+1,p.y+1,true,true);
+	if(knotImg->GetPixel(p.x-1,p.y+1) == k_knot) return CSketchPoint(p.x-1,p.y+1,true,true);
 
 	return CSketchPoint(CFPoint(-1,-1));
 }
