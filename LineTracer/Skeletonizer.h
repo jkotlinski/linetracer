@@ -22,7 +22,6 @@ protected:
 public:
 	CSketchImage* Process(CSketchImage* src);
 private:
-	void DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst, int DirectDistance, int IndirectDistance);
 	int IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
 	void CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
 	CLineImage* Vectorize(CRawImage<bool>* segmentMap, CRawImage<ARGB>* knotMap);
@@ -32,15 +31,7 @@ private:
 	CPoint FindSegmentNeighbor(CRawImage<bool>* segmentImage, const CPoint &p);
 	bool NoOrthogonalNeighbors(CRawImage<bool>* segmentImage, CFPoint p);
 	bool IsEndPoint(CRawImage<bool>* image,CPoint p);
-	double AFMMSolve(int i1, int j1, int i2, int j2, double sol, char *f, double* T, int width);
 	
-	static const char BAND=0;
-	static const char INSIDE=1;
-	static const char KNOWN=2;
-	void TrackBoundary(int x, int y, char* f, double* U, double &val, int width);
-	//CRawImage<bool>* MagnifyImage(CRawImage<bool>* img);
-	//CLineImage* SmoothPositions(CLineImage* lineImage);
-
 private:
 	void TraceSimpleLines( CRawImage<bool> &segmentMap, CLineImage &li );
 	void TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li );

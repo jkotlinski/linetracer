@@ -38,9 +38,6 @@ CSkeletonizer* CSkeletonizer::Instance() {
 CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
 	ASSERT ( src != NULL );
-	/*CRawImage<ARGB> *distMap=new CRawImage<ARGB>(src->GetWidth(), src->GetHeight());
-	distMap->Clear();
-	DistanceTransform(src,distMap,3,4);*/
 	
 	CRawImage<ARGB>* knotImage=new CRawImage<ARGB>(src->GetWidth(),src->GetHeight());
 	knotImage->Clear();
@@ -133,42 +130,6 @@ void CSkeletonizer::TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li )
 				}
 				ASSERT ( l_circleLine->Size() > 1 );
 				li.Add( l_circleLine );
-			}
-		}
-	}
-}
-
-void CSkeletonizer::DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst, int DirectDistance, int IndirectDistance)
-{
-	//clean image
-	{
-		for(int x=0; x<src->GetWidth()*src->GetHeight(); x++) {
-			dst->SetPixel(x,0);
-		}
-	}
-
-	for(int y=1; y<src->GetHeight()-1; y++) {
-		for(int x=1; x<src->GetWidth()-1; x++) {
-			if(!src->GetPixel(x,y)) {
-				ARGB dist=dst->GetPixel(x-1,y-1)+IndirectDistance;
-				dist=min(dist,dst->GetPixel(x,y-1)+DirectDistance);
-				dist=min(dist,dst->GetPixel(x+1,y-1)+IndirectDistance);
-				dist=min(dist,dst->GetPixel(x-1,y)+DirectDistance);
-				dst->SetPixel(x,y,dist);
-			}
-		}
-	}
-
-	for(int y=src->GetHeight()-2; y>0; y--) {
-		for(int x=src->GetWidth()-2; x>0; x--) {
-			if(!src->GetPixel(x,y)) {
-				ARGB dist=dst->GetPixel(x+1,y+1)+IndirectDistance;
-				dist=min(dist,dst->GetPixel(x,y+1)+DirectDistance);
-				dist=min(dist,dst->GetPixel(x-1,y+1)+IndirectDistance);
-				dist=min(dist,dst->GetPixel(x+1,y)+DirectDistance);
-				if(dist<dst->GetPixel(x,y)) {
-					dst->SetPixel(x,y,dist);
-				}
 			}
 		}
 	}
@@ -539,115 +500,3 @@ bool CSkeletonizer::IsEndPoint(CRawImage<bool>* image, CPoint p)
 
 	return (neighbors==1)?true:false;
 }
-
-double CSkeletonizer::AFMMSolve(int i1, int l_j1, int i2, int j2, double sol, char* f, double* T, int width)
-{
-	double r,s;
-	double newSol=sol;
-
-	int p1=i1+l_j1*width;
-	int p2=i2+j2*width;
-
-	if(f[p1]==KNOWN) {
-		if(f[p2]==KNOWN) {
-			//average
-			r = sqrt((2-(T[p1]-T[p2])*(T[p1]-T[p2])));
-			s = (T[p1]+T[p2]-r)/2;
-			if (s>=T[p1] && s>=T[p2]) {
-				newSol=min(sol,s);
-			} else {
-				s += r;
-				if ((s>=T[p1]) && (s>=T[p2])) newSol=min(sol,s);
-			}
-		}
-		else {
-			newSol=min(sol,1+T[p1]);
-		}
-	} else {
-		if (f[p2]==KNOWN) {
-			newSol=min(sol,1+T[p2]);
-		}
-	}
-	return newSol;
-}
-
-void CSkeletonizer::TrackBoundary(int x, int y, char* f, double* U,double &val, int width)
-{
-	while(U[x+width*y]<0) {
-		//TRACE("x,y: %i %i\n",x,y);
-		U[x+width*y]=++val;
-
-		if(f[x+1+y*width]==BAND && U[x+1+width*y]<0) {
-			x++;
-			continue;
-		}
-		if(f[x+(y+1)*width]==BAND && U[x+width*(1+y)]<0) {
-			y++;
-			continue;
-		}
-		if(f[x-1+width*y]==BAND && U[x-1+width*y]<0) {
-			x--;
-			continue;
-		}
-		if(f[x+width*(y-1)]==BAND && U[x+width*(y-1)]<0) {
-			y--;
-			continue;
-		}
-
-		if(f[x+1+width*(y+1)]==BAND && U[x+1+width*(y+1)]<0) {
-			x++;
-			y++;
-			continue;
-		}
-		if(f[x-1+width*(y+1)]==BAND && U[x-1+(y+1)*width]<0) {
-			y++;
-			x--;
-			continue;
-		}
-		if(f[x-1+width*(y-1)]==BAND && U[x-1+width*(y-1)]<0) {
-			x--;
-			y--;
-			continue;
-		}
-		if(f[x+1+width*(y-1)]==BAND && U[x+1+width*(y-1)]<0) {
-			y--;
-			x++;
-			continue;
-		}
-		break;
-	}
-}
-
-/*
-CRawImage<bool>* CSkeletonizer::MagnifyImage(CRawImage<bool>* img)
-{
-	int SCALE = int( CProjectSettings::Instance()->GetParam(
-		CProjectSettings::SKELETONIZER_SCALE));
-
-	CRawImage<bool> *tmp = new CRawImage<bool>(img->GetWidth()*SCALE, img->GetHeight()*SCALE);
-
-	tmp->Fill();
-
-	//blow up input image + 3 
-	for(int x=0; x<tmp->GetWidth(); x+=SCALE) {
-		for(int y=0; y<tmp->GetHeight(); y+=SCALE) {
-			ARGB c=img->GetPixel(x/SCALE,y/SCALE);
-			if(!c) {
-				for(int i=0; i<SCALE; i++) {
-					for(int j=0; j<SCALE; j++) {
-						tmp->SetPixel(x+i,y+j,false);
-					}
-				}
-			}
-		}
-	}
-
-	//dilate tmp image to ensure connectivity in diagonal single-pixel lines
-	
-	//if(SCALE>1) {
-	//	tmp->Dilate();
-	//}
-
-	return tmp;
-}
-*/
