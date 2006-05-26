@@ -3,13 +3,6 @@
 
 using namespace std;
 
-enum {
-	k_none,
-	k_knot,
-	k_knot_neighbor,
-	k_invalid
-};
-
 //#define DEFINE_BLOCK_ALLOCATED_MAP
 //#define DEFINE_BLOCK_ALLOCATED_MULTIMAP
 //#include "blockallocator.h"
@@ -145,6 +138,8 @@ varvid funktionen returnerar sant. annars falskt.
 */
 bool CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
 {
+	if ( !image->GetPixel(x,y) ) return false;
+
 	int l_direction_matrix[8];
 	int l_neighbors = 0;
 
@@ -190,17 +185,15 @@ bool CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
 void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image)
 {
 	map<int,int> labelMap;	
-	map<int,int> labelCounter;	
+	map<int,int> labelCounter;
 
-	m_knot_image = new CRawImage<char>(image->GetWidth(), image->GetHeight());
+	m_knot_image = new CRawImage<bool>(image->GetWidth(), image->GetHeight());
 	m_knot_image->Clear();
 
 	for(int y=1; y<image->GetHeight()-1; y++) {	
 		for(int x=1; x<image->GetWidth()-1; x++) {
-			if(image->GetPixel(x,y)) {
-				if ( IsKnot(image,x,y) ) {
-					MarkKnot(x, y);
-				}
+			if ( IsKnot ( image, x, y ) ) {
+				m_knot_image->SetPixel ( x,y, true );
 			}
 		}
 	}
@@ -208,40 +201,10 @@ void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image)
 	//remove knots from image map
 	for(int x=1; x<image->GetWidth()-1; x++) {
 		for(int y=1; y<image->GetHeight()-1; y++) {
-			if ( m_knot_image->GetPixel(x,y) == k_knot ) {
+			if ( m_knot_image->GetPixel(x,y) ) {
 				image->SetPixel(x,y,false);
 			}
 		}
-	}
-}
-
-void CSkeletonizer::MarkKnot(int x, int y)
-{
-	m_knot_image->SetPixel(x,y, k_knot);
-
-	if( m_knot_image->GetPixel(x-1,y) != k_knot ) {
-		m_knot_image->SetPixel(x-1,y, k_knot_neighbor );
-	}
-	if( m_knot_image->GetPixel(x+1,y) != k_knot ) {
-		m_knot_image->SetPixel(x+1,y, k_knot_neighbor);
-	}
-	if( m_knot_image->GetPixel(x,y+1) != k_knot ) {
-		m_knot_image->SetPixel(x,y+1, k_knot_neighbor);
-	}
-	if( m_knot_image->GetPixel(x,y-1) != k_knot ) {
-		m_knot_image->SetPixel(x,y-1, k_knot_neighbor);
-	}
-	if( m_knot_image->GetPixel(x-1,y-1) != k_knot ) {
-		m_knot_image->SetPixel(x-1,y-1, k_knot_neighbor);
-	}
-	if( m_knot_image->GetPixel(x-1,y+1) != k_knot ) {
-		m_knot_image->SetPixel(x-1,y+1,  k_knot_neighbor);
-	}
-	if( m_knot_image->GetPixel(x+1,y-1) != k_knot ) {
-		m_knot_image->SetPixel(x+1,y-1,  k_knot_neighbor);
-	}
-	if( m_knot_image->GetPixel(x+1,y+1) != k_knot ) {
-		m_knot_image->SetPixel(x+1,y+1,  k_knot_neighbor);
 	}
 }
 
@@ -250,7 +213,7 @@ void CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CLineImage & li)
 	//trace lines with knot endpoints
 	for(int y=1; y<m_knot_image->GetHeight()-1; y++) {
 		for ( int x=1; x<m_knot_image->GetWidth()-1; x++ ) {
-			if ( m_knot_image->GetPixel(x,y) == k_knot ) {
+			if ( m_knot_image->GetPixel(x,y) ) {
 				//is a knot
 
 				for (;;) {
@@ -280,7 +243,7 @@ void CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CLineImage & li)
 	//connect neighboring knots
 	for(int x=1; x<m_knot_image->GetWidth()-1; x++) {
 		for(int y=1; y<m_knot_image->GetHeight()-1; y++) {
-			if(m_knot_image->GetPixel(x,y) == k_knot ) {
+			if(m_knot_image->GetPixel(x,y) ) {
 				CSketchPoint p=FindNeighborKnot(CPoint(x,y));
 
 				//found neighboring knot
@@ -375,27 +338,25 @@ CFPoint CSkeletonizer::IsKnotNeighbor(CFPoint point)
 	if(!x || x==m_knot_image->GetWidth()-1) return CFPoint(-1,-1);
 	if(!y || y==m_knot_image->GetHeight()-1) return CFPoint(-1,-1);
 
-	if( k_knot_neighbor != m_knot_image->GetPixel((int)x,(int)y) ) return CFPoint(-1,-1);
-
 	int p;
 
 	p=m_knot_image->GetPixel(int(x-1),(int)y);
-	if(k_knot == p) return CFPoint(x-1,y);
+	if(p) return CFPoint(x-1,y);
 	p=m_knot_image->GetPixel(int(x+1),int(y));
-	if(k_knot == p) return CFPoint(x+1,y);
+	if(p) return CFPoint(x+1,y);
 	p=m_knot_image->GetPixel(int(x),int(y-1));
-	if(k_knot == p) return CFPoint(x,y-1);
+	if(p) return CFPoint(x,y-1);
 	p=m_knot_image->GetPixel(int(x),int(y+1));
-	if(k_knot == p) return CFPoint(x,y+1);
+	if(p) return CFPoint(x,y+1);
 
 	p=m_knot_image->GetPixel(int(x+1),int(y+1));
-	if(k_knot == p) return CFPoint(x+1,y+1);
+	if(p) return CFPoint(x+1,y+1);
 	p=m_knot_image->GetPixel(int(x+1),int(y-1));
-	if(k_knot == p) return CFPoint(x+1,y-1);
+	if(p) return CFPoint(x+1,y-1);
 	p=m_knot_image->GetPixel(int(x-1),int(y+1));
-	if(k_knot == p) return CFPoint(x-1,y+1);
+	if(p) return CFPoint(x-1,y+1);
 	p=m_knot_image->GetPixel(int(x-1),int(y-1));
-	if(k_knot == p) return CFPoint(x-1,y-1);
+	if(p) return CFPoint(x-1,y-1);
 
 	return CFPoint(-1,-1);
 }
@@ -404,16 +365,16 @@ CFPoint CSkeletonizer::IsKnotNeighbor(CFPoint point)
 CSketchPoint CSkeletonizer::FindNeighborKnot( CPoint p)
 {
 	//check horizontal+vertical neighbors
-	if(m_knot_image->GetPixel(p.x-1,p.y) == k_knot) return CSketchPoint(p.x-1,p.y,true,true);
-	if(m_knot_image->GetPixel(p.x,p.y-1) == k_knot) return CSketchPoint(p.x,p.y-1,true,true);
-	if(m_knot_image->GetPixel(p.x+1,p.y) == k_knot) return CSketchPoint(p.x+1,p.y,true,true);
-	if(m_knot_image->GetPixel(p.x,p.y+1) == k_knot) return CSketchPoint(p.x,p.y+1,true,true);
+	if(m_knot_image->GetPixel(p.x-1,p.y)) return CSketchPoint(p.x-1,p.y,true,true);
+	if(m_knot_image->GetPixel(p.x,p.y-1)) return CSketchPoint(p.x,p.y-1,true,true);
+	if(m_knot_image->GetPixel(p.x+1,p.y)) return CSketchPoint(p.x+1,p.y,true,true);
+	if(m_knot_image->GetPixel(p.x,p.y+1)) return CSketchPoint(p.x,p.y+1,true,true);
 
 	//check diagonal neighbors
-	if(m_knot_image->GetPixel(p.x-1,p.y-1) == k_knot) return CSketchPoint(p.x-1,p.y-1,true,true);
-	if(m_knot_image->GetPixel(p.x+1,p.y-1) == k_knot) return CSketchPoint(p.x+1,p.y-1,true,true);
-	if(m_knot_image->GetPixel(p.x+1,p.y+1) == k_knot) return CSketchPoint(p.x+1,p.y+1,true,true);
-	if(m_knot_image->GetPixel(p.x-1,p.y+1) == k_knot) return CSketchPoint(p.x-1,p.y+1,true,true);
+	if(m_knot_image->GetPixel(p.x-1,p.y-1)) return CSketchPoint(p.x-1,p.y-1,true,true);
+	if(m_knot_image->GetPixel(p.x+1,p.y-1)) return CSketchPoint(p.x+1,p.y-1,true,true);
+	if(m_knot_image->GetPixel(p.x+1,p.y+1)) return CSketchPoint(p.x+1,p.y+1,true,true);
+	if(m_knot_image->GetPixel(p.x-1,p.y+1)) return CSketchPoint(p.x-1,p.y+1,true,true);
 
 	return CSketchPoint(CFPoint(-1,-1));
 }
