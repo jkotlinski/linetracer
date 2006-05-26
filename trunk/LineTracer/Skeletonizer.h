@@ -19,8 +19,13 @@ protected:
 	CSkeletonizer(void);
 public:
 	CSketchImage* Process(CSketchImage* src);
+
 private:
-	CRawImage<char> * m_knot_image;
+	CRawImage<bool> * m_knot_image;
+
+	void TraceKnotLines(CRawImage< bool >* src, CLineImage & li);
+	void TraceSimpleLines( CRawImage<bool> &segmentMap, CLineImage &li );
+	void TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li );
 
 	bool IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
 	void CreateKnotImage(CRawImage<bool>* image);
@@ -31,9 +36,4 @@ private:
 	CPoint FindSegmentNeighbor(CRawImage<bool>* segmentImage, const CPoint &p);
 	bool NoOrthogonalNeighbors(CRawImage<bool>* segmentImage, CFPoint p);
 	bool IsEndPoint(CRawImage<bool>* image,CPoint p);
-	void TraceSimpleLines( CRawImage<bool> &segmentMap, CLineImage &li );
-	void TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li );
-	void MarkKnot(int x, int y);
-
-	void TraceKnotLines(CRawImage< bool >* src, CLineImage & li);
 };
