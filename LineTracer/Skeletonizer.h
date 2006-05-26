@@ -2,8 +2,6 @@
 #include "imageprocessor.h"
 #include "LineImage.h"
 
-#include <map>
-
 using namespace std;
 
 #define __WIN32__
