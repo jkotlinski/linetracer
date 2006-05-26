@@ -36,4 +36,6 @@ private:
 	CPoint FindSegmentNeighbor(CRawImage<bool>* segmentImage, const CPoint &p);
 	bool NoOrthogonalNeighbors(CRawImage<bool>* segmentImage, CFPoint p);
 	bool IsEndPoint(CRawImage<bool>* image,CPoint p);
+
+	int GetSeparateNeighborsCount(CRawImage< bool >* image, Gdiplus::ARGB x, Gdiplus::ARGB y);
 };

@@ -3,10 +3,6 @@
 
 using namespace std;
 
-//#define DEFINE_BLOCK_ALLOCATED_MAP
-//#define DEFINE_BLOCK_ALLOCATED_MULTIMAP
-//#include "blockallocator.h"
-
 CSkeletonizer::CSkeletonizer(void)
 : CImageProcessor()
 , m_knot_image ( 0 )
@@ -61,7 +57,7 @@ void CSkeletonizer::TraceSimpleLines ( CRawImage<bool> &segmentMap, CLineImage &
 {
 	for(int x=1; x<segmentMap.GetWidth()-1; x++) {
 		for(int y=1; y<segmentMap.GetHeight()-1; y++) {
-			if(segmentMap.GetPixel(x,y) && IsEndPoint(&segmentMap, CPoint(x,y))) {
+			if(IsEndPoint(&segmentMap, CPoint(x,y))) {
 				CPoint p,p_prev;
 				CPolyLine *line = new CPolyLine();
 				//add first point
@@ -138,7 +134,12 @@ varvid funktionen returnerar sant. annars falskt.
 */
 bool CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
 {
-	if ( !image->GetPixel(x,y) ) return false;
+	return GetSeparateNeighborsCount(image, x, y) > 2;
+}
+
+int CSkeletonizer::GetSeparateNeighborsCount(CRawImage< bool >* image, Gdiplus::ARGB x, Gdiplus::ARGB y)
+{
+	if ( !image->GetPixel(x,y) ) return 0;
 
 	int l_direction_matrix[8];
 	int l_neighbors = 0;
@@ -178,7 +179,7 @@ bool CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
 		if ( l_direction_id_slot[i] ) l_neighbors++;
 	}
 
-	return l_neighbors > 2;
+	return l_neighbors;
 }
 
 /*one-pass segmentation algorithm*/
@@ -280,7 +281,7 @@ void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CPolyLine* line, CF
 		return;
 	}
 
-	while(1) {
+	for(;;) {
 		assert(p.GetX() >= -1);
 		assert(p.GetY() >= -1);
 
@@ -417,42 +418,5 @@ bool CSkeletonizer::NoOrthogonalNeighbors(CRawImage<bool>* segmentImage, CFPoint
 
 bool CSkeletonizer::IsEndPoint(CRawImage<bool>* image, CPoint p)
 {
-	int x=p.x;
-	int y=p.y;
-	int matrix[8];
-
-	int neighbors=0;
-
-	matrix[0]=image->GetPixel(x-1,y)?1:0;
-	matrix[1]=image->GetPixel(x-1,y-1)?2:0;
-	matrix[2]=image->GetPixel(x,y-1)?3:0;
-	matrix[3]=image->GetPixel(x+1,y-1)?4:0;
-	matrix[4]=image->GetPixel(x+1,y)?5:0;
-	matrix[5]=image->GetPixel(x+1,y+1)?6:0;
-	matrix[6]=image->GetPixel(x,y+1)?7:0;
-	matrix[7]=image->GetPixel(x-1,y+1)?8:0;
-
-	if(matrix[7]&&matrix[0]) {
-		matrix[0]=matrix[7];
-	}
-	for(int i=0; i<7; i++) {
-		if(matrix[i+1] && matrix[i]) {
-			matrix[i+1]=matrix[i];
-		}
-	}
-
-	bool isUsed[8];
-	for(int i=0; i<8; i++) {
-		isUsed[i]=false;
-	}
-	for(int i=0; i<8; i++) {
-		if(matrix[i]) {
-			isUsed[matrix[i]-1]=true;
-		}
-	}
-	for(int i=0; i<8; i++) {
-		if(isUsed[i]) neighbors++;
-	}
-
-	return (neighbors==1)?true:false;
+	return 1 == GetSeparateNeighborsCount(image, p.x, p.y);
 }
