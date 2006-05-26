@@ -34,28 +34,34 @@ CSkeletonizer* CSkeletonizer::Instance() {
 CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
 	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
 	ASSERT ( src != NULL );
-	
-	/* get a map with all line pixels marked with a line of the respective id.
-	also the knot image is filled with the positions of all knots.
-	*/
-	(void) CreateKnotImage(src);
 
-	CLineImage* li = Vectorize(src);
+	CLineImage li ( i_src->GetWidth(), i_src->GetHeight() );
+
+	//trace lines belonging to knots
+	TraceKnotLines(src, li);
+
+	//trace simple lines = lines with two end points
+	TraceSimpleLines ( *src, li );
+
+	//maybe we have a bunch of lines left, that have no end points? must be circles.
+	TraceCircles ( *src, li );
+
+	LOG("skeletonizer->process complete\n");
+	li.UpdateTailData();
+	CLineImage* li2 = li.SmoothPositions();
+
+	return li2;
+}
+
+void CSkeletonizer::TraceKnotLines(CRawImage< bool >* src, CLineImage & li)
+{
+	// get a map with all knots and knot neighbors.
+	CreateKnotImage(src);
+
+	Vectorize(src, li);
 
 	delete m_knot_image;
 	m_knot_image = 0;
-
-	//trace simple lines = lines with two end points
-	TraceSimpleLines ( *src, *li );
-
-	//maybe we have a bunch of lines left, that have no end points? must be circles.
-	TraceCircles ( *src, *li );
-
-	LOG("skeletonizer->process complete\n");
-	li->UpdateTailData();
-	CLineImage* li2 = li->SmoothPositions();
-	delete li;
-	return li2;
 }
 
 void CSkeletonizer::TraceSimpleLines ( CRawImage<bool> &segmentMap, CLineImage &li )
@@ -239,10 +245,8 @@ void CSkeletonizer::MarkKnot(int x, int y)
 	}
 }
 
-CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg)
+void CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CLineImage & li)
 {
-	CLineImage* li=new CLineImage(m_knot_image->GetWidth(), m_knot_image->GetHeight());
-
 	//trace lines with knot endpoints
 	for(int y=1; y<m_knot_image->GetHeight()-1; y++) {
 		for ( int x=1; x<m_knot_image->GetWidth()-1; x++ ) {
@@ -267,7 +271,7 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg)
 						l_closest_neighbor.GetCoords()//, //tracing start point
 						);
 
-					li->Add(line);
+					li.Add(line);
 				}
 			}
 		}
@@ -284,7 +288,7 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg)
 					CPolyLine *line=new CPolyLine();
 					line->Add(new CSketchPoint(x,y,true,true));
 					line->Add(p.Clone());
-					li->Add(line);
+					li.Add(line);
 
 					//clear knot
 					m_knot_image->SetPixel(x,y,0);
@@ -292,8 +296,6 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg)
 			}
 		}
 	}
-
-	return li;
 }
 
 void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CPolyLine* line, CFPoint start)

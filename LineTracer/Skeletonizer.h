@@ -24,7 +24,7 @@ private:
 
 	bool IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
 	void CreateKnotImage(CRawImage<bool>* image);
-	CLineImage* Vectorize(CRawImage<bool>* segmentMap);
+	void Vectorize(CRawImage<bool>* segmentMap, CLineImage & li);
 	void TraceLine(CRawImage<bool>* segmentImage, CPolyLine* line, CFPoint start);
 	CFPoint IsKnotNeighbor(CFPoint point);
 	CSketchPoint FindNeighborKnot(CPoint p);
@@ -34,4 +34,6 @@ private:
 	void TraceSimpleLines( CRawImage<bool> &segmentMap, CLineImage &li );
 	void TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li );
 	void MarkKnot(int x, int y);
+
+	void TraceKnotLines(CRawImage< bool >* src, CLineImage & li);
 };
