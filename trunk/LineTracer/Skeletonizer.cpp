@@ -174,32 +174,6 @@ void CSkeletonizer::DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst
 	}
 }
 
-CRawImage<ARGB>* CSkeletonizer::DeleteNonMaximumsSimple(CRawImage<ARGB>* dst)
-{
-	CRawImage<ARGB> *tmp=new CRawImage<ARGB>(dst->GetWidth(), dst->GetHeight());
-
-	for(int y=1; y<dst->GetHeight()-1; y++) {
-		for(int x=1; x<dst->GetWidth()-1; x++) {
-			bool isLocalMaximum=false;
-
-			ARGB val=dst->GetPixel(x,y);
-
-			//check absolute local maximum
-			if(val>dst->GetPixel(x-1,y) && val>=dst->GetPixel(x+1,y)) 
-			{
-				isLocalMaximum=true;
-			} else if(val>dst->GetPixel(x,y-1) && val>=dst->GetPixel(x,y+1))
-			{
-				isLocalMaximum=true;
-			}
-
-			tmp->SetPixel(x,y,isLocalMaximum?0xff:0);
-		}
-	}
-
-	return tmp;
-}
-
 /* 
 denna funktion detekterar om pixeln vid position (x,y) i bilden image är en 
 förgrening.
@@ -252,7 +226,6 @@ int CSkeletonizer::IsKnot(CRawImage<bool>* image, DWORD x, DWORD y)
 
 	return ( l_neighbors > 2 ) ? currentKnot++ : 0;
 }
-
 
 /*one-pass segmentation algorithm*/
 void CSkeletonizer::CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* knotImage)
@@ -321,30 +294,6 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CRawImage<ARGB
 			if ( knotImg->GetPixel(x,y) & k_knot_mask ) {
 				//is a knot
 
-				/* forbid this knot as an end point for the current trace.
-				why do we want to forbid this knot as an end point?
-				because a line can't end where it starts! */
-				map<int,bool> forbiddenEndKnotIds;
-				forbiddenEndKnotIds[knotImg->GetPixel(x,y)&0xffffff]=true;
-
-				/* also forbid any neighboring knots as end points for the current trace.*/
-				int p = knotImg->GetPixel(x+1,y);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-				p=knotImg->GetPixel(x-1,y);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-				p=knotImg->GetPixel(x,y+1);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-				p=knotImg->GetPixel(x,y-1);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-				p=knotImg->GetPixel(x-1,y-1);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-				p=knotImg->GetPixel(x-1,y+1);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-				p=knotImg->GetPixel(x+1,y-1);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-				p=knotImg->GetPixel(x+1,y+1);
-				if(p&k_knot_mask) forbiddenEndKnotIds[p&0xffffff]=true;
-
 				for (;;) {
 					/* ok.. time to start tracing. find any neighbor to this knot */
 					CPoint l_startPoint = FindSegmentNeighbor(segmentImg, CPoint(x,y));
@@ -361,8 +310,7 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CRawImage<ARGB
 						segmentImg,
 						knotImg,
 						line, //destination line
-						l_closest_neighbor.GetCoords(), //tracing start point
-						&forbiddenEndKnotIds
+						l_closest_neighbor.GetCoords()//, //tracing start point
 						);
 
 					li->Add(line);
@@ -394,11 +342,11 @@ CLineImage* CSkeletonizer::Vectorize(CRawImage<bool>* segmentImg, CRawImage<ARGB
 	return li;
 }
 
-void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds)
+void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start)
 {
 	CSketchPoint p(start);
 
-	CFPoint endKnot=IsKnotNeighbor(knotImage, p.GetCoords(), forbiddenEndKnotIds);
+	CFPoint endKnot=IsKnotNeighbor(knotImage, p.GetCoords());
 
 	if(endKnot.GetX()!=-1 && NoOrthogonalNeighbors(segmentImage, p.GetCoords())) {
 		//point is a knot neighbor
@@ -444,7 +392,7 @@ void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* kn
 		//clear old pixel
 		segmentImage->SetPixel((int)p.GetX(),(int)p.GetY(),0);
 
-		endKnot = IsKnotNeighbor(knotImage, p_new.GetCoords(), forbiddenEndKnotIds);
+		endKnot = IsKnotNeighbor(knotImage, p_new.GetCoords());
 
 		if(endKnot.GetX()!=-1 && NoOrthogonalNeighbors(segmentImage, p_new.GetCoords())) {
 			//point is a knot neighbor
@@ -463,7 +411,7 @@ void CSkeletonizer::TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* kn
 }
 
 /* return true if the point is a knot neighbor */
-CFPoint CSkeletonizer::IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point, map<int,bool> *forbiddenEndKnotIds)
+CFPoint CSkeletonizer::IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point)
 {
 	double x=point.GetX();
 	double y=point.GetY();
@@ -476,22 +424,22 @@ CFPoint CSkeletonizer::IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point,
 	int p;
 
 	p=knotImage->GetPixel(int(x-1),(int)y);
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x-1,y);
+	if(p&k_knot_mask) return CFPoint(x-1,y);
 	p=knotImage->GetPixel(int(x+1),int(y));
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x+1,y);
+	if(p&k_knot_mask) return CFPoint(x+1,y);
 	p=knotImage->GetPixel(int(x),int(y-1));
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x,y-1);
+	if(p&k_knot_mask) return CFPoint(x,y-1);
 	p=knotImage->GetPixel(int(x),int(y+1));
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x,y+1);
+	if(p&k_knot_mask) return CFPoint(x,y+1);
 
 	p=knotImage->GetPixel(int(x+1),int(y+1));
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x+1,y+1);
+	if(p&k_knot_mask) return CFPoint(x+1,y+1);
 	p=knotImage->GetPixel(int(x+1),int(y-1));
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x+1,y-1);
+	if(p&k_knot_mask) return CFPoint(x+1,y-1);
 	p=knotImage->GetPixel(int(x-1),int(y+1));
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x-1,y+1);
+	if(p&k_knot_mask) return CFPoint(x-1,y+1);
 	p=knotImage->GetPixel(int(x-1),int(y-1));
-	if((p&k_knot_mask) && !(*forbiddenEndKnotIds)[p&0xffffff]) return CFPoint(x-1,y-1);
+	if(p&k_knot_mask) return CFPoint(x-1,y-1);
 
 	return CFPoint(-1,-1);
 }

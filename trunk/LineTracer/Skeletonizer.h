@@ -23,14 +23,11 @@ public:
 	CSketchImage* Process(CSketchImage* src);
 private:
 	void DistanceTransform(CRawImage<bool> *src, CRawImage<ARGB> *dst, int DirectDistance, int IndirectDistance);
-	//CRawImage<ARGB>* DeleteNonMaximums(CRawImage<ARGB>* dst);
-	CRawImage<ARGB>* DeleteNonMaximumsSimple(CRawImage<ARGB>* dst);
-	//MaximumMapType* DoAFMM(CRawImage<bool>* dst,bool direction);
 	int IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
 	void CreateKnotImage(CRawImage<bool>* image, CRawImage<ARGB>* knotImage);
 	CLineImage* Vectorize(CRawImage<bool>* segmentMap, CRawImage<ARGB>* knotMap);
-	void TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start, map<int,bool> *forbiddenEndKnotIds);
-	CFPoint IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point, map<int,bool> *forbiddenEndKnotIds);
+	void TraceLine(CRawImage<bool>* segmentImage, CRawImage<ARGB>* knotImage, CPolyLine* line, CFPoint start);
+	CFPoint IsKnotNeighbor(CRawImage<ARGB>* knotImage, CFPoint point);
 	CSketchPoint FindNeighborKnot(CRawImage<ARGB>* knotImg, CPoint p);
 	CPoint FindSegmentNeighbor(CRawImage<bool>* segmentImage, const CPoint &p);
 	bool NoOrthogonalNeighbors(CRawImage<bool>* segmentImage, CFPoint p);
