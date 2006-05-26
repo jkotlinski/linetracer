@@ -445,12 +445,12 @@ void CForkHandler::HandleFoundYFork(CLineImage* img, CPolyLine* baseLine, CPolyL
 	if ( mergeBaseLine ) {
 		//merge lines
 		CPolyLine * l_tmpLine = newLine1->MergeLine(newBase->Clone());
-		l_tmpLine->SmoothPositions();
-		img->Add(l_tmpLine);
+		img->Add(l_tmpLine->SmoothPositions());
+		delete l_tmpLine;
 
 		l_tmpLine = newLine2->MergeLine(newBase);
-		l_tmpLine->SmoothPositions();
-		img->Add(l_tmpLine);
+		img->Add(l_tmpLine->SmoothPositions());
+		delete l_tmpLine;
 
 		delete newLine1;
 		delete newLine2;
