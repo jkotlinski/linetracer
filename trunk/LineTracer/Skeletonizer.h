@@ -20,18 +20,18 @@ protected:
 public:
 	CSketchImage* Process(CSketchImage* src);
 private:
+	CRawImage<char> * m_knot_image;
+
 	bool IsKnot(CRawImage<bool>* image, ARGB x, ARGB y);
-	void CreateKnotImage(CRawImage<bool>* image, CRawImage<char>* knotImage);
-	CLineImage* Vectorize(CRawImage<bool>* segmentMap, CRawImage<char>* knotMap);
-	void TraceLine(CRawImage<bool>* segmentImage, CRawImage<char>* knotImage, CPolyLine* line, CFPoint start);
-	CFPoint IsKnotNeighbor(CRawImage<char>* knotImage, CFPoint point);
-	CSketchPoint FindNeighborKnot(CRawImage<char>* knotImg, CPoint p);
+	void CreateKnotImage(CRawImage<bool>* image);
+	CLineImage* Vectorize(CRawImage<bool>* segmentMap);
+	void TraceLine(CRawImage<bool>* segmentImage, CPolyLine* line, CFPoint start);
+	CFPoint IsKnotNeighbor(CFPoint point);
+	CSketchPoint FindNeighborKnot(CPoint p);
 	CPoint FindSegmentNeighbor(CRawImage<bool>* segmentImage, const CPoint &p);
 	bool NoOrthogonalNeighbors(CRawImage<bool>* segmentImage, CFPoint p);
 	bool IsEndPoint(CRawImage<bool>* image,CPoint p);
-	
-private:
 	void TraceSimpleLines( CRawImage<bool> &segmentMap, CLineImage &li );
 	void TraceCircles( CRawImage<bool> &segmentMap, CLineImage &li );
-	void MarkKnotNeighbors(CRawImage<char>* knotImage, int x, int y);
+	void MarkKnot(int x, int y);
 };
