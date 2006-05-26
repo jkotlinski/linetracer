@@ -1,15 +1,6 @@
 #include "StdAfx.h"
 #include "Skeletonizer.h"
 
-#include "EpsWriter.h"
-#include "ProjectSettings.h"
-
-#include <math.h>
-#include <map>
-#include <vector>
-#include <map>
-#include <assert.h>
-
 using namespace std;
 
 enum {
