@@ -787,12 +787,11 @@ void CLineTracerView::ResetView(void)
 		bool l_viewWiderThanImage = ( GetViewWidth() > ( GetImageWidth() * GetScale() ) );
 		bool l_viewHigherThanImage = ( GetViewHeight() > ( GetImageHeight() * GetScale() ) );
 
-		if ( l_viewWiderThanImage && l_viewHigherThanImage )
+		if ( ( l_viewWiderThanImage && l_viewHigherThanImage ) ||
+			!m_magnification.Decrease() )
 		{
 			break;
 		}
-
-		m_magnification.Decrease();
 	}
 }
 
