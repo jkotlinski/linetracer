@@ -27,10 +27,6 @@ AreasToClosedCurvesProcessor* AreasToClosedCurvesProcessor::Instance() {
 
 CSketchImage* AreasToClosedCurvesProcessor::Process(CSketchImage *a_src_image)
 {
-	//pseudocode deluxe!!
-
-	//N = maximum line radius
-	//A = minimum area
 	static const int l_maximumLineRadius = 2;
 	static const int l_minimumAreaThreshold = 30;
 
