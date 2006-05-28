@@ -33,12 +33,12 @@ void Magnification::Increase(void)
 	}
 }
 
-void Magnification::Decrease(void)
+bool Magnification::Decrease(void)
 {
-	if ( m_level > 0 )
-	{
-		m_level--;
-	}
+	if ( m_level == 0 ) return false;
+
+	m_level--;
+	return true;
 }
 
 

@@ -8,7 +8,7 @@ public:
 	Magnification(void);
 	~Magnification(void);
 	void Increase(void);
-	void Decrease(void);
+	bool Decrease(void);
 private:
 
 	const unsigned int m_defaultLevel;
