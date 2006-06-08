@@ -4,6 +4,8 @@
 #include "LineImage.h"
 #include "FPoint.h"
 
+namespace ImageProcessing {
+
 class CBezierMaker :
 	public CImageProcessor
 {
@@ -26,3 +28,5 @@ private:
 	bool TListTooUnevenlyDistributed(const vector<double> & a_tList) const;
 	bool CurveTooCrazy(const CPolyLine & a_curve) const;
 };
+
+}

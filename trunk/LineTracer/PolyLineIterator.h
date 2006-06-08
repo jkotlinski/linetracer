@@ -21,6 +21,6 @@ public:
 private:
 	const CPolyLine * const m_line;
 	int m_index;
-	bool m_is_forward_iterator;
 	bool m_is_valid;
+	bool m_is_forward_iterator;
 };

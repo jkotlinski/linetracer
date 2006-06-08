@@ -231,7 +231,7 @@ void CLineImage::DrawUsingGraphics(Graphics & a_graphics)
 {
 	//int color=1;
 	Pen l_redPen(Color::Red);
-	(void) l_redPen.SetWidth(2.0f);
+	(void) l_redPen.SetWidth(1.0f);
 	(void) l_redPen.SetLineCap(LineCapRoundAnchor,
 		LineCapRoundAnchor,
 		DashCapRound);

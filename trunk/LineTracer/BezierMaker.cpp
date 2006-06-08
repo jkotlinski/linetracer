@@ -13,6 +13,8 @@
 #include "ProjectSettings.h"
 #include ".\beziermaker.h"
 
+namespace ImageProcessing {
+
 CBezierMaker::CBezierMaker(void)
 : CImageProcessor()
 {
@@ -104,7 +106,7 @@ CSketchImage* CBezierMaker::SimpleMethod(const CLineImage* src) const
 				double x, y;
 				x = a.at(l_point2)*diffx.at(l_point2) + points.at(l_point2)->GetX();
 				y = a.at(l_point2)*diffy.at(l_point2) + points.at(l_point2)->GetY();
-				pl->At(l_point2)->SetControlPointForward(CFPoint(x,y));
+				pl->At(l_point2)->SetControlPoint(CFPoint(x,y));
 			}
 
 			//control point 2
@@ -112,7 +114,7 @@ CSketchImage* CBezierMaker::SimpleMethod(const CLineImage* src) const
 				double x, y;
 				x = -a.at(l_point2)*diffx.at(l_point2+1) + points.at(l_point2+1)->GetX();
 				y = -a.at(l_point2)*diffy.at(l_point2+1) + points.at(l_point2+1)->GetY();
-				pl->At(l_point2+1)->SetControlPointBack(CFPoint(x,y));
+				pl->At(l_point2+1)->SetControlPoint(CFPoint(x,y));
 			}
 		}
 	}
@@ -139,11 +141,11 @@ double CBezierMaker::FindError(const CPolyLine* polyLine, const CPolyLine* curve
 
 		//LOG("t: %f\n",t);
 		//LOG("start: %f %f\n",start->GetX(),start->GetY());
-		//LOG("start->cpf: %f %f\n",start->GetControlPointForward().GetX(),start->GetControlPointForward().GetY());
+		//LOG("start->cpf: %f %f\n",start->GetControlPoint().GetX(),start->GetControlPoint().GetY());
 		
 		CFPoint curvePoint(
-			start->GetX()*t*t*t + start->GetControlPointForward().GetX()*3*t*t*b + end->GetControlPointBack().GetX()*3*t*b*b + end->GetX()*b*b*b,
-			start->GetY()*t*t*t + start->GetControlPointForward().GetY()*3*t*t*b + end->GetControlPointBack().GetY()*3*t*b*b + end->GetY()*b*b*b
+			start->GetX()*t*t*t + start->GetControlPoint().GetX()*3*t*t*b + end->GetControlPoint().GetX()*3*t*b*b + end->GetX()*b*b*b,
+			start->GetY()*t*t*t + start->GetControlPoint().GetY()*3*t*t*b + end->GetControlPoint().GetY()*3*t*b*b + end->GetY()*b*b*b
 			);
 
 		CFPoint diff = curvePoint - linePoint;
@@ -593,16 +595,16 @@ CPolyLine* CBezierMaker::FitSpline(CPolyLine* pl, vector<double>* tlist, vector<
 	//ASSERT(C0_C1_det!=0);
 	if(C0_C1_det == 0) {
 		//LOG("ERROR!!! do line\n");
-		curve->At(0)->SetControlPointForward(startVector);
-		curve->At(1)->SetControlPointBack(startVector);
+		curve->At(0)->SetControlPoint(startVector);
+		curve->At(1)->SetControlPoint(startVector);
 	} else {
 		alpha1 = X_C1_det / C0_C1_det;
 		alpha2 = C0_X_det / C0_C1_det;
 
 		//LOG("alpha1: %f\n",alpha1);
 		//LOG("alpha2: %f\n",alpha2);
-		curve->At(0)->SetControlPointForward(startVector + t1_hat * alpha1);
-		curve->At(1)->SetControlPointBack(endVector + t2_hat * alpha2);
+		curve->At(0)->SetControlPoint(startVector + t1_hat * alpha1);
+		curve->At(1)->SetControlPoint(endVector + t2_hat * alpha2);
 	}
 
 	return curve;
@@ -623,8 +625,8 @@ CPolyLine* CBezierMaker::FitLine(CPolyLine* pl, const vector<CFPoint>* tangentLi
 	CSketchPoint *startPoint = new CSketchPoint(start.GetX(),start.GetY(),true);
 	CSketchPoint *endPoint = new CSketchPoint(end.GetX(),end.GetY(),true);
 
-	//startPoint->SetControlPointForward(cp1);
-	//endPoint->SetControlPointBack(cp2);
+	//startPoint->SetControlPoint(cp1);
+	//endPoint->SetControlPoint(cp2);
 
 	curve->Add(startPoint);
 	curve->Add(endPoint);
@@ -652,15 +654,15 @@ void CBezierMaker::ReparametrizeT(CPolyLine* pl,
 	
 	/*
 	LOG("curve in : %f %f; %f %f; %f %f; %f %f\n", curve->At(0)->GetX(), curve->At(0)->GetY(),
-		curve->At(0)->GetControlPointForward().GetX(), curve->At(0)->GetControlPointForward().GetY(),
-		curve->At(1)->GetControlPointBack().GetX(), curve->At(1)->GetControlPointBack().GetY(),
+		curve->At(0)->GetControlPoint().GetX(), curve->At(0)->GetControlPoint().GetY(),
+		curve->At(1)->GetControlPoint().GetX(), curve->At(1)->GetControlPoint().GetY(),
 		curve->At(1)->GetX(), curve->At(1)->GetY());
 	*/
 
 	//1st derivate of curve
-	curveD1[0] = curve->At(0)->GetControlPointForward() - curve->At(0)->GetCoords();
-	curveD1[1] = curve->At(1)->GetControlPointBack() - curve->At(0)->GetControlPointForward();
-	curveD1[2] = curve->At(1)->GetCoords() - curve->At(1)->GetControlPointBack();
+	curveD1[0] = curve->At(0)->GetControlPoint() - curve->At(0)->GetCoords();
+	curveD1[1] = curve->At(1)->GetControlPoint() - curve->At(0)->GetControlPoint();
+	curveD1[2] = curve->At(1)->GetCoords() - curve->At(1)->GetControlPoint();
 
 	//LOG("curve' in : %f %f; %f %f; %f %f\n",curveD1[0].GetX(),curveD1[0].GetY(),curveD1[1].GetX(),curveD1[1].GetY(),curveD1[2].GetX(),curveD1[2].GetY());
 
@@ -674,8 +676,8 @@ void CBezierMaker::ReparametrizeT(CPolyLine* pl,
 		double b = (*tlist)[i];
 		double a = 1 - b;
 
-		CFPoint curvePoint0 ( curve->At(0)->GetX()*a*a*a + curve->At(0)->GetControlPointForward().GetX()*3*a*a*b + curve->At(1)->GetControlPointBack().GetX()*3*a*b*b + curve->At(1)->GetX()*b*b*b,
-			curve->At(0)->GetY()*a*a*a + curve->At(0)->GetControlPointForward().GetY()*3*a*a*b + curve->At(1)->GetControlPointBack().GetY()*3*a*b*b + curve->At(1)->GetY()*b*b*b );
+		CFPoint curvePoint0 ( curve->At(0)->GetX()*a*a*a + curve->At(0)->GetControlPoint().GetX()*3*a*a*b + curve->At(1)->GetControlPoint().GetX()*3*a*b*b + curve->At(1)->GetX()*b*b*b,
+			curve->At(0)->GetY()*a*a*a + curve->At(0)->GetControlPoint().GetY()*3*a*a*b + curve->At(1)->GetControlPoint().GetY()*3*a*b*b + curve->At(1)->GetY()*b*b*b );
 
 		CFPoint curvePoint1 ( curveD1[0].GetX()*a*a + curveD1[1].GetX()*a*b + curveD1[2].GetX()*b*b,
 			curveD1[0].GetY()*a*a + curveD1[1].GetY()*a*b + curveD1[2].GetY()*b*b );
@@ -713,8 +715,8 @@ void CBezierMaker::ReparametrizeT(CPolyLine* pl,
 		CSketchPoint *start = curve->At(0);
 		CSketchPoint *end = curve->At(1);
 		CFPoint newPoint(
-			start->GetX()*a*a*a + start->GetControlPointForward().GetX()*3*a*a*b + end->GetControlPointBack().GetX()*3*a*b*b + end->GetX()*b*b*b,
-			start->GetY()*a*a*a + start->GetControlPointForward().GetY()*3*a*a*b + end->GetControlPointBack().GetY()*3*a*b*b + end->GetY()*b*b*b
+			start->GetX()*a*a*a + start->GetControlPoint().GetX()*3*a*a*b + end->GetControlPoint().GetX()*3*a*b*b + end->GetX()*b*b*b,
+			start->GetY()*a*a*a + start->GetControlPoint().GetY()*3*a*a*b + end->GetControlPoint().GetY()*3*a*b*b + end->GetY()*b*b*b
 			);
 		diff = newPoint - pl->At(i)->GetCoords();
 		double newDistance = sqrt(diff.GetX()*diff.GetX()+diff.GetY()*diff.GetY());
@@ -788,8 +790,8 @@ const
 
 	CSketchPoint *l_point0 = a_curve.GetHeadPoint();
 	CSketchPoint *l_point3 = a_curve.GetTailPoint();
-	CFPoint l_controlPoint1 = l_point0->GetControlPointForward();
-	CFPoint l_controlPoint2 = l_point3->GetControlPointBack();
+	CFPoint l_controlPoint1 = l_point0->GetControlPoint();
+	CFPoint l_controlPoint2 = l_point3->GetControlPoint();
 
 	double l_controlPointDistance1 = l_point0->Distance(l_controlPoint1);
 	double l_controlPointDistance2 = l_point3->Distance(l_controlPoint2);
@@ -810,4 +812,6 @@ const
 		return true;
 	}
 	return false;
+}
+
 }

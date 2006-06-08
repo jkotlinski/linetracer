@@ -24,17 +24,13 @@ private:
 	bool m_isKnot;
 	bool m_isKnee;
 	bool m_isYFork;
-	CFPoint m_controlPointBack;
-	CFPoint m_controlPointForward;
+	CFPoint m_controlPoint;
 	double m_Width;
 	int m_color;
 public:
 	const bool IsKnee(void) const;
-	void SetControlPointBack(const CFPoint &point);
-	void SetControlPointForward(const CFPoint &point);
-	CFPoint GetControlPointBack() const;
-	CFPoint GetControlPointForward() const;
-	void SwapControlPoints(void);
+	void SetControlPoint(const CFPoint &point);
+	CFPoint GetControlPoint() const;
 	void Trace(void) const;
 public:
 	const double GetX(void) const;
