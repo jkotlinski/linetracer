@@ -6,6 +6,8 @@
 #include "math.h"
 #include <iostream>
 
+namespace ImageProcessing {
+
 CBinarizer::CBinarizer(void)
 : CImageProcessor()
 , m_sketchBoard(NULL)
@@ -286,4 +288,6 @@ int CBinarizer::CalculateKittlerThreshold(const CRawImage<unsigned char> * a_img
 		assert ( !"kittler: couldn't find appropriate threshold value" );
 	}
 	return t+1;
+}
+
 }

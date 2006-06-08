@@ -214,10 +214,10 @@ void CLineTracerView::OnFileCloseImage()
 
 void CLineTracerView::OnFileOpenImage()
 {
-	TCHAR szFilters[] = _T("Images (*.jpg;*.gif;*.tiff;*.tif;*.ltc)");
+	TCHAR szFilters[] = _T("Images (*.jpg;*.png;*.gif;*.tiff;*.tif;*.ltc)");
 
-	CFileDialog dlg (TRUE,_T("jpg;gif;tiff;tif;ltc"),
-		_T("*.jpg;*.gif;*.tiff;*.tif;*.ltc"),OFN_FILEMUSTEXIST,szFilters);
+	CFileDialog dlg (TRUE,_T("jpg;png;gif;tiff;tif;ltc"),
+		_T("*.jpg;*.png;*.gif;*.tiff;*.tif;*.ltc"),OFN_FILEMUSTEXIST,szFilters);
 
 	if(dlg.DoModal()==IDOK) 
 	{
@@ -274,7 +274,7 @@ void CLineTracerView::OnUpdateViewOriginal(CCmdUI *pCmdUI)
 {
 	CLayerManager *lm = CLayerManager::Instance();
 	//CLayer* l = lm->GetLayer(CLayerManager::HOLEFILLER);
-	CLayer* l = lm->GetLayer(CLayerManager::AREAS_TO_CLOSED_CURVES);
+	CLayer* l = lm->GetLayer(CLayerManager::AREA_CONTOURIZER);
 	pCmdUI->SetCheck(l->IsVisible());
 }
 
@@ -771,7 +771,7 @@ void CLineTracerView::UpdateLayerVisibilitiesFromToolbox(void)
 void CLineTracerView::ResetParameterSettings(void)
 {
 	CProjectSettings::Instance()->Reset();
-	CBinarizer::Instance()->Reset();
+	ImageProcessing::CBinarizer::Instance()->Reset();
 	BOOL l_result = ::PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 0, 0 );
 	ASSERT ( l_result != 0 );
 }

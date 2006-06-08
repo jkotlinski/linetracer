@@ -166,16 +166,15 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		iter=End();
 		--iter;
 		while(iter!=Begin()) {
-			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
 			--iter;
 		}
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
-		linkPoint->SetControlPointBack((*iter)->GetControlPointForward());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		//line forwards
 		iter=line->Begin();
-		linkPoint->SetControlPointForward((*iter)->GetControlPointForward());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		tmp->Add(linkPoint);
 		for(++iter; iter!=line->End(); ++iter) {
 			tmp->Add(*iter);
@@ -192,27 +191,24 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		iter=End();
 		--iter;
 		while(iter!=Begin()) {
-			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
 			--iter;
 		} 
 
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
-		linkPoint->SetControlPointBack((*iter)->GetControlPointForward());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		//line backwards
 		iter=line->End();
 		--iter;
-		linkPoint->SetControlPointForward((*iter)->GetControlPointBack());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		tmp->Add(linkPoint);
 		--iter;
 		while(iter!=line->Begin()) {
-			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
 			--iter;
 		}
-		(*iter)->SwapControlPoints();
 		tmp->Add(*iter);
 		*iter=0;
 		break;
@@ -234,10 +230,10 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		}
 
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
-		linkPoint->SetControlPointBack((*iter)->GetControlPointBack());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		//line forwards
 		iter=line->Begin();
-		linkPoint->SetControlPointForward((*iter)->GetControlPointForward());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		tmp->Add(linkPoint);
 		//LOG("linkPoint: ");
 		//linkPoint->Trace();
@@ -267,21 +263,19 @@ CPolyLine* CPolyLine::MergeLine(CPolyLine* line)
 		} while(iter!=end);
 
 		CSketchPoint *linkPoint = new CSketchPoint((*iter)->GetCoords(),false,false);
-		linkPoint->SetControlPointBack((*iter)->GetControlPointBack());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		//line backwards
 		iter=line->End();
 		--iter;
-		linkPoint->SetControlPointForward((*iter)->GetControlPointBack());
+		linkPoint->SetControlPoint((*iter)->GetControlPoint());
 		tmp->Add(linkPoint);
 
 		--iter;
 		while(iter!=line->Begin()) {
-			(*iter)->SwapControlPoints();
 			tmp->Add(*iter);
 			*iter=0;
 			--iter;
 		}
-		(*iter)->SwapControlPoints();
 		tmp->Add(*iter);
 		*iter=0;
 		break;
@@ -564,8 +558,8 @@ void CPolyLine::DrawCurve(Graphics& a_graphics, Pen &a_pen, CSketchPoint* a_star
 {
 	a_graphics.DrawBezier ( &a_pen,
 		a_startPoint->GetPointF(),
-		a_startPoint->GetControlPointForward().GetPointF(),
-		a_endPoint->GetControlPointBack().GetPointF(),
+		a_startPoint->GetControlPoint().GetPointF(),
+		a_endPoint->GetControlPoint().GetPointF(),
 		a_endPoint->GetPointF()
 		);
 }

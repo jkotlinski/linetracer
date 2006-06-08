@@ -146,7 +146,7 @@
 				RelativePath=".\AffineTransform.cpp">
 			</File>
 			<File
-				RelativePath=".\AreasToClosedCurvesProcessor.cpp">
+				RelativePath=".\AreaContourizer.cpp">
 			</File>
 			<File
 				RelativePath=".\BezierMaker.cpp">
@@ -271,7 +271,7 @@
 				RelativePath=".\AffineTransform.h">
 			</File>
 			<File
-				RelativePath=".\AreasToClosedCurvesProcessor.h">
+				RelativePath=".\AreaContourizer.h">
 			</File>
 			<File
 				RelativePath=".\BezierMaker.h">

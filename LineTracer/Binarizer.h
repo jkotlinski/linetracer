@@ -1,6 +1,8 @@
 #pragma once
 #include "imageprocessor.h"
 
+namespace ImageProcessing {
+
 class CBinarizer :
 	public CImageProcessor
 {
@@ -23,3 +25,5 @@ public:
 private:
 	int CalculateKittlerThreshold(const CRawImage<unsigned char> * a_img);
 };
+
+}

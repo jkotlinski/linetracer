@@ -71,14 +71,13 @@ bool operator<(const CFPoint& p1,const CFPoint& p2)
 
 const bool operator==(const CFPoint& a_p1, const CFPoint& a_p2)
 {
-	static const double MAX_DIFF_FOR_EQUALITY = 0.1;
+	static const double MAX_DIFF_FOR_EQUALITY = 0.71;
 	return a_p1.Distance(a_p2) < MAX_DIFF_FOR_EQUALITY;
 }
 
 const bool operator!=(const CFPoint& a_p1, const CFPoint& a_p2)
 {
-	static const double MAX_DIFF_FOR_EQUALITY = 0.1;
-	return a_p1.Distance(a_p2) >= MAX_DIFF_FOR_EQUALITY;
+	return !(a_p1 == a_p2);
 }
 
 const CFPoint operator+(const CFPoint& a_p1, const CFPoint& a_p2)

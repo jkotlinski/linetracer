@@ -17,9 +17,11 @@
 #include "Thinner.h"
 #include "BezierMaker.h"
 #include "ForkHandler.h"
-#include "AreasToClosedCurvesProcessor.h"
+#include "AreaContourizer.h"
 
 #include "LineTracerView.h"
+
+using namespace ImageProcessing;
 
 CLayerManager::CLayerManager(void)
 : m_processThread(NULL)
@@ -50,7 +52,7 @@ CLayerManager::CLayerManager(void)
 	m_Layers.push_back(layer);
 
 	layer=new CLayer( );
-	layer->SetImageProcessor(AreasToClosedCurvesProcessor::Instance());
+	layer->SetImageProcessor(AreaContourizer::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 

@@ -5,6 +5,11 @@
 #include <deque>
 #include <assert.h>
 
+using namespace std;
+
+static const bool k_black = false;
+static const bool k_white = true;
+
 template <class T>
 class CRawImage
 	: public CSketchImage
@@ -29,10 +34,11 @@ public:
 	inline T GetPixel(int offset) const;
 	inline void SetPixel(int offset, T val);
 	void Clear();
+	void PaintPixels( deque<pair<int,int> > a_pixels_to_paint, T a_color );
 	void Dilate(void);
 	void Erode(void);
 	void Fill(T val = 1);
-	CRawImage<T> *Clone();
+	CRawImage<T> *Clone() const;
 
 	void DrawUsingGraphics(Graphics& a_graphics);
 
@@ -81,39 +87,6 @@ private:
 	}
 
 public:
-
-	void DeleteAllBlackPixelsWithoutWhiteNeighbors(void)
-	{
-		deque<CPoint> l_pixelsToDelete;
-		for ( int l_y = 1; l_y < GetHeight()-1; l_y++ )
-		{
-			for ( int l_x = 1; l_x < GetWidth()-1; l_x++ )
-			{
-				bool l_pixelIsWhite = ( GetPixel( l_x, l_y ) == 0 );
-				if ( l_pixelIsWhite )
-				{
-					continue;
-				}
-
-				//check if neighbors are white
-				if ( GetPixel ( l_x-1, l_y ) == 0 ) continue;
-				if ( GetPixel ( l_x+1, l_y ) == 0 ) continue;
-				if ( GetPixel ( l_x, l_y+1 ) == 0 ) continue;
-				if ( GetPixel ( l_x, l_y-1 ) == 0 ) continue;
-
-				CPoint l_point(l_x,l_y);
-				l_pixelsToDelete.push_back(l_point);
-			}
-		}
-
-		while ( l_pixelsToDelete.empty() == false )
-		{
-			CPoint p = l_pixelsToDelete.front();
-			l_pixelsToDelete.pop_front();
-			SetPixel ( p.x, p.y, 0 );
-		}
-	}
-
 	void calculate_histogram(int * a_histogram, int a_levels) const
 	{
 		memset ( a_histogram, 0, a_levels );
@@ -337,6 +310,17 @@ void CRawImage<T>::Fill(T val)
 }
 
 template <class T>
+void CRawImage<T>::PaintPixels( deque<pair<int,int> > a_pixels_to_paint, T a_color )
+{
+	while ( !a_pixels_to_paint.empty() )
+	{
+		const pair<int,int> l_pixelPos = a_pixels_to_paint.front();
+		a_pixels_to_paint.pop_front();
+		SetPixel(l_pixelPos.first, l_pixelPos.second, a_color);
+	}
+}
+
+template <class T>
 void CRawImage<T>::DrawUsingGraphics(Graphics& a_graphics)
 {
 	CLogger::Activate();
@@ -355,6 +339,7 @@ void CRawImage<T>::DrawUsingGraphics(Graphics& a_graphics)
 
 template <class T>
 CRawImage<T>* CRawImage<T>::Clone()
+const
 {
 	CRawImage<T> *l_clone = new CRawImage<T>(GetWidth(), GetHeight());
 	for ( int i=0; i<GetWidth()*GetHeight(); i++) 

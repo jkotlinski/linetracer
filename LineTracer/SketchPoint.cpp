@@ -10,8 +10,7 @@ CSketchPoint::CSketchPoint(double a_x, double a_y, bool isEndPoint, bool isKnot)
 , m_isKnot(isKnot)
 , m_isKnee(false)
 , m_isYFork(false)
-, m_controlPointBack(CFPoint(a_x,a_y))
-, m_controlPointForward(CFPoint(a_x,a_y))
+, m_controlPoint(CFPoint(a_x,a_y))
 , m_Width(0)
 , m_color(0)
 {
@@ -23,8 +22,7 @@ CSketchPoint::CSketchPoint(const CFPoint &p, bool isEndPoint, bool isKnot)
 , m_isKnot(isKnot)
 , m_isKnee(false)
 , m_isYFork(false)
-, m_controlPointBack(p)
-, m_controlPointForward(p)
+, m_controlPoint(p)
 , m_Width(0)
 , m_color(0)
 {
@@ -36,8 +34,7 @@ CSketchPoint::CSketchPoint()
 , m_isKnot(false)
 , m_isKnee(false)
 , m_isYFork(false)
-, m_controlPointBack()
-, m_controlPointForward()
+, m_controlPoint()
 , m_Width(0)
 , m_color(0)
 {
@@ -69,8 +66,7 @@ void CSketchPoint::SetIsKnot(bool val)
 
 CSketchPoint* CSketchPoint::Clone(void) const {
 	CSketchPoint *nuPt = new CSketchPoint(m_point.GetX(),m_point.GetY(),IsEndPoint(),IsKnot());
-	nuPt->SetControlPointBack(GetControlPointBack());
-	nuPt->SetControlPointForward(GetControlPointForward());
+	nuPt->SetControlPoint(GetControlPoint());
 	nuPt->SetKnee(IsKnee());
 	nuPt->m_isYFork=m_isYFork;
 	return nuPt;
@@ -85,27 +81,12 @@ const bool CSketchPoint::IsKnee(void) const {
 	return m_isKnee;
 }
 
-void CSketchPoint::SetControlPointBack(const CFPoint &point) {
-	m_controlPointBack = point;
+void CSketchPoint::SetControlPoint(const CFPoint &point) {
+	m_controlPoint = point;
 }
 
-void CSketchPoint::SetControlPointForward(const CFPoint &point) {
-	m_controlPointForward = point;
-}
-
-CFPoint CSketchPoint::GetControlPointBack() const {
-	return m_controlPointBack;
-}
-
-CFPoint CSketchPoint::GetControlPointForward() const {
-	return m_controlPointForward;
-}
-
-void CSketchPoint::SwapControlPoints(void)
-{
-	CFPoint tmp = m_controlPointForward;
-	m_controlPointForward = m_controlPointBack;
-	m_controlPointBack = tmp;
+CFPoint CSketchPoint::GetControlPoint() const {
+	return m_controlPoint;
 }
 
 void CSketchPoint::Trace(void) const {
