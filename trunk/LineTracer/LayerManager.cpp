@@ -110,8 +110,6 @@ CLayerManager::CLayerManager(void)
 
 CLayerManager::~CLayerManager(void)
 {
-	m_message_queue_gui_to_ip.PostMsg(Message(MSG_KILL_THREAD,0,0));
-	while( !m_message_queue_gui_to_ip.IsEmpty() );
 	try {
 		for(unsigned int i=0; i<m_Layers.size(); i++) {
 			delete m_Layers.at(i);
@@ -284,6 +282,7 @@ UINT CLayerManager::IPEventLoop(LPVOID pParam)
 
 			case MSG_KILL_THREAD:
 				AfxEndThread(0);
+				return 1;
 		}
 	}
 }
