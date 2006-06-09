@@ -12,7 +12,6 @@
 
 #include "Binarizer.h"
 #include "DeSaturator.h"
-#include "Gaussian.h"
 #include "Skeletonizer.h"
 #include "TailPruner.h"
 #include "BezierMaker.h"
@@ -33,10 +32,8 @@
 IMPLEMENT_DYNCREATE(CLineTracerDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CLineTracerDoc, CDocument)
-	ON_COMMAND(ID_PARAMETERS_GAUSSIANBLUR, OnParametersGaussian)
 	ON_COMMAND(ID_VIEW_SKELETONIZER, OnViewSkeletonizer)
 	ON_COMMAND(ID_VIEW_BINARIZER, OnViewBinarizer)
-	ON_COMMAND(ID_VIEW_GAUSSIAN, OnViewGaussian)
 	ON_COMMAND(ID_VIEW_ORIGINAL, OnViewOriginal)
 	ON_COMMAND(ID_PARAMETERS_LINESIZETHRESHOLD, OnParametersLineLength)
 	ON_COMMAND(ID_VIEW_BEZIERMAKER, OnViewBeziermaker)
@@ -82,7 +79,6 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 		ar << m_InputBitmapFileName;
 		//PENDING: add CProjectSettings support
 		/*
-		ar << CGaussian::Instance()->GetParam(CImageProcessor::GAUSSIAN_RADIUS);
 		ar << CBinarizer::Instance()->GetParam(CImageProcessor::BINARIZER_THRESHOLD);
 		ar << CTailPruner::Instance()->GetParam(CImageProcessor::TAILPRUNER_THRESHOLD);
 		*/
@@ -102,8 +98,6 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 
 		//PENDING: add ProjectSettings support
 		/*
-		ar >> tmp;
-		CGaussian::Instance()->SetParam(CImageProcessor::GAUSSIAN_RADIUS,tmp);
 		ar >> tmp;
 		CBinarizer::Instance()->SetParam(CImageProcessor::BINARIZER_THRESHOLD,tmp);
 		ar >> tmp;
@@ -145,10 +139,6 @@ void CLineTracerDoc::ProcessLayers(void)
 	UpdateAllViews(NULL);
 }
 
-void CLineTracerDoc::OnParametersGaussian()
-{
-}
-
 void CLineTracerDoc::OnViewSkeletonizer()
 {
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::SKELETONIZER);
@@ -164,23 +154,9 @@ void CLineTracerDoc::OnViewBinarizer()
 	l->SetVisible(!l->IsVisible());
 
 	lm->GetLayer(CLayerManager::DESATURATOR)->SetVisible(false);
-	//lm->GetLayer(CLayerManager::GAUSSIAN)->SetVisible(false);
 
 	UpdateAllViews(NULL);
 	SetModifiedFlag();
-}
-
-void CLineTracerDoc::OnViewGaussian()
-{
-/*	CLayerManager *lm = CLayerManager::Instance();
-	CLayer *l = lm->GetLayer(CLayerManager::GAUSSIAN);
-	l->SetVisible(!l->IsVisible());
-
-	lm->GetLayer(CLayerManager::DESATURATOR)->SetVisible(false);
-	lm->GetLayer(CLayerManager::BINARIZER)->SetVisible(false);
-
-	UpdateAllViews(NULL);
-	SetModifiedFlag();*/
 }
 
 void CLineTracerDoc::OnViewOriginal()

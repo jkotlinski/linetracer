@@ -43,12 +43,9 @@ private:
 	CString m_InputBitmapFileName;
 public:
 	void ProcessLayers(void);
-	//Bitmap* GetInputBitmap(void);
-	afx_msg void OnParametersGaussian();
 
 	afx_msg void OnViewSkeletonizer();
 	afx_msg void OnViewBinarizer();
-	afx_msg void OnViewGaussian();
 	afx_msg void OnViewOriginal();
 	afx_msg void OnParametersLineLength();
 	void SetZoom(int factor);

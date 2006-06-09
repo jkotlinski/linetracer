@@ -54,13 +54,11 @@ protected:
 	afx_msg void OnViewZoomOut();
 	afx_msg void OnUpdateViewSkeletonizer(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBinarizer(CCmdUI *pCmdUI);
-	afx_msg void OnUpdateViewGaussian(CCmdUI *pCmdUI);
 	afx_msg void OnFileExporteps();
 	afx_msg void OnUpdateViewOriginal(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewBeziermaker(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewThinner(CCmdUI *pCmdUI);
 	afx_msg LRESULT OnUpdateStatusbarWithString ( WPARAM wParam, LPARAM lParam );
-	//afx_msg LRESULT OnProcessThreadFinished ( WPARAM wParam, LPARAM lParam );
 	
 	DECLARE_MESSAGE_MAP()
 private:

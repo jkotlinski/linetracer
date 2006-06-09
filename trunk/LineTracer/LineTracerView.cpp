@@ -52,7 +52,6 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_COMMAND(ID_VIEW_ZOOMOUT, OnViewZoomOut)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_SKELETONIZER, OnUpdateViewSkeletonizer)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BINARIZER, OnUpdateViewBinarizer)
-	ON_UPDATE_COMMAND_UI(ID_VIEW_GAUSSIAN, OnUpdateViewGaussian)
 	ON_COMMAND(ID_FILE_EXPORTEPS, OnFileExporteps)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ORIGINAL, OnUpdateViewOriginal)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_BEZIERMAKER, OnUpdateViewBeziermaker)
@@ -99,6 +98,7 @@ CLineTracerView::CLineTracerView()
 	m_imageWidth = 0;
 	m_imageHeight = 0;
 }
+
 CLineTracerView::~CLineTracerView()
 {
 }
@@ -252,13 +252,6 @@ void CLineTracerView::OnUpdateViewBinarizer(CCmdUI *pCmdUI)
 {
 	CLayer* l = CLayerManager::Instance()->GetLayer(CLayerManager::BINARIZER);
 	pCmdUI->SetCheck(l->IsVisible());
-}
-
-void CLineTracerView::OnUpdateViewGaussian(CCmdUI *pCmdUI)
-{
-/*	CLayerManager *lm = CLayerManager::Instance();
-	CLayer* l = lm->GetLayer(CLayerManager::GAUSSIAN);
-	pCmdUI->SetCheck(l->IsVisible());*/
 }
 
 void CLineTracerView::OnFileExporteps() {
@@ -678,8 +671,6 @@ void CLineTracerView::FillBackground(
 		l_WHITE );
 		*/
 }
-
-
 
 BOOL CLineTracerView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
