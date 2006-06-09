@@ -152,39 +152,9 @@ void CLineTracerDoc::ProcessLayers(void)
 	UpdateAllViews(NULL);
 }
 
-
-/*Bitmap* CLineTracerDoc::GetInputBitmap(void)
-{
-	return m_InputBitmap;
-}*/
-
 void CLineTracerDoc::OnParametersGaussian()
 {
-	/*
-	ASSERT ( false );
-	CParamDialog dlg;
-	CProjectSettings *l_settings = CProjectSettings::Instance();
-
-	double oldVal = l_settings->GetParam(CProjectSettings::GAUSSIAN_RADIUS);
-	dlg.m_EditValue.Format("%.1f",oldVal);
-
-	if(dlg.DoModal() == IDOK) {
-		double newVal = atof((char*)(const char*)dlg.m_EditValue);
-
-		if(newVal<0.0) newVal=0.0;
-
-		l_settings->SetParam(CProjectSettings::GAUSSIAN_RADIUS,newVal);
-		if( CFloatComparer::FloatsDiffer(newVal,oldVal) ) {
-			SetModifiedFlag();
-			l_settings->SetParam(CProjectSettings::BINARIZER_THRESHOLD,-1.0);
-
-			CLayerManager::Instance()->InvalidateLayers(CLayerManager::GAUSSIAN);
-			ProcessLayers();
-		}
-	}
-	*/
 }
-
 
 void CLineTracerDoc::OnViewSkeletonizer()
 {
