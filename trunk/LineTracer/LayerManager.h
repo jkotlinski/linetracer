@@ -62,3 +62,6 @@ public:
 	bool IsProcessing(void) const;
 	void ResetProcessThread(void);
 };
+
+static volatile bool m_stop_processing;
+static CCriticalSection m_critical_layerchange_section;

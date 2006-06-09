@@ -113,6 +113,9 @@ CLayerManager* CLayerManager::Instance() {
 
 void CLayerManager::InvalidateLayers(unsigned int startLayer)
 {
+	CSingleLock l_lock(&m_critical_layerchange_section);
+	l_lock.Lock();
+
 	for(unsigned int i=startLayer; i<m_Layers.size(); i++) {
 		m_Layers.at(i)->SetValid(false);
 
@@ -129,7 +132,7 @@ void CLayerManager::ProcessLayers()
 		m_restartProcess = true;
 	}
 	else 
-	{			
+	{		
 		m_processThread = AfxBeginThread ( 
 			DoProcessLayers, 
 			static_cast<LPVOID>( this )
@@ -345,6 +348,8 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 	{
 		CLayer *l_layer = GetLayer( l_layerIndex );
 
+		CSingleLock l_lock(&m_critical_layerchange_section);
+		l_lock.Lock();
 		if ( l_layer->IsVisible() && l_layer->IsValid() )
 		{
 			if ( IsProcessing() && l_layer->HasBeenDrawn() )
