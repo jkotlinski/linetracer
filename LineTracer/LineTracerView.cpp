@@ -5,6 +5,7 @@
 #include "LineTracer.h"
 #include "FloatComparer.h"
 #include <afxdlgs.h>
+#include "MainFrm.h"
 
 #include "LineTracerDoc.h"
 #include "LineTracerView.h"
@@ -414,13 +415,14 @@ afx_msg LRESULT CLineTracerView::OnProcessThreadFinished(WPARAM wParam, LPARAM l
 afx_msg LRESULT CLineTracerView::OnUpdateStatusbarWithString
 	(WPARAM wParam, LPARAM lParam)
 {
-	CFrameWnd *pMainFrame = static_cast<CFrameWnd *>(AfxGetMainWnd());
+	CMainFrame *pMainFrame = static_cast<CMainFrame *>(AfxGetMainWnd());
 	if (pMainFrame)
 	{
 		CStatusBar *pStatusBar = static_cast<CStatusBar *>(pMainFrame->GetMessageBar());
 		if (pStatusBar)
 		{
 			LPCTSTR l_message = reinterpret_cast<LPCTSTR>(wParam);
+			pMainFrame->m_statustext = l_message;
 			pStatusBar->SetPaneText(0, l_message);
 			delete[] l_message;
 		}
@@ -857,3 +859,4 @@ void CLineTracerView::OnHelpReportbug()
 {
 	::ShellExecute(0, "open", "mailto:kotlinski@gmail.com?subject=LineTracer bug report", 0, 0, SW_SHOW);
 }
+

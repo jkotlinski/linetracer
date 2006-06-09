@@ -6,6 +6,8 @@
 
 #include "MainFrm.h"
 
+#define WM_SETMESSAGESTRING 0x0362
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -18,6 +20,7 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_WM_CREATE()
 	ON_WM_CLOSE()
+	ON_MESSAGE ( WM_SETMESSAGESTRING, OnSetMessageString )
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -32,6 +35,7 @@ static UINT indicators[] =
 
 CMainFrame::CMainFrame()
 {
+	m_statustext = "";
 	// TODO: add member initialization code here
 }
 
@@ -215,4 +219,11 @@ void CMainFrame::WriteWindowPlacement(WINDOWPLACEMENT *pwp)
             pwp->rcNormalPosition.right, pwp->rcNormalPosition.bottom);
      AfxGetApp()->WriteProfileString(szSection, szWindowPos, szBuffer);
 
+}
+
+afx_msg LRESULT CMainFrame::OnSetMessageString(WPARAM wParam, LPARAM lParam)
+{
+	if (wParam == AFX_IDS_IDLEMESSAGE && m_statustext.c_str ()[0] != 0)
+		return CFrameWnd::OnSetMessageString (0, (LPARAM)m_statustext.c_str ());
+	return CFrameWnd::OnSetMessageString (wParam, lParam);
 }

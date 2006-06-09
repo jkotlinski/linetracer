@@ -22,6 +22,7 @@ public:
 // Overrides
 public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	string m_statustext;
 
 // Implementation
 public:
@@ -39,6 +40,8 @@ protected:  // control bar embedded members
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnClose(void);
+	afx_msg LRESULT OnSetMessageString(WPARAM wParam, LPARAM lParam);
+
 	DECLARE_MESSAGE_MAP()
 	void ActivateFrame(int nCmdShow);
 
