@@ -17,6 +17,8 @@ private:
 	CSketchImage *m_SketchImage;
 	bool m_IsVisible;
 	bool m_IsValid;
+	CCriticalSection m_critical_section;
+
 public:
 	void SetImageProcessor(CImageProcessor* ImageProcessor);
 public:
@@ -24,6 +26,8 @@ public:
 	void SetVisible(bool state);
 	bool IsVisible(void) const;
 	void Process(CProjectSettings & a_project_settings, CSketchImage *src);
+	void Lock();
+	void Unlock();
 public:
 	bool IsValid(void) const;
 	void SetValid(bool isValid);

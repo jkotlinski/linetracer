@@ -43,61 +43,61 @@ CLayerManager::CLayerManager(void)
 , m_Layers()
 {
 	//LOG("init layermanager\n");
-	CLayer *layer=new CLayer( );
+	CLayer *layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CDeSaturator::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	/*layer=new CLayer(  );
+	/*layer=DEBUG_NEW CLayer(  );
 	layer->SetImageProcessor(CGaussian::Instance());
 	m_Layers.push_back(layer);*/
 
-	layer=new CLayer( );
+	layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CBinarizer::Instance());
 	layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer( );
+	layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CHoleFiller::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer( );
+	layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(AreaContourizer::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer( );
+	layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CThinner::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer( );
+	layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CSkeletonizer::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 	
-	layer=new CLayer( );
+	layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CTailPruner::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=DEBUG_NEW CLayer();
 	layer->SetImageProcessor(CLineSegmentor::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer = new CLayer( );
+	layer = DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CForkHandler::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer();
+	layer=DEBUG_NEW CLayer();
 	layer->SetImageProcessor(CKneeSplitter::Instance());
 	//layer->SetVisible(true);
 	m_Layers.push_back(layer);
 
-	layer=new CLayer( );
+	layer=DEBUG_NEW CLayer( );
 	layer->SetImageProcessor(CBezierMaker::Instance());
 	layer->SetVisible(true);
 	m_Layers.push_back(layer);
@@ -197,10 +197,11 @@ void TheProcessing(CProjectSettings * a_project_settings)
 		CLogger::Instance()->Activate();
 		TRACE("process layer: %i\n",l_activeLayerIndex);
 		layer = l_lm->GetLayer (l_activeLayerIndex);
+		layer->Lock();
 
 		if ( layer->IsValid() == false )
 		{
-			char *l_messageStrBuf = new char[100];
+			char *l_messageStrBuf = DEBUG_NEW char[100];
 			const CString *l_string = layer->GetName();
 			const char *l_layerName = (LPCTSTR)(*l_string);
 			sprintf(l_messageStrBuf, "Processing %s...", l_layerName);
@@ -213,6 +214,7 @@ void TheProcessing(CProjectSettings * a_project_settings)
 
 		if ( !CLayerManager::Instance()->m_message_queue_gui_to_ip.IsEmpty() ) {
 			//whooops... more events to process! quit immediately
+			layer->Unlock();
 			return;
 		}
 
@@ -236,11 +238,13 @@ void TheProcessing(CProjectSettings * a_project_settings)
 		}
 
 		img = layer->GetSketchImage();
+
+		layer->Unlock();
 	}
 
 	LOG("LayerManager::ProcessLayers() done\n");
 
-	char *l_message = new char[100];
+	char *l_message = DEBUG_NEW char[100];
 	strcpy(l_message, "Ready");
 	l_lm->m_lineTracerView->PostMessage(
 		WM_UPDATE_STATUSBAR_WITH_STRING, 
@@ -344,15 +348,18 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 		l_layerIndex++ )
 	{
 		CLayer *l_layer = GetLayer( l_layerIndex );
+		l_layer->Lock();
 
 		if ( l_layer->IsVisible() && l_layer->IsValid() )
 		{
 			if ( IsProcessing() && l_layer->HasBeenDrawn() )
 			{
+				l_layer->Unlock();
 				continue;
 			}
 			l_layer->DrawUsingGraphics ( a_graphics );
 		}
+		l_layer->Unlock();
 	}
 }
 
