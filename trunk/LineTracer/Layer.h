@@ -35,7 +35,4 @@ private:
 	bool m_hasBeenDrawn;
 public:
 	bool HasBeenDrawn(void);
-
-private:
-	CCriticalSection m_critSection;
 };

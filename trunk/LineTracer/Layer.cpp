@@ -110,8 +110,6 @@ int CLayer::GetImageHeight(void)
 
 void CLayer::DrawUsingGraphics(Graphics & a_graphics)
 {
-	CSingleLock l_single_lock (&m_critSection);
-	l_single_lock.Lock();
 	CSketchImage *l_sketchImage = GetSketchImage();
 	if ( l_sketchImage == NULL )
 	{
