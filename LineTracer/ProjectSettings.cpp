@@ -15,8 +15,6 @@ CProjectSettings::~CProjectSettings(void)
 double CProjectSettings::GetParam(CProjectSettings::ParamName name) {
 	//LOG ( "settings->GetParam; name = %i\n", name );
 	//LOG ( "m_params.count(name): %i\n", m_params.count(name) );
-	ASSERT ( m_params.count(name) == 1 );
-
 	if ( m_params.count ( name ) == 0 ) {
 		return -1.0;
 	}
@@ -40,7 +38,6 @@ void CProjectSettings::Init(void)
 	SetParam(SKELETONIZER_SCALE, 1.0);
 	SetParam(KNEESPLITTER_THRESHOLD, -0.3);
 	SetParam(HOLEFILLER_MAX_AREA_TO_FILL, 10.0);
-	SetParam(GAUSSIAN_RADIUS, 0.5);
 }
 
 void CProjectSettings::Reset(void)

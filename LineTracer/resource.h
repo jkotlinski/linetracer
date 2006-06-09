@@ -43,8 +43,6 @@
 #define ID_OPERATION_BINARIZE           32772
 #define ID_FILE_OPENIMAGE               32773
 #define ID_PARAMETERS_BINARIZE          32774
-#define ID_PARAMETERS_GAUSSIANBLUR      32775
-#define ID_VIEW_GAUSSIAN                32776
 #define ID_VIEW_BINARIZER               32777
 #define ID_VIEW_SKELETONIZER            32778
 #define ID_FILE_EXPORTEPS               32779

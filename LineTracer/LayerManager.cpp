@@ -171,7 +171,6 @@ void TheProcessing(CProjectSettings * a_project_settings)
 	CLogger::Instance()->Activate();
 
 	CLayerManager *l_lm = CLayerManager::Instance();
-	l_lm->m_isProcessing = true;
 
 	ASSERT ( l_lm->LayerCount() > 0 );
 
@@ -184,6 +183,7 @@ void TheProcessing(CProjectSettings * a_project_settings)
 	if ( 0 == img ) {
 		return;
 	}
+	l_lm->m_isProcessing = true;
 
 	#ifdef _DEBUG
 	CMemoryState l_oldMemState;
