@@ -13,7 +13,7 @@ public:
 protected:
 	CLineSegmentor(void);
 public:
-	CSketchImage* Process(CSketchImage* src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 
 private:
 	void Add(CPolyLine* dst, CPolyLine* src);

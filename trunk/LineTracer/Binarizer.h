@@ -11,7 +11,7 @@ protected:
 public:
 	static CBinarizer* Instance();
 	~CBinarizer(void);
-	CSketchImage* Process(CSketchImage* src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 
 private:
 	int CalculateOtsuThreshold(const CRawImage<unsigned char> *img) const;

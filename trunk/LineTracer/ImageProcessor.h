@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include "ProjectSettings.h"
 #include "RawImage.h"
 using namespace std;
 class CImageProcessor
@@ -9,7 +10,7 @@ public:
 	CImageProcessor(void);
 	virtual ~CImageProcessor(void);
 
-	virtual CSketchImage* Process(CSketchImage* src) = 0;
+	virtual CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src) = 0;
 
 public:
 

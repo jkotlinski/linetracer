@@ -3,11 +3,12 @@
 
 #include <math.h>
 #include "ProjectSettings.h"
+#include "LayerManager.h"
 
 CGaussian::CGaussian(void)
 : CImageProcessor()
 {
-	LOG("init gaussian\n");
+	//LOG("init gaussian\n");
 	SetName( CString ( "Gaussian" ) );
 }
 
@@ -20,12 +21,12 @@ CGaussian* CGaussian::Instance() {
     return &inst;
 }
 
-CSketchImage* CGaussian::Process(CSketchImage* i_src)
+CSketchImage* CGaussian::Process(CProjectSettings & a_project_settings, CSketchImage* i_src)
 {
 	CRawImage<unsigned char> *src=dynamic_cast<CRawImage<unsigned char>*>(i_src);
 	ASSERT ( src != NULL );
 
-	double radius=CProjectSettings::Instance()->GetParam(
+	double radius = a_project_settings.GetParam(
 		CProjectSettings::GAUSSIAN_RADIUS);
 
 	CRawImage<unsigned char> *dst=new CRawImage<unsigned char>(src->GetWidth(), src->GetHeight());

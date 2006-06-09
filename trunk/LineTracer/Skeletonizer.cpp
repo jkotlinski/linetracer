@@ -8,7 +8,7 @@ CSkeletonizer::CSkeletonizer(void)
 , m_knot_image ( 0 )
 {
 	SetName ( CString ( "Skeletonizer" ) );
-	LOG("init skeletonizer\n");
+	//LOG("init skeletonizer\n");
 }
 
 CSkeletonizer::~CSkeletonizer(void)
@@ -20,7 +20,7 @@ CSkeletonizer* CSkeletonizer::Instance() {
     return &inst;
 }
 
-CSketchImage* CSkeletonizer::Process(CSketchImage *i_src) {
+CSketchImage* CSkeletonizer::Process(CProjectSettings & a_project_settings, CSketchImage *i_src) {
 	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
 	ASSERT ( src != NULL );
 

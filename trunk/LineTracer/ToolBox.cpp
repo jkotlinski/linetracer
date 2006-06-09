@@ -53,26 +53,20 @@ BOOL CToolBox::OnInitDialogBar()
 	// CBitmapButton is one
 	//m_OKButtton.AutoLoad(IDOK, this);
 
-	CProjectSettings *l_settings = CProjectSettings::Instance();
-
 	c_binarizerThresholdControl.SetRange(1,254);
 	//(void) c_binarizerThresholdControl.SetPos(1);
 
 	c_detailEnhanceControl.SetRange(1,20);
-	c_detailEnhanceControl.SetPos( 
-		21 - int( l_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C ) ) );
+	/*c_detailEnhanceControl.SetPos( 
+		21 - int( lm_project_settings->GetParam( CProjectSettings::BINARIZER_MEAN_C ) ) );*/
 
-/*	//c_holeFillerControl.SetRange(0,20);
-	//c_holeFillerControl.SetPos( 
-		int( l_settings->GetParam( CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL ) ) );
-*/
 	c_tailPrunerControl.SetRange(0,40);
-	c_tailPrunerControl.SetPos( 
-		int( l_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) ) );
+	/*c_tailPrunerControl.SetPos( 
+		int( lm_project_settings->GetParam( CProjectSettings::TAILPRUNER_THRESHOLD ) ) );*/
 
 	c_curveDetailControl.SetRange(1,40);
-	c_curveDetailControl.SetPos( 
-		int( l_settings->GetParam( CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD ) ) );
+	/*c_curveDetailControl.SetPos( 
+		int( lm_project_settings->GetParam( CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD ) ) );*/
 
 	c_zoomButton.SetState( TRUE );
 
@@ -156,17 +150,18 @@ double CToolBox::GetParam(CProjectSettings::ParamName a_name) const
 			break;
 	}
 	
-	LOG ( "CToolBox::GetParam() retval == %f\n", retVal);
+	//LOG ( "CToolBox::GetParam() retval == %f\n", retVal);
 
 	return retVal;
 }
 
 // ---------------------------------------------------
 //lint -e{715} wParam and lParam are left unused
+
 afx_msg LRESULT CToolBox::OnUpdateToolboxDataFromLayers
 	(WPARAM wParam, LPARAM lParam)
 {
-	CProjectSettings *l_settings = CProjectSettings::Instance();
+	CProjectSettings *l_settings = (CProjectSettings*)wParam;
 	CLogger::Activate();
 	LOG ( "OnUpdateToolboxDataFromLayers\n" );
 
@@ -187,7 +182,6 @@ afx_msg LRESULT CToolBox::OnUpdateToolboxDataFromLayers
 
 	return 0;	
 }
-
 
 void CToolBox::OnDrawHoleFillerSlider(NMHDR *pNMHDR, LRESULT *pResult)
 {

@@ -4,7 +4,7 @@
 CDeSaturator::CDeSaturator(void)
 : CImageProcessor()
 {
-	LOG("init desaturator\n");
+	//LOG("init desaturator\n");
 	SetName(CString("desaturator"));
 }
 
@@ -18,7 +18,7 @@ CDeSaturator* CDeSaturator::Instance(void)
     return &inst;
 }
 
-CSketchImage* CDeSaturator::Process(CSketchImage* i_src)
+CSketchImage* CDeSaturator::Process(CProjectSettings & a_project_settings, CSketchImage* i_src)
 {
 	CRawImage<ARGB> *src=dynamic_cast<CRawImage<ARGB>*>(i_src);
 	ASSERT ( src != NULL );

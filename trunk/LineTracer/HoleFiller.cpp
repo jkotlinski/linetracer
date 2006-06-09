@@ -3,13 +3,14 @@
 
 #include "RawImage.h"
 #include "ProjectSettings.h"
+#include "LayerManager.h"
 
 #include "DistanceMapBuilder.h"
 
 CHoleFiller::CHoleFiller(void)
 : CImageProcessor()
 {
-	LOG("init holefiller\n");
+	//LOG("init holefiller\n");
 	SetName ( CString ( "Hole Filler" ) );
 	SetType ( HOLEFILLER );
 }
@@ -23,7 +24,7 @@ CHoleFiller *CHoleFiller::Instance() {
     return &inst;
 }
 
-CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
+CSketchImage* CHoleFiller::Process(CProjectSettings & a_project_settings, CSketchImage *i_src) {
 	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
 	ASSERT ( src != NULL );
 
@@ -35,8 +36,11 @@ CSketchImage* CHoleFiller::Process(CSketchImage *i_src) {
 		tmp.SetPixel(i, val);
 	}
 
-	const unsigned int max_area = static_cast<const unsigned int>(CProjectSettings::Instance()->GetParam(
-		CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL));
+	const unsigned int max_area = 
+		static_cast<unsigned int> (
+			a_project_settings.GetParam(
+			CProjectSettings::HOLEFILLER_MAX_AREA_TO_FILL)
+		);
 
 	for(int x=0; x<tmp.GetWidth(); x++) {
 		for(int y=0; y<tmp.GetHeight(); y++) {

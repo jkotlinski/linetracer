@@ -40,7 +40,7 @@ namespace ImageProcessing {
 
 	//---------------------------
 
-	CSketchImage * AreaContourizer::Process(CSketchImage * a_src_image)
+	CSketchImage * AreaContourizer::Process(CProjectSettings & a_project_settings, CSketchImage * a_src_image)
 	{
 		static const int l_max_line_radius = 2;
 		static const int l_min_area_threshold = 30;

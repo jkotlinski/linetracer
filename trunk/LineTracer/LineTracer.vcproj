@@ -218,6 +218,12 @@
 				RelativePath=".\MainFrm.cpp">
 			</File>
 			<File
+				RelativePath=".\Message.cpp">
+			</File>
+			<File
+				RelativePath=".\MessageQueue.cpp">
+			</File>
+			<File
 				RelativePath=".\ParamDialog.cpp">
 			</File>
 			<File
@@ -347,6 +353,12 @@
 			</File>
 			<File
 				RelativePath=".\memdc.h">
+			</File>
+			<File
+				RelativePath=".\Message.h">
+			</File>
+			<File
+				RelativePath=".\MessageQueue.h">
 			</File>
 			<File
 				RelativePath=".\pool\object_pool.hpp">

@@ -18,7 +18,7 @@ public:
 protected:
 	CSkeletonizer(void);
 public:
-	CSketchImage* Process(CSketchImage* src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 
 private:
 	CRawImage<bool> * m_knot_image;

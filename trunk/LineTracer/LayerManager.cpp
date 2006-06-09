@@ -22,16 +22,27 @@
 #include "LineTracerView.h"
 
 using namespace ImageProcessing;
+using namespace boost;
+
+static void InvalidateLayers(unsigned int startLayer = 0)
+{
+	CLayerManager * l_lm = CLayerManager::Instance();
+	for(unsigned int i=startLayer; i < l_lm->m_Layers.size(); i++) {
+		l_lm->m_Layers.at(i)->SetValid(false);
+
+		if(i< CLayerManager::BINARIZER) {
+			CBinarizer::Instance()->Init();
+		}
+	}
+}
 
 CLayerManager::CLayerManager(void)
 : m_processThread(NULL)
-, m_restartProcess(false)
 , m_lineTracerView(NULL)
 , m_isProcessing(false)
 , m_Layers()
 {
-	LOG("init layermanager\n");
-
+	//LOG("init layermanager\n");
 	CLayer *layer=new CLayer( );
 	layer->SetImageProcessor(CDeSaturator::Instance());
 	//layer->SetVisible(true);
@@ -90,10 +101,17 @@ CLayerManager::CLayerManager(void)
 	layer->SetImageProcessor(CBezierMaker::Instance());
 	layer->SetVisible(true);
 	m_Layers.push_back(layer);
+
+	m_processThread = AfxBeginThread ( 
+		IPEventLoop, 
+		static_cast<LPVOID>( this )
+		);
 }
 
 CLayerManager::~CLayerManager(void)
 {
+	m_message_queue_gui_to_ip.PostMsg(Message(MSG_KILL_THREAD,0,0));
+	while( !m_message_queue_gui_to_ip.IsEmpty() );
 	try {
 		for(unsigned int i=0; i<m_Layers.size(); i++) {
 			delete m_Layers.at(i);
@@ -109,35 +127,6 @@ CLayerManager::~CLayerManager(void)
 CLayerManager* CLayerManager::Instance() {
     static CLayerManager inst;
     return &inst;
-}
-
-void CLayerManager::InvalidateLayers(unsigned int startLayer)
-{
-	CSingleLock l_lock(&m_critical_layerchange_section);
-	l_lock.Lock();
-
-	for(unsigned int i=startLayer; i<m_Layers.size(); i++) {
-		m_Layers.at(i)->SetValid(false);
-
-		if(i<BINARIZER) {
-			CBinarizer::Instance()->Init();
-		}
-	}
-}
-
-void CLayerManager::ProcessLayers()
-{
-	if ( m_processThread != NULL )
-	{
-		m_restartProcess = true;
-	}
-	else 
-	{		
-		m_processThread = AfxBeginThread ( 
-			DoProcessLayers, 
-			static_cast<LPVOID>( this )
-			);
-	}
 }
 
 CLayer* CLayerManager::GetLayer(int layer)
@@ -177,114 +166,122 @@ CLayer* CLayerManager::GetLastLayer(void)
 	return m_Layers.at(m_Layers.size()-1);
 }
 
-UINT CLayerManager::DoProcessLayers(LPVOID pParam)
+void TheProcessing(CProjectSettings * a_project_settings)
 {
-	static int K_ACTIVE_PROCESSES = 0;
-
-	ASSERT ( K_ACTIVE_PROCESSES == 0 );
-	K_ACTIVE_PROCESSES++;
-
 	CLogger::Instance()->Activate();
 
-	CLayerManager *l_lm = static_cast<CLayerManager*>(pParam);
-
-	l_lm->m_isProcessing = true; 
+	CLayerManager *l_lm = CLayerManager::Instance();
+	l_lm->m_isProcessing = true;
 
 	ASSERT ( l_lm->LayerCount() > 0 );
 
 	int l_loopCount = 0;
 
-	do {
-		ASSERT ( l_loopCount++ < 1000 );
+	ASSERT ( l_loopCount++ < 1000 );
 
-		l_lm->m_restartProcess = false;
+	CLayer *layer = l_lm->GetLayer(0);
+	CSketchImage *img = layer->GetSketchImage();
+	if ( 0 == img ) {
+		return;
+	}
 
-		CLayer *layer = l_lm->GetLayer(0);
-		CSketchImage *img = layer->GetSketchImage();
-
-#ifdef _DEBUG
+	#ifdef _DEBUG
 	CMemoryState l_oldMemState;
 	l_oldMemState.Checkpoint();
-#endif
+	#endif
 
-		for(UINT l_activeLayerIndex = 1; 
-			(l_activeLayerIndex < l_lm->LayerCount()); 
-			l_activeLayerIndex++) 
+	for(UINT l_activeLayerIndex = 1; 
+	(l_activeLayerIndex < l_lm->LayerCount()); 
+	l_activeLayerIndex++) 
+	{
+		CLogger::Instance()->Activate();
+		TRACE("process layer: %i\n",l_activeLayerIndex);
+		layer = l_lm->GetLayer (l_activeLayerIndex);
+
+		if ( layer->IsValid() == false )
 		{
-			CLogger::Instance()->Activate();
-			LOG("process layer: %i\n",l_activeLayerIndex);
-			layer = l_lm->GetLayer (l_activeLayerIndex);
+			char *l_messageStrBuf = new char[100];
+			const CString *l_string = layer->GetName();
+			const char *l_layerName = (LPCTSTR)(*l_string);
+			sprintf(l_messageStrBuf, "Processing %s...", l_layerName);
+			l_lm->m_lineTracerView->PostMessage(
+				WM_UPDATE_STATUSBAR_WITH_STRING, 
+				reinterpret_cast<WPARAM>(l_messageStrBuf), 0);
 
-			if ( layer->IsValid() == false )
-			{
-				char *l_messageStrBuf = new char[100];
-				const CString *l_string = layer->GetName();
-				const char *l_layerName = (LPCTSTR)(*l_string);
-				sprintf(l_messageStrBuf, "Processing %s...", l_layerName);
-				l_lm->m_lineTracerView->PostMessage(
-					WM_UPDATE_STATUSBAR_WITH_STRING, 
-					reinterpret_cast<WPARAM>(l_messageStrBuf), 0);
-
-				layer->Process(img);
-			}
-
-#ifdef _DEBUG
-			CMemoryState l_postProcessLayerMemState;
-			l_postProcessLayerMemState.Checkpoint();
-
-			TRACE ( "--- statistics - memory gain after processsing layer %i\n", l_activeLayerIndex );
-			CMemoryState l_diffMemState;
-			l_diffMemState.Difference(l_oldMemState, l_postProcessLayerMemState);
-			l_diffMemState.DumpStatistics();
-			l_oldMemState = l_postProcessLayerMemState;
-#endif
-
-			CLogger::Instance()->Activate();
-			LOG( "process done: %i\n", l_activeLayerIndex );
-
-			if ( l_lm->m_restartProcess ) 
-			{
-				break;
-			}
-
-			BOOL l_result = PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 0, 0 );
-			ASSERT ( l_result != 0 );
-
-			//redraw!
-			if ( layer->IsVisible() )
-			{
-				l_lm->GetLineTracerView()->Invalidate( FALSE );
-			}
-
-			img = layer->GetSketchImage();
+			layer->Process(*a_project_settings, img);
 		}
 
-	} while ( l_lm->m_restartProcess );
+		if ( !CLayerManager::Instance()->m_message_queue_gui_to_ip.IsEmpty() ) {
+			//whooops... more events to process! quit immediately
+			return;
+		}
 
-	l_lm->m_restartProcess = false;
+		#ifdef _DEBUG
+		CMemoryState l_postProcessLayerMemState;
+		l_postProcessLayerMemState.Checkpoint();
 
-	l_lm->m_processThread = NULL;
+		TRACE ( "--- statistics - memory gain after processsing layer %i\n", l_activeLayerIndex );
+		CMemoryState l_diffMemState;
+		l_diffMemState.Difference(l_oldMemState, l_postProcessLayerMemState);
+		l_diffMemState.DumpStatistics();
+		l_oldMemState = l_postProcessLayerMemState;
+		#endif
+
+		CLogger::Instance()->Activate();
+		LOG( "process done: %i\n", l_activeLayerIndex );
+
+		//redraw!
+		if ( layer->IsVisible() ) {
+			l_lm->GetLineTracerView()->Invalidate( FALSE );
+		}
+
+		img = layer->GetSketchImage();
+	}
 
 	LOG("LayerManager::ProcessLayers() done\n");
-
-	l_lm->m_isProcessing = false; 
-	
-	K_ACTIVE_PROCESSES--;
 
 	char *l_message = new char[100];
 	strcpy(l_message, "Ready");
 	l_lm->m_lineTracerView->PostMessage(
-			WM_UPDATE_STATUSBAR_WITH_STRING, 
-			reinterpret_cast<WPARAM>(l_message), 0);
+		WM_UPDATE_STATUSBAR_WITH_STRING, 
+		reinterpret_cast<WPARAM>(l_message), 0);
 
-	//redraw!
+	l_lm->m_isProcessing = false;
 	l_lm->GetLineTracerView()->Invalidate( FALSE );
 
-	l_lm->m_lineTracerView->PostMessage(
-		WM_PROCESS_THREAD_FINISHED, 
-		0, 0);
+	return;
+}
 
-	return 0;
+UINT CLayerManager::IPEventLoop(LPVOID pParam)
+{
+	CLayerManager *l_lm = static_cast<CLayerManager*>(pParam);
+	static CProjectSettings * l_project_settings = 0;
+
+	for (;;) {
+		Message l_message = CLayerManager::Instance()->m_message_queue_gui_to_ip.GetMsg();
+		//TRACE ( "got msg %i\n", l_message.GetId() );
+
+		switch ( l_message.GetId() ) {
+			case MSG_PROJECT_SETTINGS:
+				delete l_project_settings;
+				l_project_settings = reinterpret_cast<CProjectSettings*>(l_message.GetWParam());
+				break;
+
+			case MSG_INVALIDATE_FROM_LAYER:
+				{
+					int l_layer_id = l_message.GetLParam();
+					TRACE("invalidate from layer %i\n", l_layer_id);
+					InvalidateLayers(l_layer_id);
+				}
+
+			case MSG_START_PROCESSING:
+				TheProcessing(l_project_settings);
+				break;
+
+			case MSG_KILL_THREAD:
+				AfxEndThread(0);
+		}
+	}
 }
 
 #include <windows.h>
@@ -348,8 +345,6 @@ void CLayerManager::DrawAllLayers(Graphics & a_graphics)
 	{
 		CLayer *l_layer = GetLayer( l_layerIndex );
 
-		CSingleLock l_lock(&m_critical_layerchange_section);
-		l_lock.Lock();
 		if ( l_layer->IsVisible() && l_layer->IsValid() )
 		{
 			if ( IsProcessing() && l_layer->HasBeenDrawn() )
@@ -378,7 +373,3 @@ const
 	return m_isProcessing;
 }
 
-void CLayerManager::ResetProcessThread(void)
-{
-	m_processThread=NULL;
-}

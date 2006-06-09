@@ -15,7 +15,7 @@ void WriteLines(CLineImage & a_line_image, CStdioFile & a_out);
 
 CEpsWriter::CEpsWriter(void)
 {
-	LOG("init epswriter\n");
+	//LOG("init epswriter\n");
 }
 
 CEpsWriter::~CEpsWriter(void)

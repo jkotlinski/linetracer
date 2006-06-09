@@ -4,6 +4,7 @@
 #include "LineImage.h"
 #include <list>
 #include "ProjectSettings.h"
+#include "LayerManager.h"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ CLineSegmentor::CLineSegmentor(void)
 : CImageProcessor()
 {
 	SetName ( CString ( "Line Segmentor" ) );
-	LOG("init linesegmentor\n");
+	//LOG("init linesegmentor\n");
 }
 
 CLineSegmentor::~CLineSegmentor(void)
@@ -23,7 +24,7 @@ CLineSegmentor* CLineSegmentor::Instance() {
 	return &inst;
 }
 
-CSketchImage * CLineSegmentor::Process(CSketchImage* i_src) {
+CSketchImage * CLineSegmentor::Process(CProjectSettings & a_project_settings, CSketchImage* i_src) {
 	static const bool useMaxErrors = false;
 
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
@@ -72,8 +73,7 @@ void CLineSegmentor::Add(CPolyLine*dst, CPolyLine* src)
 {
 	CSketchPoint *p;
 
-	double THRESHOLD = CProjectSettings::Instance()->GetParam(
-		CProjectSettings::LINESEGMENTOR_THRESHOLD);
+	const double THRESHOLD = 1.5;
 
 	if(src->GetMaxDeviation()>=THRESHOLD) {
 		p = src->GetMaxDeviationPoint();

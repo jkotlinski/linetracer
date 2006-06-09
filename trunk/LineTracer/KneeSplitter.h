@@ -10,5 +10,5 @@ protected:
 public:
 	static CKneeSplitter* Instance();
 	~CKneeSplitter(void);
-	CSketchImage* Process(CSketchImage* src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 };

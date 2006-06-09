@@ -93,7 +93,7 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 	{
 		// load info
 		CLayerManager *lm = CLayerManager::Instance();
-		lm->InvalidateLayers();
+		//lm->InvalidateLayers();
 
 		CString tmpString;
 
@@ -114,7 +114,7 @@ void CLineTracerDoc::Serialize(CArchive& ar)
 		lm->Serialize(ar);
 
 		if(lm->GetLayer(CLayerManager::DESATURATOR)->IsValid()) {
-			ProcessLayers();
+			//ProcessLayers();
 		}
 	}
 }
@@ -134,19 +134,12 @@ void CLineTracerDoc::Dump(CDumpContext& dc) const
 }
 #endif //_DEBUG
 
-
-
-CString CLineTracerDoc::GetInputImageFileName(void) const
-{
-	return m_InputBitmapFileName;
-}
-
 void CLineTracerDoc::ProcessLayers(void)
 {
 	CLayerManager *lm = CLayerManager::Instance();
 	if(lm->GetLayer(0)->GetSketchImage() == NULL) return;
 
-	CLayerManager::Instance()->ProcessLayers();
+	//CLayerManager::Instance()->ProcessLayers();
 
 	LOG( "UpdateAllViews()\n" );
 	UpdateAllViews(NULL);
@@ -203,7 +196,7 @@ void CLineTracerDoc::OnViewOriginal()
 
 void CLineTracerDoc::OnParametersLineLength()
 {
-	CParamDialog dlg;
+	/*CParamDialog dlg;
 	CProjectSettings *l_settings = CProjectSettings::Instance();
 
 	double oldVal = l_settings->GetParam(CProjectSettings::TAILPRUNER_THRESHOLD);
@@ -215,10 +208,10 @@ void CLineTracerDoc::OnParametersLineLength()
 		l_settings->SetParam(CProjectSettings::TAILPRUNER_THRESHOLD,newVal);
 		if( CFloatComparer::FloatsDiffer(newVal,oldVal) ) {
 			SetModifiedFlag();
-			CLayerManager::Instance()->InvalidateLayers(CLayerManager::TAILPRUNER);
-			ProcessLayers();
+			//CLayerManager::Instance()->InvalidateLayers(CLayerManager::TAILPRUNER);
+			//ProcessLayers();
 		}
-	}
+	}*/
 }
 
 void CLineTracerDoc::SetZoom(int factor)
@@ -253,4 +246,8 @@ void CLineTracerDoc::SetInputImageFileName(CString & a_fileName)
 {
 	m_InputBitmapFileName = a_fileName;
 	SetModifiedFlag();
+}
+
+CProjectSettings * CLineTracerDoc::GetProjectSettings() {
+	return &m_project_settings;
 }

@@ -11,7 +11,7 @@ CLayer::CLayer()
 , m_IsValid(false)
 , m_hasBeenDrawn(false)
 {
-	LOG("init layer\n");
+	//LOG("init layer\n");
 }
 
 CLayer::~CLayer() {
@@ -48,7 +48,7 @@ bool CLayer::IsVisible(void) const
 	return m_IsVisible;
 }
 
-void CLayer::Process(CSketchImage *src)
+void CLayer::Process(CProjectSettings & a_project_settings, CSketchImage *src)
 {
 	if(IsValid()) return;
 	ASSERT ( m_ImageProcessor != NULL );
@@ -60,7 +60,7 @@ void CLayer::Process(CSketchImage *src)
 		m_SketchImage = NULL;
 	}
 
-	m_SketchImage = m_ImageProcessor->Process(src);
+	m_SketchImage = m_ImageProcessor->Process(a_project_settings, src);
 
 	SetValid(true);
 }	
