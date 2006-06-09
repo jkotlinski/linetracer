@@ -16,6 +16,8 @@
 #include "Logger.h"
 #include ".\linetracerview.h"
 
+#include <boost/shared_ptr.hpp>
+
 //#define USE_MEMDC 1
 
 #ifdef _DEBUG
@@ -74,7 +76,7 @@ BEGIN_MESSAGE_MAP(CLineTracerView, CScrollView)
 	ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTEPS, OnUpdateFileExportEps)
 	ON_UPDATE_COMMAND_UI(ID_FILE_SAVE_AS, OnUpdateFileSaveAs)
 	ON_MESSAGE( (WM_UPDATE_STATUSBAR_WITH_STRING), (OnUpdateStatusbarWithString) )
-	ON_MESSAGE( WM_PROCESS_THREAD_FINISHED, OnProcessThreadFinished )
+	//ON_MESSAGE( WM_PROCESS_THREAD_FINISHED, OnProcessThreadFinished )
 	ON_COMMAND(ID_HELP_SENDFEEDBACK, OnHelpSendfeedback)
 	ON_COMMAND(ID_HELP_REPORTBUG, OnHelpReportbug)
 END_MESSAGE_MAP()
@@ -92,6 +94,7 @@ CLineTracerView::CLineTracerView()
 {
 	CLayerManager::Instance()->SetLineTracerView( this );
 	CToolBox::Instance()->SetLineTracerView( this );
+
 	m_layerManager = CLayerManager::Instance();
 	m_imageWidth = 0;
 	m_imageHeight = 0;
@@ -207,7 +210,7 @@ void CLineTracerView::OnViewZoomOut()
 void CLineTracerView::OnFileCloseImage()
 {
 	CLayerManager *lm=CLayerManager::Instance();
-	lm->InvalidateLayers();
+	//InvalidateLayers();
 	m_imageHeight = 0;
 	m_imageWidth = 0;
 	Invalidate(FALSE);
@@ -303,12 +306,16 @@ afx_msg BOOL CLineTracerView::OnEraseBkgnd(CDC* pDC)
 #endif
 }
 
-
 void CLineTracerView::ProcessLayers(void)
 {
 	CLayerManager *lm = CLayerManager::Instance();
 	if(lm->GetLayer(0)->GetSketchImage() == NULL) return;
-	CLayerManager::Instance()->ProcessLayers();
+
+	MessageQueue * l_queue = &(lm->m_message_queue_gui_to_ip);
+	l_queue->Clear();
+	l_queue->PostMsg ( Message ( MSG_PROJECT_SETTINGS, (unsigned int*)( GetDocument()->GetProjectSettings()->Clone() ), 0 ) );
+	l_queue->PostMsg ( Message ( MSG_INVALIDATE_FROM_LAYER, 0, 0 ) );
+	l_queue->PostMsg ( Message ( MSG_START_PROCESSING, 0, 0 ) );
 }
 
 void CLineTracerView::HandleChangedToolboxParam(CLayerManager::LayerTypes a_layerId,
@@ -318,15 +325,21 @@ void CLineTracerView::HandleChangedToolboxParam(CLayerManager::LayerTypes a_laye
 	LOG ( "HandleChangedToolboxParam; paramname=%i\n", a_paramName );
 	CToolBox *l_toolBox = CToolBox::Instance();
 	double l_sliderVal = l_toolBox->GetParam(a_paramName);
+	LOG ( "slider val: %i\n", (int)l_sliderVal );
 
-	CProjectSettings *l_settings = CProjectSettings::Instance();
+	CProjectSettings *l_settings = GetDocument()->GetProjectSettings();
 	double l_layerVal = l_settings->GetParam(a_paramName);
 
 	if( CFloatComparer::FloatsDiffer ( l_sliderVal, l_layerVal ) ) {
 		LOG ( "FloatsDiffer\n" );
 		l_settings->SetParam(a_paramName, l_sliderVal);
-		CLayerManager::Instance()->InvalidateLayers(a_layerId);
-		ProcessLayers();		
+
+		MessageQueue * l_queue = &(CLayerManager::Instance()->m_message_queue_gui_to_ip);
+
+		l_queue->Clear();
+		l_queue->PostMsg ( Message ( MSG_PROJECT_SETTINGS, (unsigned int*)( l_settings->Clone() ), 0 ) );
+		l_queue->PostMsg ( Message ( MSG_INVALIDATE_FROM_LAYER, 0, a_layerId ) );
+		l_queue->PostMsg ( Message ( MSG_START_PROCESSING, 0, 0 ) );
 		GetDocument()->SetModifiedFlag();
 	}
 }
@@ -365,14 +378,15 @@ void CLineTracerView::SetInputImageFileName(CString FileName)
 
 	if(FileName!=_T("")) {
 		if(LoadImage(&inputBitmap, &FileName)) {
-			CProjectSettings::Instance()->Init();
+			GetDocument()->GetProjectSettings()->Init();
 
 			CRawImage<ARGB> img(inputBitmap);
 
 			CLayerManager *lm=CLayerManager::Instance();
-			lm->InvalidateLayers();
+			//InvalidateLayers();
 
-			lm->GetLayer(CLayerManager::DESATURATOR)->Process(&img);
+			lm->GetLayer(CLayerManager::DESATURATOR)->Process( *(GetDocument()->GetProjectSettings()), 
+				&img);
 			lm->GetLayer(CLayerManager::DESATURATOR)->SetValid(true);
 			delete inputBitmap;
 		}
@@ -406,11 +420,11 @@ bool CLineTracerView::LoadImage(Bitmap** image, CString *fileName)
 
 //------------------------------------
 
-afx_msg LRESULT CLineTracerView::OnProcessThreadFinished(WPARAM wParam, LPARAM lParam)
+/*afx_msg LRESULT CLineTracerView::OnProcessThreadFinished(WPARAM wParam, LPARAM lParam)
 {
 	CLayerManager::Instance()->ResetProcessThread();
 	return 0;
-}
+}*/
 
 afx_msg LRESULT CLineTracerView::OnUpdateStatusbarWithString
 	(WPARAM wParam, LPARAM lParam)
@@ -429,7 +443,6 @@ afx_msg LRESULT CLineTracerView::OnUpdateStatusbarWithString
 	}
 	return 0;	
 }
-
 
 void CLineTracerView::OnLButtonDown(UINT nFlags, CPoint point)
 {
@@ -772,9 +785,9 @@ void CLineTracerView::UpdateLayerVisibilitiesFromToolbox(void)
 
 void CLineTracerView::ResetParameterSettings(void)
 {
-	CProjectSettings::Instance()->Reset();
+	GetDocument()->GetProjectSettings()->Reset();
 	ImageProcessing::CBinarizer::Instance()->Reset();
-	BOOL l_result = ::PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 0, 0 );
+	BOOL l_result = ::PostMessage ( CToolBox::Instance()->m_hWnd, WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, (WPARAM)(GetDocument()->GetProjectSettings()), 0 );
 	ASSERT ( l_result != 0 );
 }
 

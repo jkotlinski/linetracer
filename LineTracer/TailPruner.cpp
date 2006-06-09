@@ -4,6 +4,8 @@
 #include "ProjectSettings.h"
 #include "LineImage.h"
 
+#include "LayerManager.h"
+
 CTailPruner::CTailPruner(void)
 : CImageProcessor()
 {
@@ -21,14 +23,14 @@ CTailPruner* CTailPruner::Instance() {
 }
 
 /*remove all lines with fewer than "threshold" points */
-CSketchImage* CTailPruner::Process(CSketchImage *i_src) {
+CSketchImage* CTailPruner::Process(CProjectSettings & a_project_settings, CSketchImage *i_src) {
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
 	ASSERT ( src != NULL );
 
 	CLineImage *dst = new CLineImage(src->GetWidth(),src->GetHeight());
 
 	unsigned int threshold = (unsigned int)(
-		CProjectSettings::Instance()->GetParam(
+		a_project_settings.GetParam(
 		CProjectSettings::TAILPRUNER_THRESHOLD));
 
 	for(unsigned int i=0; i<src->Size(); i++) {

@@ -1,9 +1,11 @@
 #include "StdAfx.h"
 #include "binarizer.h"
 
+#include "LayerManager.h"
 #include "ProjectSettings.h"
 #include ".\binarizer.h"
 #include "math.h"
+#include "ToolBox.h"
 #include <iostream>
 
 namespace ImageProcessing {
@@ -13,7 +15,7 @@ CBinarizer::CBinarizer(void)
 , m_sketchBoard(NULL)
 , m_isInitialized(false)
 {
-	LOG("init binarizer\n");
+	//LOG("init binarizer\n");
 	SetName(CString("Binarizer"));
 	SetType ( BINARIZER );
 }
@@ -29,22 +31,21 @@ CBinarizer *CBinarizer::Instance() {
     return &inst;
 }
 
-CSketchImage* CBinarizer::Process(CSketchImage* i_src)
+CSketchImage* CBinarizer::Process(CProjectSettings & a_project_settings, CSketchImage* i_src)
 {
 	CRawImage<unsigned char> *src=dynamic_cast<CRawImage<unsigned char>*>(i_src);
 	ASSERT ( src != NULL );
 
 	static const int WINDOW_SIZE = 3;
 
-	CProjectSettings *l_settings = CProjectSettings::Instance();
-	int C = int(l_settings->GetParam(CProjectSettings::BINARIZER_MEAN_C));
+	int C = int(a_project_settings.GetParam(CProjectSettings::BINARIZER_MEAN_C));
 
 	double MIN_THRESHOLD = 0.0;
 
 	if( m_isInitialized ) 
 	{
 		// load threshold from settings
-		MIN_THRESHOLD = l_settings->GetParam(CProjectSettings::BINARIZER_THRESHOLD);
+		MIN_THRESHOLD = a_project_settings.GetParam(CProjectSettings::BINARIZER_THRESHOLD);
 	}
 	else
 	{
@@ -53,7 +54,13 @@ CSketchImage* CBinarizer::Process(CSketchImage* i_src)
 		//std::cout << MIN_THRESHOLD << endl;
 		//MIN_THRESHOLD = CalculateKittlerThreshold(src);
 		//cout << MIN_THRESHOLD << endl;
-		l_settings->SetParam(CProjectSettings::BINARIZER_THRESHOLD, MIN_THRESHOLD);
+		TRACE("%f\n", MIN_THRESHOLD);
+		a_project_settings.SetParam(CProjectSettings::BINARIZER_THRESHOLD, MIN_THRESHOLD);
+		BOOL l_result = PostMessage ( 
+			CToolBox::Instance()->m_hWnd, 
+			WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS, 
+			(WPARAM)(a_project_settings.Clone()), 0 );
+
 		m_isInitialized = true;
 	}
 

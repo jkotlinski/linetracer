@@ -6,11 +6,8 @@ using namespace std;
 
 class CProjectSettings
 {
-private:
-	//lint -e{1704} singleton
-	CProjectSettings(void);
 public:
-	static CProjectSettings* Instance();
+	CProjectSettings(void);
 	~CProjectSettings(void);
 
 	enum ParamName {
@@ -21,7 +18,7 @@ public:
 		GAUSSIAN_RADIUS,
 		HOLEFILLER_MAX_AREA_TO_FILL,
 		KNEESPLITTER_THRESHOLD,
-		LINESEGMENTOR_THRESHOLD,
+		//LINESEGMENTOR_THRESHOLD,
 		SKELETONIZER_SCALE,
 		TAILPRUNER_THRESHOLD,
 		PARAMNAME_INVALID_END
@@ -35,4 +32,5 @@ private:
 public:
 	void Init(void);
 	void Reset(void);
+	CProjectSettings * Clone(void);
 };

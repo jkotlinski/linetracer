@@ -6,7 +6,7 @@ CImageProcessor::CImageProcessor()
 , m_name("???")
 , m_type ( INVALID_TYPE )
 {
-	LOG("init imageprocessor\n");
+	//LOG("init imageprocessor\n");
 }
 
 CImageProcessor::~CImageProcessor(void)

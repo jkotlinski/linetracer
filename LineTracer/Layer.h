@@ -23,7 +23,7 @@ public:
 	CSketchImage* GetSketchImage(void);
 	void SetVisible(bool state);
 	bool IsVisible(void) const;
-	void Process(CSketchImage *src);
+	void Process(CProjectSettings & a_project_settings, CSketchImage *src);
 public:
 	bool IsValid(void) const;
 	void SetValid(bool isValid);

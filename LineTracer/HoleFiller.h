@@ -15,7 +15,7 @@ protected:
 public:
 	static CHoleFiller* Instance();
 	~CHoleFiller(void);
-	CSketchImage* Process(CSketchImage* src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 private:
 	void ScanArea(CRawImage<bool>* canvas, deque<int>* pixelsInArea, const CPoint &start, const unsigned int a_max_area) const;
 };

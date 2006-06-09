@@ -10,7 +10,7 @@ public:
 protected:
 	CGaussian(void);
 public:
-	CSketchImage* Process(CSketchImage* src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 private:
 	void MakeGaussianKernel(double sigma, double **kernel, int *windowsize) const;
 	void GaussianSmooth(CRawImage<unsigned char> *src, CRawImage<unsigned char> *dst, double sigma);

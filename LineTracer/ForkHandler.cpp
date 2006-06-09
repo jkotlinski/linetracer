@@ -45,7 +45,7 @@ CForkHandler* CForkHandler::Instance() {
     return &inst;
 }
 
-CSketchImage* CForkHandler::Process(CSketchImage* i_src)
+CSketchImage* CForkHandler::Process(CProjectSettings & a_project_settings, CSketchImage* i_src)
 {
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
 	ASSERT ( src != NULL );

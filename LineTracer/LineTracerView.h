@@ -13,7 +13,7 @@
 
 #define WM_UPDATE_TOOLBOX_DATA_FROM_LAYERS (WM_USER+0x100)
 #define		WM_UPDATE_STATUSBAR_WITH_STRING (WM_USER+0x101)
-#define		WM_PROCESS_THREAD_FINISHED (WM_USER+0x102)
+//#define		WM_PROCESS_THREAD_FINISHED (WM_USER+0x102)
 
 class CLineTracerView : public CScrollView
 {
@@ -60,7 +60,7 @@ protected:
 	afx_msg void OnUpdateViewBeziermaker(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateViewThinner(CCmdUI *pCmdUI);
 	afx_msg LRESULT OnUpdateStatusbarWithString ( WPARAM wParam, LPARAM lParam );
-	afx_msg LRESULT OnProcessThreadFinished ( WPARAM wParam, LPARAM lParam );
+	//afx_msg LRESULT OnProcessThreadFinished ( WPARAM wParam, LPARAM lParam );
 	
 	DECLARE_MESSAGE_MAP()
 private:

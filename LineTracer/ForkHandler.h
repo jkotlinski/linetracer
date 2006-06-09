@@ -19,7 +19,7 @@ private: //NO COPY OR ASSIGNMENT!
 	CForkHandler(const CForkHandler& other);
 public:
 	static CForkHandler* Instance();
-	CSketchImage* Process(CSketchImage *src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage *src);
 private:
 	vector<CFPoint>* Find3Forks(const CLineImage *li) const;
 	vector<CFPoint>* ThreeForks;

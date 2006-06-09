@@ -5,6 +5,7 @@
 
 #include "ProjectSettings.h"
 #include "LineImage.h"
+#include "LayerManager.h"
 #include "SketchPoint.h"
 
 CKneeSplitter::CKneeSplitter(void)
@@ -22,13 +23,13 @@ CKneeSplitter* CKneeSplitter::Instance() {
 	return &inst;
 }
 
-CSketchImage * CKneeSplitter::Process(CSketchImage* i_src) {
+CSketchImage * CKneeSplitter::Process(CProjectSettings & a_project_settings, CSketchImage* i_src) {
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
 	ASSERT ( src != NULL );
 
 	// LOG ( "KneeSplitter()\n" );
 
-	const double l_threshold = CProjectSettings::Instance()->GetParam(
+	const double l_threshold = a_project_settings.GetParam(
 		CProjectSettings::KNEESPLITTER_THRESHOLD);
 
 	for(unsigned int i=0; i<src->Size(); i++) 

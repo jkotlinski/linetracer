@@ -18,7 +18,7 @@ CThinner* CThinner::Instance(void)
     return &inst;
 }
 
-CSketchImage* CThinner::Process(CSketchImage *i_src) {
+CSketchImage* CThinner::Process(CProjectSettings & a_project_settings, CSketchImage *i_src) {
 	CRawImage<bool> *src=dynamic_cast<CRawImage<bool>*>(i_src);
 	ASSERT ( src != NULL );
 	CRawImage<bool> *dst = new CRawImage<bool>(src->GetWidth(),src->GetHeight());

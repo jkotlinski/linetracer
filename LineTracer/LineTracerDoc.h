@@ -38,7 +38,7 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 public:
-	CString GetInputImageFileName(void) const;
+	CProjectSettings * GetProjectSettings();
 private:
 	CString m_InputBitmapFileName;
 public:
@@ -55,6 +55,7 @@ public:
 	int GetZoom(void) const;
 private:
 	int m_ZoomFactor;
+	CProjectSettings m_project_settings;
 public:
 	afx_msg void OnViewBeziermaker();
 	afx_msg void OnViewThinner();

@@ -10,7 +10,7 @@
 #include <vector>
 
 //#define MEM_DEBUG
-#include "ProjectSettings.h"
+#include "LayerManager.h"
 #include ".\beziermaker.h"
 
 namespace ImageProcessing {
@@ -31,13 +31,13 @@ CBezierMaker* CBezierMaker::Instance() {
     return &inst;
 }
 
-CSketchImage* CBezierMaker::Process(CSketchImage* i_src)
+CSketchImage* CBezierMaker::Process(CProjectSettings & a_project_settings, CSketchImage* i_src)
 {
 	CLineImage *src = dynamic_cast<CLineImage*>(i_src);
 	ASSERT ( src != NULL );
 	src->DiscardDuplicateLines();
 	src->AssertNoEmptyLines();
-	return DoSchneider(src);
+	return DoSchneider(a_project_settings, src);
 }
 
 //simple method. just add good looking control points.
@@ -169,14 +169,14 @@ double CBezierMaker::FindError(const CPolyLine* polyLine, const CPolyLine* curve
 	return totalError;
 }
 
-CLineImage* CBezierMaker::DoSchneider(const CLineImage* src) const
+CLineImage* CBezierMaker::DoSchneider(CProjectSettings & a_project_settings, CLineImage* src)
 {
 	ASSERT ( src != NULL );
 #define REUSE_TANGENTS
 
 	static const double REPARAM_THRESHOLD = 30.0;
 
-	double ERROR_THRESHOLD = CProjectSettings::Instance()->GetParam(
+	double ERROR_THRESHOLD = a_project_settings.GetParam(
 		CProjectSettings::BEZIERMAKER_ERROR_THRESHOLD);
 
 	LOG ( "BezierMaker->ERROR_THRESHOLD: %f\n", ERROR_THRESHOLD );
@@ -762,8 +762,8 @@ const
 
 	for ( unsigned int l_tIndex = 1; l_tIndex < a_tList.size(); l_tIndex++ )
 	{
-		l_minDifference = min ( l_minDifference, a_tList[l_tIndex] - a_tList[l_tIndex-1] );
-		l_maxDifference = max ( l_maxDifference, a_tList[l_tIndex] - a_tList[l_tIndex-1] );
+		l_minDifference = std::min ( l_minDifference, a_tList[l_tIndex] - a_tList[l_tIndex-1] );
+		l_maxDifference = std::max ( l_maxDifference, a_tList[l_tIndex] - a_tList[l_tIndex-1] );
 	}
 
 	if ( (l_maxDifference / l_minDifference) > 5 )

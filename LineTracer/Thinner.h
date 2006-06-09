@@ -12,7 +12,7 @@ public:
 private:
 	CThinner(void);
 public:
-	CSketchImage* Process(CSketchImage* src);
+	CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 private:
 	deque<CPoint> PeelPixels(const CRawImage<bool> *img);
 	int DeletePixels(deque<CPoint> & a_pixelPoints,
