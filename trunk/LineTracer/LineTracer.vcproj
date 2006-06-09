@@ -74,7 +74,7 @@
 			ConfigurationType="1"
 			UseOfMFC="1"
 			CharacterSet="2"
-			WholeProgramOptimization="TRUE">
+			WholeProgramOptimization="FALSE">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="3"
