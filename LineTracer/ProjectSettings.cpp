@@ -50,7 +50,7 @@ void CProjectSettings::Reset(void)
 
 CProjectSettings * CProjectSettings::Clone(void)
 {
-	CProjectSettings * l_settings = new CProjectSettings();
+	CProjectSettings * l_settings = DEBUG_NEW CProjectSettings();
 
 	for ( int i = (int)(PARAMNAME_INVALID_START + 1);
 		i < (int)PARAMNAME_INVALID_END; 
