@@ -123,3 +123,10 @@ bool CLayer::HasBeenDrawn(void)
 {
 	return m_hasBeenDrawn;
 }
+
+void CLayer::Lock() {
+	m_critical_section.Lock();
+}
+void CLayer::Unlock() {
+	m_critical_section.Unlock();
+}
