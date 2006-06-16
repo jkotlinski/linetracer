@@ -48,7 +48,7 @@ void CEpsWriter::Write(const CString &FileName)
 	out.WriteString("1 setlinecap\n");
 	out.WriteString("1 setlinejoin\n");
 
-	out.WriteString("0.5 setlinewidth\n");
+	out.WriteString("1.0 setlinewidth\n");
 
 	WriteLines(*lineImage, out);
 
@@ -195,5 +195,42 @@ void WriteLines ( CLineImage & a_line_image, CStdioFile & a_out )
 				a_out.WriteString("stroke\n");
 			}
 		}
+	}
+
+// handle circles
+
+	for ( unsigned int l_line_index=0; 
+		l_line_index < a_line_image.Size(); 
+		l_line_index++ ) {
+		
+		CPolyLine * l_line = a_line_image.GetLine(l_line_index);
+
+		if ( l_handled_lines.count(l_line) > 0 ) continue;
+
+		CSketchPoint *l_first_point = l_line->GetHeadPoint();
+		CSketchPoint *l_second_point = l_line->GetTailPoint();
+
+		CString str;
+		str.Format("%f %f moveto\n",
+			l_first_point->GetX(),
+			a_line_image.GetHeight() - l_first_point->GetY());
+		a_out.WriteString(str);
+
+		//write curve
+		CFPoint p = l_first_point->GetControlPoint();
+		str.Format("%f %f ",p.GetX(),
+			a_line_image.GetHeight() - p.GetY());
+		a_out.WriteString(str);
+
+		p = l_second_point->GetControlPoint();
+		str.Format("%f %f ",p.GetX(),a_line_image.GetHeight()-p.GetY());
+		a_out.WriteString(str);
+
+		//endpoint
+		p = l_second_point->GetCoords();
+		str.Format("%f %f curveto\n",p.GetX(),a_line_image.GetHeight()-p.GetY());
+		a_out.WriteString(str);
+
+		a_out.WriteString("stroke\n");
 	}
 }
