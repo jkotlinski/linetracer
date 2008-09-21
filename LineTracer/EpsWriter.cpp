@@ -39,7 +39,7 @@ void CEpsWriter::Write(const CString &FileName)
 	int width=lineImage->GetWidth();
 	int height=lineImage->GetHeight();
 
-	out.WriteString("%%!PS-Adobe-3.0 EPSF-3.0\n");
+	out.WriteString("%!PS-Adobe-3.0 EPSF-3.0\n");
 	out.WriteString("%%BoundingBox: ");
 	CString str;
 	str.Format("%i %i %i %i\n",0,0,width,height);
