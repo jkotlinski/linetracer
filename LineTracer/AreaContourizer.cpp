@@ -17,9 +17,9 @@ namespace ImageProcessing {
 
 	void RemoveSmallAreasFromImage ( CRawImage<bool> & a_image, unsigned int a_area_threshold );
 	void ClearAreaAndGetClearedPixels (
-		IN OUT CRawImage<bool> & a_image, 
-		IN const pair<int,int> & a_start_point, 
-		OUT deque<pair<int,int> > & a_pixels_in_area );
+		CRawImage<bool> & a_image, // in, out
+		const pair<int,int> & a_start_point, // in
+		deque<pair<int,int> > & a_pixels_in_area ); // out
 	void ClearEverythingButOutlines ( CRawImage<bool> & a_image );
 
 	AreaContourizer::AreaContourizer(void)
@@ -112,9 +112,9 @@ namespace ImageProcessing {
 	}
 
 	void ClearAreaAndGetClearedPixels (
-		IN OUT CRawImage<bool> & a_image, 
-		IN const pair<int,int> & a_start_point,
-		OUT deque<pair<int,int> > & a_pixels_in_area
+		CRawImage<bool> & a_image, // in, out
+		const pair<int,int> & a_start_point, // in
+		deque<pair<int,int> > & a_pixels_in_area // out
 		)
 	{
 		deque<pair<int,int> > l_points_to_check;
