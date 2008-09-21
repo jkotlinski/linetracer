@@ -1,3 +1,0 @@
-wxLineTracer ICON "wxLineTracer.ico"
-
-#include "wx/msw/wx.rc"
