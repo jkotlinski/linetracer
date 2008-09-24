@@ -1,6 +1,4 @@
 #summary Future plans
 
-= Details =
-
   * Mac port (using wxWidgets)
   * lib'ify the gfx parts to make it possible to run as plugin?
