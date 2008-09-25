@@ -1,14 +1,11 @@
-#include "StdAfx.h"
-#include ".\affinetransform.h"
+#include "AffineTransform.h"
+
+#include <wx/graphics.h>
 
 AffineTransform::AffineTransform(void)
 : m_translationX(0)
 , m_translationY(0)
 , m_scale(1)
-{
-}
-
-AffineTransform::~AffineTransform(void)
 {
 }
 
@@ -20,13 +17,13 @@ void AffineTransform::TranslateBy(float a_x, float a_y)
 
 void AffineTransform::ScaleBy(float a_scale)
 {
-	ASSERT( a_scale > 0 );
+	wxASSERT( a_scale > 0 );
 	m_scale *= a_scale;
 }
 
 void AffineTransform::Invert(void)
 {
-	ASSERT ( m_scale>0 );
+	wxASSERT ( m_scale>0 );
 	m_scale = 1/m_scale;
 	m_translationX *= m_scale;
 	m_translationY *= m_scale;
@@ -34,88 +31,89 @@ void AffineTransform::Invert(void)
 	m_translationY = -m_translationY;
 }
 
-Matrix *AffineTransform::GetMatrix(void)
+wxGraphicsMatrix* AffineTransform::CreateMatrix(void)
 {
-	Matrix *l_matrix = new Matrix ( 
+	wxGraphicsMatrix* matrix = new wxGraphicsMatrix();
+	matrix->Set(
 		m_scale, 0.0f, 
 		0.0f, m_scale, 
 		m_translationX, 
 		m_translationY );
-	return l_matrix;
+	return matrix;
 }
 
 //return true if image should be movable
-bool AffineTransform::Validate(const CSize & a_imageSize, const CSize & a_viewSize)
+bool AffineTransform::Validate(const wxSize& a_imageSize, const wxSize& a_viewSize)
 {
-    CSize l_transformedImageSize ( a_imageSize );
+    wxSize l_transformedImageSize ( a_imageSize );
 	TransformSize ( l_transformedImageSize );
     
-	PointF l_topLeft ( 0.0f, 0.0f );
-	PointF l_bottomRight ( 
-		REAL( a_imageSize.cx ), 
-		REAL( a_imageSize.cy ) );
+	wxRealPoint l_topLeft ( 0.0f, 0.0f );
+	wxRealPoint l_bottomRight ( 
+		a_imageSize.GetWidth(), 
+		a_imageSize.GetHeight() );
 	TransformPoint ( l_topLeft );
 	TransformPoint ( l_bottomRight );
     
     bool l_isMovable = false;
     
     //validate width
-    if( l_transformedImageSize.cx >= a_viewSize.cx ) 
+    if( l_transformedImageSize.GetWidth() >= a_viewSize.GetWidth() ) 
     {
         l_isMovable = true;
 
         //image is shown larger than view: make sure there's no empty space around picture!
-        if(l_topLeft.X > 0) {
-			TranslateBy ( -l_topLeft.X, 0.0f );
+        if(l_topLeft.x > 0) {
+			TranslateBy ( -l_topLeft.x, 0.0f );
         }
-        if(l_bottomRight.X < a_viewSize.cx ) {
-            TranslateBy ( a_viewSize.cx - l_bottomRight.X, 0.0f );
+        if(l_bottomRight.x < a_viewSize.GetWidth() ) {
+            TranslateBy ( a_viewSize.GetWidth() - l_bottomRight.x, 0.0f );
         }
     } 
     else 
     {
         //image is shown smaller than view: center image
-        float l_imageCenter = (l_topLeft.X + l_bottomRight.X) / 2.0f;
-        float l_viewCenter = a_viewSize.cx / 2.0f;
+        float l_imageCenter = (l_topLeft.x + l_bottomRight.x) / 2.0f;
+        float l_viewCenter = a_viewSize.GetWidth() / 2.0f;
         TranslateBy ( l_viewCenter - l_imageCenter, 0.0f );
     }
     
     //validate height
-    if( l_transformedImageSize.cy >= a_viewSize.cy ) 
+    if( l_transformedImageSize.GetHeight() >= a_viewSize.GetHeight() ) 
     {
         l_isMovable = true;
 
         //image is shown larger than view: make sure there's no empty space around picture!
-        if(l_topLeft.Y > 0) {
-			TranslateBy ( 0.0f, -l_topLeft.Y );
+        if(l_topLeft.y > 0) {
+			TranslateBy ( 0.0f, -l_topLeft.y );
         }
-        if(l_bottomRight.Y < a_viewSize.cy ) {
-            TranslateBy ( 0.0f, a_viewSize.cy - l_bottomRight.Y );
+        if(l_bottomRight.y < a_viewSize.GetHeight() ) {
+            TranslateBy ( 0.0f, a_viewSize.GetHeight() - l_bottomRight.y );
         }
     } 
     else 
     {
         //image is shown smaller than view: center image
-        float l_imageCenter = (l_bottomRight.Y + l_topLeft.Y) / 2.0f;
-        float l_viewCenter = a_viewSize.cy / 2.0f;
+        float l_imageCenter = (l_bottomRight.y + l_topLeft.y) / 2.0f;
+        float l_viewCenter = a_viewSize.GetHeight() / 2.0f;
         TranslateBy ( 0.0f, l_viewCenter - l_imageCenter );
     }
     
 	return l_isMovable;
 }
 
-void AffineTransform::TransformSize(CSize & a_size) const
+void AffineTransform::TransformSize(wxSize& a_size) const
 {
-	a_size.cx = static_cast<LONG>(a_size.cx * m_scale);
-	a_size.cy = static_cast<LONG>(a_size.cy * m_scale);
+	a_size.SetWidth(a_size.GetWidth() * m_scale);
+	a_size.SetHeight(a_size.GetHeight() * m_scale);
 }
 
-void AffineTransform::TransformPoint(PointF & a_point) const
+void AffineTransform::TransformPoint(wxRealPoint& a_point) const
 {
-	a_point.X *= m_scale;
-	a_point.Y *= m_scale;
-	a_point.X += m_translationX;
-	a_point.Y += m_translationY;
+	a_point.x *= m_scale;
+	a_point.y *= m_scale;
+	a_point.x += m_translationX;
+	a_point.y += m_translationY;
 }
 
 float AffineTransform::GetTranslationX(void) const
