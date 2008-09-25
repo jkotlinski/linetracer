@@ -7,9 +7,13 @@
 
     <exe id="linetracer" template="wx">
         <debug-info>on</debug-info>
-        <runtime-libs>dynamic</runtime-libs>
+		
+		<runtime-libs>dynamic</runtime-libs>
 
         <sources>AffineTransform.cpp</sources>
+
+		<wx-lib>core</wx-lib>
+		<wx-lib>base</wx-lib>
 
     </exe>
 
