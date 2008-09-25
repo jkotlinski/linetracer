@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<!-- $Id$ -->
+
+<makefile>
+
+    <include file="presets/wx.bkl"/>
+
+    <exe id="linetracer" template="wx">
+        <debug-info>on</debug-info>
+        <runtime-libs>dynamic</runtime-libs>
+
+        <sources>AffineTransform.cpp</sources>
+
+    </exe>
+
+</makefile>
+
