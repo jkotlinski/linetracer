@@ -1,4 +1,3 @@
-#include "StdAfx.h"
 #include "AreaContourizer.h"
 
 using namespace std;
@@ -25,12 +24,8 @@ namespace ImageProcessing {
 	AreaContourizer::AreaContourizer(void)
 	: CImageProcessor()
 	{
-		SetName(CString("Areas to Closed Curves"));
+		SetName("Areas to Closed Curves");
 		SetType(CImageProcessor::AREA_CONTOURIZER);
-	}
-
-	AreaContourizer::~AreaContourizer(void)
-	{
 	}
 
 	AreaContourizer* AreaContourizer::Instance() {

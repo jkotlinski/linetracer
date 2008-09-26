@@ -10,7 +10,6 @@ namespace ImageProcessing {
 		AreaContourizer(void);
 	public:
 		static AreaContourizer* Instance();
-		~AreaContourizer(void);
 		CSketchImage* Process(CProjectSettings & a_project_settings, CSketchImage* src);
 	};
 

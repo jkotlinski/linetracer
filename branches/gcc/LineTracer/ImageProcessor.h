@@ -31,11 +31,11 @@ public:
 	};
 
 private:
-	CString m_name;
+	wxString m_name;
 	bool m_IsValid;
 public:
-	const CString* GetName(void);
-	void SetName(const CString &a_name);
+	const wxString* GetName(void);
+	void SetName(const wxString &a_name);
 	CImageProcessor::Type GetType(void);
 protected:
 	void SetType( CImageProcessor::Type a_type );

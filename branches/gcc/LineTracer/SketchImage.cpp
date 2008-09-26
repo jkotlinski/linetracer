@@ -1,5 +1,4 @@
-#include "StdAfx.h"
-#include "sketchimage.h"
+#include "SketchImage.h"
 
 CSketchImage::CSketchImage(void)
 : m_Width(0)

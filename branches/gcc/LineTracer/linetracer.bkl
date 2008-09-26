@@ -10,7 +10,7 @@
 		
 		<runtime-libs>dynamic</runtime-libs>
 
-        <sources>AffineTransform.cpp</sources>
+        <sources>AffineTransform.cpp AreaContourizer.cpp SketchImage.cpp ImageProcessor.cpp</sources>
 
 		<wx-lib>core</wx-lib>
 		<wx-lib>base</wx-lib>

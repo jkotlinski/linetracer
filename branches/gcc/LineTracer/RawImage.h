@@ -5,6 +5,16 @@
 #include <deque>
 #include <assert.h>
 
+#include <wx/bitmap.h>
+#include <wx/gdicmn.h>
+#include <wx/graphics.h>
+#include <wx/rawbmp.h>
+
+typedef wxPixelData<wxBitmap, wxNativePixelFormat> PixelData;
+
+class wxBitmap;
+class wxGraphicsContext;
+
 using namespace std;
 
 static const bool k_black = false;
@@ -27,8 +37,8 @@ private:
 
 	T *m_buffer;
 public:
-	explicit CRawImage(Bitmap * b);
-	Bitmap * GetBitmap(void) const;
+	explicit CRawImage(wxBitmap * b);
+	wxBitmap * GetBitmap(void) const;
 	inline void SetPixel(int x, int y, T val);
 	inline T GetPixel(int x, int y) const;
 	inline T GetPixel(int offset) const;
@@ -40,11 +50,11 @@ public:
 	void Fill(T val = 1);
 	CRawImage<T> *Clone() const;
 
-	void DrawUsingGraphics(Graphics& a_graphics);
+	void DrawUsingGraphics(wxGraphicsContext& a_graphics);
 
 private:
 
-	bool IsPointThinnable(CPoint p) {
+	bool IsPointThinnable(wxPoint p) {
 		//0 = 0, 1 = 1, 2 = don't care
 		static const char matrix[8][3][3] = 
 		{
@@ -104,28 +114,28 @@ public:
 template <class T>
 inline void CRawImage<T>::SetPixel(int x, int y, T val)
 {
-	ASSERT ( m_buffer != NULL );
+	wxASSERT ( m_buffer != NULL );
 	m_buffer[y*GetWidth()+x]=val;
 }
 
 template <class T>
 inline T CRawImage<T>::GetPixel(int x, int y) const
 {
-	ASSERT ( m_buffer != NULL );
+	wxASSERT ( m_buffer != NULL );
  	return m_buffer[y*GetWidth()+x];
 }
 
 template <class T>
 inline T CRawImage<T>::GetPixel(int offset) const
 {
-	ASSERT ( m_buffer != NULL );
+	wxASSERT ( m_buffer != NULL );
 	return m_buffer[offset];
 }
 
 template <class T>
 inline void CRawImage<T>::SetPixel(int offset, T val)
 {
-	ASSERT ( m_buffer != NULL );
+	wxASSERT ( m_buffer != NULL );
 	m_buffer[offset]=val;
 }
 
@@ -146,8 +156,8 @@ CRawImage<T>::CRawImage(int width, int height)
 , m_buffer(NULL)
 {
 	SetSize(width,height);
-	ASSERT ( width>=0 );
-	ASSERT ( height>=0 );
+	wxASSERT ( width>=0 );
+	wxASSERT ( height>=0 );
 	//lint -e{737} loss of sign ok
 	m_buffer = new T[width*height];
 }
@@ -159,7 +169,7 @@ CRawImage<T>::~CRawImage(void)
 }
 
 template <class T>
-CRawImage<T>::CRawImage(Bitmap * b)
+CRawImage<T>::CRawImage(wxBitmap * b)
 : CSketchImage()
 , m_buffer(NULL)
 {
@@ -177,73 +187,37 @@ CRawImage<T>::CRawImage(Bitmap * b)
 	// get the pixel values from the bitmap and encode
 	// into the array allocated above.
 
-	BitmapData bmData;
-	Rect rect(0, 0, GetWidth(), GetHeight());
+	PixelData pixels(b);
 
-	Status l_result = b->LockBits(&rect,
-		ImageLockModeRead,
-		PixelFormat32bppARGB,
-		&bmData);
-	ASSERT ( l_result == Ok );
+	wxASSERT ( pixels );
 
-	int stride = bmData.Stride;
-	BYTE *p = static_cast<BYTE*> ( static_cast<void*>(bmData.Scan0));
+	PixelData::Iterator srcIt ( pixels );
 
-	int nOffset = stride - GetWidth()*4;    // bytes to skip at end of
-	// each row
-
-	for(int y=0; y < GetHeight();y++) {
-		for(int x=0; x < GetWidth(); ++x ) {
-			// GDI lies about RGB - internally it's BGR
-			m_buffer[y*GetWidth()+x] =  static_cast<T> ( p[2]<<16 | p[1]<<8 | p[0] );
-			p += 4;
-		}
-		p += nOffset;
+	for(int dstIt = 0; dstIt < GetWidth() * GetHeight(); ++dstIt) 
+	{
+		m_buffer[dstIt] =  static_cast<T> ( srcIt.Red() << 16 | srcIt.Green() << 8 | srcIt.Blue() );
+		++srcIt;
 	}
-	Status l_unlockResult = b->UnlockBits(&bmData);
-	ASSERT ( l_unlockResult == Ok );
 }
 
 template <class T>
-Bitmap * CRawImage<T>::GetBitmap(void) const
+wxBitmap * CRawImage<T>::GetBitmap(void) const
 {
-	// create a temporary Bitmap
-	Bitmap bit(GetWidth(), GetHeight(), PixelFormat32bppARGB);
+	wxBitmap *b = new wxBitmap ( GetWidth(), GetHeight(), 32 );
 
-	// create its clone for returning
-	Bitmap *b = bit.Clone(0, 0, int(bit.GetWidth()), int(bit.GetHeight()),
-		PixelFormat32bppARGB);
+	PixelData pixels ( *b );
+	wxASSERT ( pixels );
 
-	BitmapData bmData;
-	Rect rect(0, 0, int(b->GetWidth()), int(b->GetHeight()) );
-	Status l_result = b->LockBits(&rect,
-		ImageLockModeRead | ImageLockModeWrite,
-		PixelFormat32bppARGB,
-		&bmData);
-	ASSERT ( l_result == Ok);
+	PixelData::Iterator dstIt ( pixels );
 
-	int stride = bmData.Stride;
-	BYTE *p = static_cast<BYTE*> (static_cast<void*> (bmData.Scan0));
-	int nOffset = stride - GetWidth()*4;   // bytes to skip at end of
-	// each row
-
-	ARGB pixel;
-
-	for(int y=0; y < GetHeight(); ++y) {
-		for(int x=0; x < GetWidth(); ++x ) {
-			// GDI lies about RGB - internally it's BGR
-			//lint -e{732} sign loss OK
-			pixel = m_buffer[y*GetWidth()+x]?0xffffffff:0xff000000;
-			p[3] = static_cast<BYTE> ((pixel >> 24) & 0xff);    // pixel alpha
-			p[2] = static_cast<BYTE> ((pixel >> 16) & 0xff);    // pixel red
-			p[1] = static_cast<BYTE> ((pixel >> 8 ) & 0xff);    // pixel green
-			p[0] = static_cast<BYTE> ((pixel      ) & 0xff);    // pixel blue
-			p += 4;
-		}
-		p += nOffset;
+	for(int srcIt = 0; srcIt < GetWidth() * GetHeight(); ++srcIt) 
+	{
+		const unsigned int pixel = m_buffer[srcIt] ? 0xffffffff : 0xff000000;
+		dstIt.Alpha() = (pixel >> 24) & 0xff;
+		dstIt.Red() = (pixel >> 16) & 0xff;
+		dstIt.Green() = (pixel >> 8) & 0xff;
+		dstIt.Blue() = pixel & 0xff;
 	}
-	Status l_unlockResult = b->UnlockBits(&bmData);
-	ASSERT ( l_unlockResult == Ok );
 
 	return b;
 }
@@ -259,20 +233,20 @@ void CRawImage<T>::Clear(void)
 template <class T>
 void CRawImage<T>::Dilate(void)
 {
-	std::vector<CPoint> tmp2;
+	std::vector<wxPoint> tmp2;
 	for(int x=1; x<GetWidth()-1; x++) {
 		for(int y=1; y<GetHeight()-1; y++) {
 			if(GetPixel(x,y)) {
 				if(!GetPixel(x-1,y) || !GetPixel(x+1,y) || !GetPixel(x,y-1) || !GetPixel(x,y+1) ||
 					!GetPixel(x-1,y-1) || !GetPixel(x+1,y-1) || !GetPixel(x+1,y+1) || !GetPixel(x-1,y+1)) {
-					tmp2.push_back(CPoint(x,y));
+					tmp2.push_back(wxPoint(x,y));
 				}
 			}
 		}
 	}
-	std::vector<CPoint>::iterator iter;
+	std::vector<wxPoint>::iterator iter;
 	for(iter=tmp2.begin(); iter!=tmp2.end(); ++iter) {
-		CPoint p = (*iter);
+		wxPoint p = (*iter);
 		SetPixel(p.x,p.y, static_cast<T> ( 0 ));
 	}
 	tmp2.clear();
@@ -281,21 +255,21 @@ void CRawImage<T>::Dilate(void)
 template <class T>
 void CRawImage<T>::Erode(void)
 {
-	std::vector<CPoint> tmp2;
+	std::vector<wxPoint> tmp2;
 	for(int x=1; x<GetWidth()-1; x++) {
 		for(int y=1; y<GetHeight()-1; y++) {
 			if(!GetPixel(x,y)) {
 				if(GetPixel(x-1,y) || GetPixel(x+1,y) || GetPixel(x,y-1) || GetPixel(x,y+1) ||
 					GetPixel(x-1,y-1) || GetPixel(x+1,y-1) || GetPixel(x+1,y+1) || GetPixel(x-1,y+1)
 					) {
-					tmp2.push_back(CPoint(x,y));
+					tmp2.push_back(wxPoint(x,y));
 				}
 			}
 		}
 	}
-	std::vector<CPoint>::iterator iter;
+	std::vector<wxPoint>::iterator iter;
 	for(iter=tmp2.begin(); iter!=tmp2.end(); ++iter) {
-		CPoint p = (*iter);
+		wxPoint p = (*iter);
 		SetPixel(p.x,p.y, static_cast<T>(0xffffff));
 	}
 	tmp2.clear();
@@ -321,20 +295,14 @@ void CRawImage<T>::PaintPixels( deque<pair<int,int> > a_pixels_to_paint, T a_col
 }
 
 template <class T>
-void CRawImage<T>::DrawUsingGraphics(Graphics& a_graphics)
+void CRawImage<T>::DrawUsingGraphics(wxGraphicsContext& a_graphics)
 {
-	CLogger::Activate();
-	LOG ( "RawImage->DrawUsingGraphics()\n" );
+	//CLogger::Activate();
+	//LOG ( "RawImage->DrawUsingGraphics()\n" );
 
-	Bitmap *l_bitmap = GetBitmap();
-	Status l_drawImageResult = a_graphics.DrawImage( l_bitmap, 0, 0, GetWidth(), GetHeight());
+	wxBitmap *l_bitmap = GetBitmap();
+	a_graphics.DrawBitmap( *l_bitmap, 0, 0, GetWidth(), GetHeight());
 	delete l_bitmap;
-	if ( l_drawImageResult != Ok )
-	{
-		CLogger::Activate();
-		LOG ( "drawImageResult: %i\n", l_drawImageResult );
-		ASSERT ( false );
-	}
 }
 
 template <class T>
