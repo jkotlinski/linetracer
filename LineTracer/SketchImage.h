@@ -1,5 +1,7 @@
 #pragma once
 
+class wxGraphicsContext;
+
 class CSketchImage
 {
 public:
@@ -16,7 +18,7 @@ private:
 	int m_Pixels;
 public:
 	virtual void Clear(void)=0;
-	virtual void DrawUsingGraphics(Graphics & a_graphics)=0;
+	virtual void DrawUsingGraphics(wxGraphicsContext & a_graphics)=0;
 };
 
 inline int CSketchImage::GetHeight() const {

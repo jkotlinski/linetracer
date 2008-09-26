@@ -1,5 +1,4 @@
-#include "StdAfx.h"
-#include "imageprocessor.h"
+#include "ImageProcessor.h"
 
 CImageProcessor::CImageProcessor()
 : m_IsValid(false)
@@ -13,12 +12,12 @@ CImageProcessor::~CImageProcessor(void)
 {
 }
 
-const CString *CImageProcessor::GetName(void)
+const wxString *CImageProcessor::GetName(void)
 {
 	return &m_name;
 }
 
-void CImageProcessor::SetName(const CString &a_name)
+void CImageProcessor::SetName(const wxString &a_name)
 {
 	m_name = a_name;
 }
@@ -28,6 +27,6 @@ void CImageProcessor::SetType(enum Type a_type) {
 }
 
 CImageProcessor::Type CImageProcessor::GetType ( void ) {
-	ASSERT ( m_type != INVALID_TYPE );
+	wxASSERT ( m_type != INVALID_TYPE );
 	return m_type;
 }
